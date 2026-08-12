@@ -1,0 +1,57 @@
+name: Windows-Programm bauen
+
+on:
+  push:
+    paths:
+      - "tool/dateiumzug.py"
+      - ".github/workflows/build-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: PyInstaller installieren
+        run: pip install --upgrade pyinstaller
+
+      - name: Programm uebersetzen
+        run: >
+          pyinstaller --noconfirm --onefile --windowed
+          --name Dateiumzug2026
+          tool/dateiumzug.py
+
+      - name: Kurzer Startcheck
+        run: |
+          if (-not (Test-Path dist/Dateiumzug2026.exe)) { throw "Datei wurde nicht erzeugt" }
+          $size = (Get-Item dist/Dateiumzug2026.exe).Length / 1MB
+          Write-Host ("Erzeugt: {0:N1} MB" -f $size)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dateiumzug2026-windows
+          path: dist/Dateiumzug2026.exe
+          retention-days: 90
+
+      # Zusaetzlich als Veroeffentlichung ablegen. Das gibt einen dauerhaften
+      # Link direkt auf die exe -- ohne Anmeldung, ohne ZIP, ohne Actions.
+      - name: Als Veroeffentlichung ablegen
+        if: github.ref == 'refs/heads/claude/file-management-artifact-s2t2ep'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create werkzeug-neueste `
+            --title "Dateiumzug 2026 - Werkzeug" `
+            --notes "Windows-Programm fuer den Dateiumzug. Datei herunterladen, entpacken entfaellt, doppelklicken. Beim ersten Start meldet sich Windows mit 'Der Computer wurde geschuetzt' -- auf 'Weitere Informationen' und dann 'Trotzdem ausfuehren' klicken. Das Programm loescht nichts." `
+            --latest 2>$null
+          $global:LASTEXITCODE = 0
+          gh release upload werkzeug-neueste dist/Dateiumzug2026.exe --clobber

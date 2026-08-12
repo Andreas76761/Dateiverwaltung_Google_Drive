@@ -1,0 +1,11 @@
+# Nebenprodukte von Python
+__pycache__/
+*.py[cod]
+
+# Bauverzeichnisse von PyInstaller
+/build/
+/dist/
+*.spec
+
+# Gebaute Programmdatei — sie liegt unter Veroeffentlichungen, nicht hier
+/tool/fertig/

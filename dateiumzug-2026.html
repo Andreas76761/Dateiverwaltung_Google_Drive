@@ -541,6 +541,235 @@
     gap: var(--s4);
     justify-content: space-between;
   }
+
+  /* ---------- Register ---------- */
+
+  .tabs {
+    display: flex;
+    gap: var(--s1);
+    margin-top: var(--s6);
+    margin-bottom: calc(var(--s6) * -1 + -2px);
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0;
+  }
+
+  .tab {
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    background: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    padding: var(--s3) var(--s4);
+    cursor: pointer;
+    margin-bottom: -2px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] {
+    color: var(--accent);
+    background: var(--surface);
+    border-color: var(--ink);
+    border-bottom: 2px solid var(--surface);
+  }
+
+  body[data-view="explorer"] .rail,
+  body[data-view="explorer"] main { display: none; }
+  body[data-view="plan"] #explorer { display: none; }
+
+  @media (min-width: 1060px) {
+    body[data-view="explorer"] .page { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* ---------- Explorer ---------- */
+
+  #explorer {
+    grid-column: 1 / -1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s5);
+    padding-bottom: var(--s7);
+  }
+
+  .xp-intro { max-width: 70ch; }
+  .xp-intro p { margin-bottom: var(--s3); }
+
+  .xp-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: var(--s4);
+  }
+
+  .xp-legend {
+    font-family: var(--f-mono);
+    font-size: .625rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 var(--s3);
+    display: block;
+  }
+
+  .xp-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: var(--s3) var(--s4);
+    align-items: end;
+  }
+
+  .xp-field { display: flex; flex-direction: column; gap: var(--s1); min-width: 0; }
+  .xp-field > label {
+    font-family: var(--f-mono);
+    font-size: .625rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .xp-field .pair { display: flex; gap: var(--s2); }
+
+  #explorer input[type="text"],
+  #explorer input[type="number"],
+  #explorer input[type="date"],
+  #explorer select {
+    font-family: var(--f-body);
+    font-size: .875rem;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line-2);
+    padding: .4rem .5rem;
+    width: 100%;
+    min-width: 0;
+    border-radius: 2px;
+  }
+  #explorer input[type="number"] { font-variant-numeric: tabular-nums; }
+
+  .xp-cats { display: flex; flex-wrap: wrap; gap: var(--s2); }
+  .xp-cat {
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    padding: .2rem .5rem;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    color: var(--ink-2);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .xp-cat[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-sf);
+    color: var(--accent);
+  }
+
+  .xp-check { display: flex; align-items: center; gap: var(--s2); font-size: .8125rem; color: var(--ink-2); }
+  .xp-check input { accent-color: var(--accent); }
+
+  .xp-btn {
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .45rem .7rem;
+    border: 1px solid var(--line-2);
+    background: var(--bg);
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .xp-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .xp-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .xp-btn.primary { border-color: var(--accent); background: var(--accent-sf); color: var(--accent); }
+
+  .xp-actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); }
+
+  .xp-panes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s4);
+  }
+  @media (min-width: 900px) { .xp-panes { grid-template-columns: 1fr 1fr; } }
+
+  .xp-pane {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .xp-pane-head {
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s2) var(--s3);
+  }
+  .xp-pane-id {
+    font-family: var(--f-mono);
+    font-size: .625rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .xp-pane-path {
+    font-family: var(--f-mono);
+    font-size: .75rem;
+    color: var(--ink-2);
+    flex: 1 1 8rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .xp-stats {
+    padding: var(--s2) var(--s4);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+  }
+  .xp-stats b { color: var(--accent); font-weight: 600; }
+
+  .xp-list { overflow: auto; max-height: 26rem; }
+  .xp-list table { min-width: 26rem; font-size: .8125rem; }
+  .xp-list thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    cursor: pointer;
+    user-select: none;
+  }
+  .xp-list thead th:hover { color: var(--accent); }
+  .xp-list td, .xp-list th { padding: .3rem var(--s3); }
+  .xp-list td.f-name { font-family: var(--f-mono); font-size: .75rem; word-break: break-all; }
+  .xp-list td.f-dir  { font-family: var(--f-mono); font-size: .6875rem; color: var(--ink-3); word-break: break-all; }
+  .xp-list tbody tr:hover { background: var(--surface-2); }
+  .xp-list input[type="checkbox"] { accent-color: var(--accent); }
+  .xp-empty { padding: var(--s5); color: var(--ink-3); font-size: .875rem; text-align: center; }
+  .xp-more { padding: var(--s3); text-align: center; font-size: .75rem; color: var(--ink-3); font-family: var(--f-mono); }
+
+  .xp-status {
+    font-family: var(--f-mono);
+    font-size: .75rem;
+    padding: var(--s3) var(--s4);
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    min-height: 2.5rem;
+  }
+  .xp-status.ok   { border-color: var(--accent); color: var(--accent); background: var(--accent-sf); }
+  .xp-status.warn { border-color: var(--warn);   color: var(--warn);   background: var(--warn-sf); }
+
+  .xp-note { font-size: .8125rem; color: var(--ink-2); margin: var(--s3) 0 0; max-width: 70ch; }
 </style>
 
 <div class="page">
@@ -558,11 +787,22 @@
     <dl class="facts">
       <div class="fact"><dt>Zielordner</dt><dd>Andreas_2026_Dateiverwaltung</dd></div>
       <div class="fact"><dt>Grösse pro Datei</dt><dd>höchstens 120 MB</dd></div>
-      <div class="fact"><dt>Speicher im Ziel</dt><dd>2 TB oder mehr</dd></div>
+      <div class="fact"><dt>Zielkonto</dt><dd>privates Google-Konto</dd></div>
+      <div class="fact"><dt>Speicher</dt><dd>5 TB, geteilt mit Gmail und Fotos</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
+      <div class="fact"><dt>Video</dt><dd>nicht dabei, nur erfasst</dd></div>
+      <div class="fact"><dt>Bilder</dt><dd>zentral nach Jahr, plus Google Fotos</dd></div>
+      <div class="fact"><dt>Rechner</dt><dd>4 × Windows, im WLAN</dd></div>
+      <div class="fact"><dt>Einsammeln</dt><dd>NTFS-Platte, wandert per USB</dd></div>
+      <div class="fact"><dt>Upload</dt><dd>Sammelrechner am LAN-Kabel</dd></div>
       <div class="fact"><dt>Duplikate</dt><dd>markieren, nie löschen</dd></div>
       <div class="fact"><dt>Werkzeuge</dt><dd>Programme mit Oberfläche</dd></div>
     </dl>
+
+    <nav class="tabs" aria-label="Ansicht">
+      <button type="button" class="tab" data-go="plan" aria-selected="true">Vorgehensplan</button>
+      <button type="button" class="tab" data-go="explorer" aria-selected="false">File Explorer</button>
+    </nav>
   </header>
 
   <nav class="rail" aria-label="Inhalt">
@@ -570,8 +810,8 @@
     <ol>
       <li><a href="#regeln"><span>§</span>Grundregeln</a></li>
       <li><a href="#realitaet"><span>!</span>Realitätscheck</a></li>
-      <li><a href="#variante"><span>A/B</span>Zwei Wege</a></li>
-      <li><a href="#phasen"><span>0–8</span>Die Phasen</a></li>
+      <li><a href="#variante"><span>A</span>Der Weg</a></li>
+      <li><a href="#phasen"><span>0–9</span>Die Phasen</a></li>
       <li><a href="#struktur"><span>/</span>Zielstruktur</a></li>
       <li><a href="#index"><span>#</span>Index-Schema</a></li>
       <li><a href="#tags"><span>@</span>Tag-Vokabular</a></li>
@@ -595,7 +835,7 @@
       <ul class="rules">
         <li>
           <h3>Es wird kopiert, nie verschoben</h3>
-          <p>Bis zum Schlussabgleich in Phase 8 bleibt jede Quelle unangetastet. Ein abgebrochener Umzug darf nie Daten kosten.</p>
+          <p>Bis zum Schlussabgleich in Phase 9 bleibt jede Quelle unangetastet. Ein abgebrochener Umzug darf nie Daten kosten.</p>
         </li>
         <li>
           <h3>Gelöscht wird erst nach Sichtung</h3>
@@ -632,9 +872,19 @@
               <td>Die Dublettensuche läuft <b>lokal vor dem Upload</b>, wo die Werkzeuge stark sind.</td>
             </tr>
             <tr>
-              <td><b>Labels gibt es nur in Workspace</b></td>
-              <td>Die Drive-Funktion „Labels“ ist Geschäftskonten vorbehalten. Ein privates Google-Konto hat sie nicht.</td>
-              <td>Tags leben in einer Tabelle in <code>00_Index</code>, nicht in Drive selbst.</td>
+              <td><b>Keine Labels an den Dateien</b></td>
+              <td>Die Drive-Funktion „Labels“ ist Geschäftskonten vorbehalten. Dein privates Konto hat sie nicht — Drive kennt ausser Ordner, Stern und Farbe keine Ordnungsmerkmale.</td>
+              <td>Tags leben in einer Tabelle in <code>00_Index</code>. Das ist keine Notlösung: eine Tabelle lässt sich filtern, sortieren und massenhaft ändern, Labels nicht.</td>
+            </tr>
+            <tr>
+              <td><b>Ein Speicher für drei Dienste</b></td>
+              <td>Die 5 TB teilen sich <b>Drive, Gmail und Google Fotos</b>. Weil deine Fotos künftig in Drive <em>und</em> in Fotos liegen, zählt jedes Bild zweimal — die beiden Dienste kennen einander nicht.</td>
+              <td>Vor Phase 6 unter <code>one.google.com/storage</code> die Aufteilung ansehen. Die zweite Fotokopie in <b>Speicherplatzsparend</b> hochladen: das drückt den Aufschlag von 100 auf etwa 10 bis 30 Prozent.</td>
+            </tr>
+            <tr>
+              <td><b>Kein Administrator im Rücken</b></td>
+              <td>Bei Geschäftskonten kann ein Admin gelöschte Dateien noch nach dem Papierkorb zurückholen und ein gesperrtes Konto entsperren. Bei einem privaten Konto gibt es beides nicht: nach 30 Tagen Papierkorb ist eine Datei endgültig weg.</td>
+              <td>Die 90-Tage-Karenz in Phase 9 ist deshalb Pflicht, nicht Vorsicht — und die Sammelplatte bleibt dauerhaft als Zweitkopie erhalten.</td>
             </tr>
             <tr>
               <td><b>750 GB Upload pro Tag</b></td>
@@ -656,58 +906,108 @@
           Dropbox, OneDrive und iCloud zeigen Dateien an, die gar nicht auf der Platte liegen —
           sie sind „nur online“ und nur ein Platzhalter von wenigen Bytes. Kopierst du diesen Ordner,
           landen leere Hüllen in deinem Drive, und du merkst es erst Monate später.
-          <b>Vor jedem Kopiervorgang</b> den Ordner im Explorer oder Finder mit
+          <b>Vor jedem Kopiervorgang</b> den Ordner im Explorer mit
           „Immer auf diesem Gerät behalten“ herunterladen und warten, bis der Sync fertig ist.
+        </p>
+      </div>
+
+      <div class="note warn">
+        <span class="note-label">Was dieser Umzug nebenbei erzeugt</span>
+        <p>
+          Am Ende hängt dein gesamter digitaler Bestand an einem privaten Google-Konto — an einer
+          Mailadresse, einem Passwort, einer Telefonnummer. Bisher war er über vier Rechner und
+          mehrere Platten verteilt und damit unbequem, aber schwer vollständig zu verlieren.
+          Diese Streuung gibst du auf. Zwei Dinge fangen das auf, beide kosten wenig:
+        </p>
+        <p>
+          <b>Zweistufige Bestätigung einschalten</b>, mindestens zwei Wiederherstellungswege
+          hinterlegen (zweite Mailadresse und Telefonnummer, beide aktuell), und die
+          <b>Backup-Codes ausdrucken</b> — nicht in Drive ablegen, das wäre der Schlüssel im
+          verschlossenen Schrank. Und: die <b>Sammelplatte wird nach dem Umzug nicht gelöscht</b>,
+          sondern bleibt als vollständige Zweitkopie liegen, offline und unabhängig von Google.
         </p>
       </div>
     </section>
 
-    <!-- ================= VARIANTEN ================= -->
+    <!-- ================= VARIANTE A ================= -->
     <section id="variante">
-      <div class="sec-head"><span class="sec-num">A/B</span><h2>Erst eine Weiche stellen</h2></div>
+      <div class="sec-head"><span class="sec-num">A</span><h2>Der Weg steht fest: eine Sammelplatte</h2></div>
       <p class="lede">
-        Die Dublettensuche funktioniert nur dort gut, wo alle Dateien gleichzeitig greifbar sind.
-        Ob das lokal möglich ist, hängt daran, ob deine vier Rechner am selben Ort stehen.
+        Alle vier Rechner stehen bei dir zuhause — damit ist Variante A gesetzt. Alles landet zuerst
+        auf <b>einer</b> externen Platte, wird dort in einem einzigen Durchgang entdoppelt, und geht
+        von <b>einem</b> Rechner aus nach oben. Das ist nicht nur bequemer, es ist der einzige Weg,
+        auf dem quellenübergreifende Dubletten sauber gefunden werden — und die sind bei vier
+        Rechnern der grösste Brocken: dieselben Fotos und Dokumente liegen typischerweise auf dreien davon.
       </p>
 
-      <div class="variants">
-        <div class="variant pick">
-          <span class="variant-tag">Variante A · empfohlen</span>
-          <h3>Eine Sammelplatte für alles</h3>
-          <p>Eine externe Platte wandert zu jedem Rechner und nimmt dessen Auswahl auf. Danach liegt alles einmal an einem Ort.</p>
-          <ul>
-            <li>Eine einzige Dublettensuche über den gesamten Bestand — auch quellenübergreifend.</li>
-            <li>Nur eine Upload-Strecke, von einem Rechner aus, kontrollierbar.</li>
-            <li>Die Platte bleibt danach als Zweitkopie liegen.</li>
-            <li>Braucht: freie Kapazität mindestens in Höhe des Gesamtvolumens.</li>
-          </ul>
-        </div>
-        <div class="variant">
-          <span class="variant-tag">Variante B · verteilt</span>
-          <h3>Jeder Rechner lädt selbst hoch</h3>
-          <p>Sinnvoll, wenn die Rechner an verschiedenen Orten stehen und keine Platte herumreisen kann.</p>
-          <ul>
-            <li>Dubletten <i>innerhalb</i> einer Quelle findest du sofort, lokal.</li>
-            <li>Dubletten <i>zwischen</i> Quellen erst später, und nur mit heruntergeladenen Ordnern.</li>
-            <li>Vier parallele Uploads, mehr Buchhaltung, mehr Fehlerquellen.</li>
-            <li>Reihenfolge zählt: den grössten Rechner zuerst hochladen.</li>
-          </ul>
-        </div>
+      <h3>Die Platte wandert, per USB</h3>
+      <p>
+        Weil es im Haus nur WLAN gibt, fällt der Weg über Netzwerkfreigaben aus: mehrere hundert
+        Gigabyte über Funk sind eine Geduldsprobe, und jede Unterbrechung reisst einen Kopierlauf
+        mitten entzwei. Die Platte geht stattdessen nacheinander an jeden der vier Rechner —
+        USB ist um ein Vielfaches schneller und stabil.
+      </p>
+
+      <div class="note">
+        <span class="note-label">Vier mal Windows · das räumt das grösste Problem weg</span>
+        <p>
+          Eine wandernde Platte muss von jedem Rechner <em>beschreibbar</em> sein. Bei gemischten
+          Systemen bliebe dafür nur exFAT — überall beschreibbar, aber ohne Journal und damit anfällig,
+          wenn beim Schreiben das Kabel rutscht. Da bei dir alles Windows läuft, entfällt das:
+          <b>die Sammelplatte wird NTFS.</b> Journaled, unbegrenzte Dateigrössen, keine Zusatztreiber.
+        </p>
+        <p>
+          Ist die Platte heute exFAT oder FAT32 formatiert: Neuformatieren auf NTFS <b>löscht sie
+          vollständig</b>. Also vorher prüfen, was darauf liegt — und falls das selbst zu den zu
+          sichernden Quellen gehört, bekommt sie ein eigenes Kürzel <code>EXT…</code> und wird
+          zuerst woanders hin gesichert.
+        </p>
       </div>
 
       <div class="note">
-        <span class="note-label">Empfehlung</span>
+        <span class="note-label">Das Kabel greift genau an einer Stelle</span>
         <p>
-          Nimm Variante A, sobald du die Rechner physisch erreichen kannst. Der Unterschied ist nicht
-          Bequemlichkeit, sondern Qualität: quellenübergreifende Dubletten sind bei einem so gewachsenen
-          Bestand der grösste Brocken — dieselben Fotos und Dokumente liegen typischerweise auf drei von vier Rechnern.
+          Beim Einsammeln nicht — dort läuft alles über USB, das WLAN ist unbeteiligt. Und es macht
+          auch den Weg über Netzwerkfreigaben nicht wieder attraktiv: die anderen drei Rechner hängen
+          weiter im Funknetz, ihr Weg zum Sammelrechner führt also so oder so über WLAN. Die Platte wandert.
+        </p>
+        <p>
+          Wo das Kabel zählt, ist <b>Phase 6</b> — Tage Dauerübertragung vom Sammelrechner zu Google Drive.
+          Da du es legen kannst, gelten die Zeiten in der <a href="#zeit">Uploadtabelle</a> unverkürzt,
+          statt sich über Funk zu verdoppeln, und der Upload läuft nachts unbeaufsichtigt durch.
+          <b>Damit ist der Sammelrechner der, den du mit dem Kabel erreichst</b> — dieses Kriterium
+          geht in Phase 0 allen anderen vor.
         </p>
       </div>
+
+      <h3>Der Ablauf mit der Platte</h3>
+      <ul>
+        <li>Ein Rechner wird <b>Sammelrechner</b> — der, an den das LAN-Kabel reicht; bei mehreren der mit dem meisten Platz. Bei ihm bleibt die Platte am Ende stehen, von ihm läuft der Upload.</li>
+        <li>Die Platte geht nacheinander an die anderen drei, nimmt deren Auswahl auf, kommt zurück.</li>
+        <li>Jedes Mal <b>sicher auswerfen</b>, bevor der Stecker gezogen wird. NTFS verzeiht viel, aber nicht alles.</li>
+        <li>Nach jedem Rechner in der Datenträgerverwaltung kurz eine Fehlerprüfung laufen lassen — dauert Minuten und erspart böse Überraschungen in Phase 4.</li>
+        <li>Bis Phase 9 liegen die Originale ohnehin noch auf den Rechnern. Die Platte ist nie die einzige Kopie.</li>
+      </ul>
+
+      <h3>Die Reihenfolge</h3>
+      <p>
+        Nicht beliebig — sie legt fest, welche Kopie einer doppelten Datei später als Original gilt.
+        Im Werkzeug trägst du sie in Phase 4 in das Feld <b>Vorrang</b> ein — der oberste Ordner
+        gewinnt jeden Gleichstand, seine Dateien landen nie in der Quarantäne. Wer stattdessen
+        AllDup nimmt: dort ist es die Reihenfolge der Suchordner.
+      </p>
+      <ol>
+        <li><b>Der Rechner mit dem wichtigsten Bestand zuerst.</b> Der aktuell genutzte, meist gepflegteste — seine Ordnernamen prägen später die ganze Ablage.</li>
+        <li><b>Dann die übrigen Rechner</b>, absteigend nach Datenmenge.</li>
+        <li><b>Dann die externen Laufwerke.</b> Sie enthalten oft alte Vollsicherungen, deren Inhalte danach fast vollständig als Dubletten wegfallen — das ist der grosse Schnitt.</li>
+        <li><b>Zuletzt die Clouds.</b> Dropbox, OneDrive und iCloud sind meist Teilmengen des schon Vorhandenen.</li>
+        <li><b>Weitere Google-Konten laufen daran vorbei</b> — die gehen per Freigabe direkt nach Drive, ohne Umweg über die Platte.</li>
+      </ol>
     </section>
 
     <!-- ================= PHASEN ================= -->
     <section id="phasen">
-      <div class="sec-head"><span class="sec-num">0–8</span><h2>Der Ablauf in neun Phasen</h2></div>
+      <div class="sec-head"><span class="sec-num">0–9</span><h2>Der Ablauf in zehn Phasen</h2></div>
       <p class="lede">
         Die Reihenfolge ist nicht beliebig: jede Phase liefert das Material, das die nächste braucht.
         Wer bei Phase 3 anfängt, weil das Kopieren am produktivsten aussieht, lädt Müll hoch.
@@ -724,10 +1024,14 @@
               <li>Zielkonto festlegen. Es gibt nur <b>ein</b> Zielkonto — alle anderen Google-Konten sind Quellen.</li>
               <li><code>Andreas_2026_Dateiverwaltung</code> in „Meine Ablage“ anlegen, dazu das Ordnergerüst aus Abschnitt <a href="#struktur">Zielstruktur</a>.</li>
               <li><b>Quellenliste</b> anlegen: jede Quelle bekommt ein kurzes Kürzel, das nie wieder geändert wird — <code>PC1</code> bis <code>PC4</code>, <code>EXT1</code> ff., <code>DBX</code>, <code>ODR</code>, <code>ICL</code>, <code>GD2</code>. Dazu Notiz: welches Gerät, welche Laufwerke, wer nutzt es.</li>
-              <li>Werkzeuge auf allen Rechnern installieren (siehe <a href="#werkzeuge">Werkzeuge</a>).</li>
-              <li>Google Drive für Desktop einrichten, Zielordner als gestreamten Ordner einbinden.</li>
+              <li><b>Sammelrechner bestimmen.</b> Erstes Kriterium: das LAN-Kabel muss ihn erreichen. Zweites: freier Platz. Von ihm aus laufen Dublettensuche und Upload; er ist für ein bis zwei Wochen die Zentrale.</li>
+              <li><b>Kabel jetzt schon legen und testen</b>, nicht erst in Phase 6. Auf <code>speedtest.net</code> den Upload-Wert mit Kabel messen und notieren — daraus ergibt sich, wie lange Phase 6 dauert und wie du sie einteilst.</li>
+              <li><b>Sammelplatte prüfen:</b> Dateisystem <b>NTFS</b> (im Explorer unter Eigenschaften ablesbar), freier Platz mindestens in Höhe des Gesamtvolumens aus Phase 1 plus 20 Prozent Reserve für die Quarantäne.</li>
+              <li><b>Freien Drive-Speicher ablesen</b> unter <code>one.google.com/storage</code>. Die 5 TB teilen sich Drive, Gmail und Fotos — massgeblich ist, was davon übrig ist. Zahl in die Quellenliste eintragen, sie ist die Obergrenze für Phase 6. <b>Bilder brauchen darin Platz für anderthalb Kopien</b>: das Original in Drive plus die komprimierte in Google Fotos.</li>
+              <li>Werkzeuge installieren (siehe <a href="#werkzeuge">Werkzeuge</a>): WizTree, Everything und FreeFileSync auf allen vier Rechnern, AllDup und Drive für Desktop nur auf dem Sammelrechner.</li>
+              <li>Google Drive für Desktop <b>nur auf dem Sammelrechner</b> einrichten, Zielordner als gestreamten Ordner einbinden.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> das Ordnergerüst steht und die Quellenliste jede Platte und jeden Cloud-Account genau einmal nennt.</p>
+            <p class="done"><b>Fertig, wenn</b> das Ordnergerüst steht, die Quellenliste jede Platte und jeden Cloud-Account genau einmal nennt, und die Sammelplatte NTFS-formatiert mit ausreichend Platz bereitliegt.</p>
           </div>
         </article>
 
@@ -737,10 +1041,10 @@
             <h3>Inventur, ohne etwas zu kopieren</h3>
             <p>Erst messen. Du triffst sonst Entscheidungen über eine Datenmenge, die du nicht kennst — und die Schätzung liegt bei gewachsenen Beständen fast immer um den Faktor zwei daneben.</p>
             <ul>
-              <li>Pro Rechner mit <b>WizTree</b> (Windows), <b>GrandPerspective</b> (Mac) oder <b>Filelight</b> (Linux) alle Laufwerke scannen.</li>
+              <li>Pro Rechner mit <b>WizTree</b> alle Laufwerke scannen — es liest die NTFS-Dateitabelle direkt und ist deshalb in Sekunden fertig, wo andere Werkzeuge eine Stunde brauchen.</li>
               <li>Notieren: Gesamtvolumen, Anzahl Dateien, die zehn grössten Ordner, und wo die Nutzdaten wirklich liegen.</li>
-              <li>WizTree und TreeSize exportieren die Dateiliste als CSV — <b>diese Exporte aufheben</b>, sie sind die Rohdaten für den Index in Phase 7.</li>
-              <li>Vergessene Orte gezielt suchen: Downloads, Desktop, alte Benutzerprofile, <code>C:\Users\&lt;alt&gt;</code>, Mail-Archive, Scanner-Ausgabeordner, Handy-Backups.</li>
+              <li>In WizTree über <em>Datei → Als CSV exportieren</em> die komplette Dateiliste sichern — <b>diese Exporte aufheben</b>, sie sind die Rohdaten für den Index in Phase 8. Direkt auf die Sammelplatte, unter <code>D:\S\_INVENTUR\PC1.csv</code>.</li>
+              <li>Vergessene Orte gezielt mit <b>Everything</b> suchen: Downloads, Desktop, alte Benutzerprofile unter <code>C:\Users\</code>, <code>C:\Users\Public</code>, zweite Partitionen, Mail-Archive (<code>*.pst</code>), Scanner-Ausgabeordner, Handy-Backups, alte <code>Eigene Dateien</code>-Ordner aus XP-Zeiten.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> du für jede Quelle eine Zeile hast: Volumen, Dateianzahl, und die drei bis fünf Ordner, die tatsächlich mitkommen sollen.</p>
           </div>
@@ -752,58 +1056,88 @@
             <h3>Die Filterregel festlegen</h3>
             <p>Einmal sauber definiert, gilt sie für alle vier Rechner identisch. Das ist der Grund, warum die Bestände später überhaupt vergleichbar sind.</p>
             <ul>
-              <li><b>Aufnahme:</b> alle Dateien bis 120 MB aus den in Phase 1 bestimmten Nutzdaten-Ordnern.</li>
+              <li><b>Aufnahme:</b> alle Dateien bis <b>120 MB</b> aus den in Phase 1 bestimmten Nutzdaten-Ordnern. Bilder werden hier <em>nicht</em> gesondert behandelt; sie kommen normal mit und werden erst in Phase 5 herausgezogen.</li>
+              <li><b>Video fährt nicht mit.</b> Sämtliche Videoformate stehen auf der Ausschlussliste — unabhängig von der Grösse. Sie werden stattdessen im Register erfasst und bleiben auf den Quellrechnern.</li>
               <li><b>Ausschluss über die Ordnerwahl</b> — das ist der wirksamste Filter: Programmordner, Systemordner und Benutzerprofil-Innereien werden gar nicht erst ausgewählt.</li>
               <li><b>Ausschluss über Masken</b> für den Rest, direkt im Kopierwerkzeug eingetragen.</li>
-              <li>Dateien über 120 MB kommen auf eine eigene Liste „<b>Übergrossen-Register</b>“ (Pfad, Grösse, Quelle) — sie fahren nicht mit, aber du weisst, dass es sie gibt und wo sie liegen.</li>
+              <li>Alles, was nicht mitfährt, kommt auf eine Liste — das <b>Register</b> in <code>00_Index</code>, mit Pfad, Grösse, Quelle und <b>Grund</b>: <code>zu gross</code> oder <code>video</code>. Es ist die Landkarte dessen, was weiter nur auf den Platten liegt.</li>
             </ul>
 
             <div class="scroller">
               <table>
-                <caption>Ausschlussliste — in FreeFileSync unter „Filter → Ausschliessen“ eintragen</caption>
+                <caption>Ausschlussliste für Windows — in FreeFileSync unter „Filter → Ausschliessen“ eintragen</caption>
                 <thead><tr><th>Gruppe</th><th>Ordner</th><th>Endungen</th></tr></thead>
                 <tbody>
                   <tr>
                     <td>System &amp; Programme</td>
-                    <td class="mono">\Windows\ · \Program Files*\ · \ProgramData\ · \AppData\ · \$Recycle.Bin\ · /System/ · /Library/ · /Applications/ · /usr/ · /var/</td>
-                    <td class="mono">*.dll *.exe *.sys *.msi *.pkg *.deb *.rpm *.app</td>
+                    <td class="mono">\Windows\ · \Program Files\ · \Program Files (x86)\ · \ProgramData\ · \$Recycle.Bin\ · \System Volume Information\ · \Recovery\ · \PerfLogs\</td>
+                    <td class="mono">*.dll *.exe *.sys *.msi *.cab *.lnk *.ini</td>
+                  </tr>
+                  <tr>
+                    <td>Benutzerprofil-Innereien</td>
+                    <td class="mono">\AppData\Local\ · \AppData\LocalLow\ · \AppData\Roaming\*\Cache*\ · \OneDrive\.849C9593*\</td>
+                    <td class="mono">NTUSER.DAT* *.regtrans-ms *.blf</td>
                   </tr>
                   <tr>
                     <td>Entwicklung</td>
-                    <td class="mono">\node_modules\ · \.git\ · \venv\ · \__pycache__\ · \build\ · \dist\ · \target\</td>
-                    <td class="mono">*.pyc *.o *.class</td>
+                    <td class="mono">\node_modules\ · \.git\ · \venv\ · \__pycache__\ · \build\ · \dist\ · \target\ · \packages\</td>
+                    <td class="mono">*.pyc *.o *.obj *.class *.pdb</td>
                   </tr>
                   <tr>
                     <td>Temporär &amp; Cache</td>
-                    <td class="mono">\Temp\ · \Cache*\ · \.Trash\ · /Library/Caches/</td>
-                    <td class="mono">*.tmp *.temp ~$* *.bak Thumbs.db .DS_Store desktop.ini *.crdownload *.part</td>
+                    <td class="mono">\Temp\ · \Windows\Temp\ · \Cache*\ · \INetCache\ · \CrashDumps\</td>
+                    <td class="mono">*.tmp *.temp ~$* *.bak Thumbs.db desktop.ini *.crdownload *.part *.log *.dmp</td>
+                  </tr>
+                  <tr>
+                    <td>Video</td>
+                    <td class="mono">—</td>
+                    <td class="mono">*.mp4 *.mov *.m4v *.avi *.mkv *.wmv *.mpg *.mpeg *.3gp *.mts *.m2ts *.webm *.flv</td>
                   </tr>
                   <tr>
                     <td>Abbilder &amp; Maschinen</td>
-                    <td class="mono">\Virtual Machines\ · \VirtualBox VMs\</td>
-                    <td class="mono">*.vmdk *.vdi *.vhd *.vhdx *.iso *.dmg *.img *.qcow2 *.sparsebundle</td>
+                    <td class="mono">\Virtual Machines\ · \VirtualBox VMs\ · \Hyper-V\ · \WindowsImageBackup\</td>
+                    <td class="mono">*.vmdk *.vdi *.vhd *.vhdx *.iso *.img *.qcow2 *.wim *.esd</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <p class="done"><b>Fertig, wenn</b> die Filtereinstellung in FreeFileSync als Konfiguration gespeichert ist und auf jedem Rechner geladen werden kann.</p>
+            <div class="note">
+              <span class="note-label">Warum Video draussen bleibt</span>
+              <p>
+                Unter der 120-MB-Grenze passt kaum mehr als eine Minute Telefonvideo. Was mitkäme,
+                wären also Schnipsel — der eigentliche Videobestand bliebe ohnehin zurück, und du
+                hättest die Sammlung an zwei Orten statt an einem. Sauberer ist der klare Schnitt:
+                Video wird in diesem Umzug <b>nicht kopiert, sondern nur verzeichnet</b>, und bleibt
+                geschlossen auf den Quellrechnern und Platten.
+              </p>
+              <p>
+                Das Register aus dieser Phase sagt dir hinterher, wo wie viel liegt. Ob daraus eine
+                eigene Videosicherung wird — auf der Sammelplatte, mit anderen Werkzeugen, zu
+                anderer Zeit — entscheidest du in Phase 9 mit dieser Liste in der Hand.
+              </p>
+            </div>
+
+            <p class="done"><b>Fertig, wenn</b> die Filterdatei gespeichert ist, auf der Sammelplatte liegt und sich auf einem zweiten Rechner laden lässt.</p>
           </div>
         </article>
 
         <article class="phase">
           <div class="phase-marker">Phase 3<em>2–8 Std. je Rechner</em></div>
           <div class="phase-body">
-            <h3>Sammeln je Quelle</h3>
-            <p>Jetzt wird kopiert — aber noch nicht in die Cloud, sondern in einen Sammelordner pro Quelle. Dazwischen liegt die Dublettenprüfung, und die willst du auf schneller lokaler Platte machen, nicht über die Leitung.</p>
+            <h3>Sammeln auf der Platte</h3>
+            <p>Jetzt wird kopiert — aber noch nicht in die Cloud, sondern auf die Sammelplatte, ein Ordner je Quelle. Dazwischen liegt die Dublettenprüfung, und die willst du auf schneller lokaler Platte machen, nicht über die Leitung.</p>
             <ul>
-              <li>Sammelordner mit <b>kurzem Pfad</b> anlegen: <code>D:\S\PC1</code> statt <code>D:\Umzug\Sammlung\Rechner Büro\</code>. Windows bricht bei langen Pfaden mitten im Kopieren ab.</li>
-              <li>In <b>FreeFileSync</b>: links den Quellordner, rechts den Sammelordner, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherten Filter aus Phase 2 laden, Maximalgrösse 120 MB eintragen.</li>
+              <li>Auf der Sammelplatte je Quelle einen Ordner mit <b>kurzem Pfad</b> anlegen: <code>D:\S\PC1</code> statt <code>D:\Umzug\Sammlung\Rechner Büro\</code>. Windows bricht bei langen Pfaden mitten im Kopieren ab.</li>
+              <li>In <b>FreeFileSync</b>: links der Quellordner des Rechners, rechts der Ordner auf der angesteckten Sammelplatte, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherte Filterdatei aus Phase 2 laden.</li>
+              <li>Die Filterdatei aus Phase 2 <b>auf der Sammelplatte mitführen</b> und an jedem Rechner von dort laden — so ist ausgeschlossen, dass die vier Rechner mit leicht verschiedenen Regeln arbeiten.</li>
+              <li>Reihenfolge einhalten: wichtigster Rechner zuerst, externe Laufwerke nach den Rechnern, Clouds zuletzt.</li>
               <li>Erst „Vergleichen“, das Ergebnis ansehen, dann „Synchronisieren“. Die Vorschau ist deine letzte Kontrolle vor dem Schreiben.</li>
               <li>Die Ordnerstruktur der Quelle bleibt im Sammelordner erhalten — sie ist die beste vorhandene Information darüber, was eine Datei ist.</li>
-              <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist. Weitere Google-Konten stattdessen: Ordner im Quellkonto für das Zielkonto freigeben, im Zielkonto <b>Kopie erstellen</b> — so bleiben Docs und Sheets nativ und der Umweg über die Festplatte entfällt.</li>
+              <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist.</li>
+              <li><b>Weitere Google-Konten laufen anders</b> und gar nicht über die Platte: Ordner im Quellkonto für das Zielkonto freigeben, dann im Zielkonto <b>Kopie erstellen</b>. Docs und Sheets bleiben dabei nativ. Wichtig ist der Schritt „Kopie erstellen“ selbst — eine bloss <em>freigegebene</em> Datei gehört weiterhin dem anderen Konto, belegt keinen Platz bei dir und ist weg, sobald dort jemand aufräumt oder das Konto schliesst. Erst die Kopie macht dich zum Eigentümer.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> für jede Quelle ein Sammelordner existiert und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
+            <p class="done"><b>Fertig, wenn</b> die Sammelplatte für jede Quelle einen Ordner trägt und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
           </div>
         </article>
 
@@ -813,56 +1147,154 @@
             <h3>Dubletten finden — vor dem Upload</h3>
             <p>Der wichtigste Schritt, und der Grund für die ganze Sammelplatte. Was hier aussortiert wird, muss nie hochgeladen, nie bezahlt, nie später wiedergefunden werden.</p>
             <ul>
-              <li>In <b>dupeGuru</b> alle Sammelordner als Quellen hinzufügen. Modus <b>Standard</b>, Vergleich auf <b>Inhalt</b> — nicht auf Namen. Das liest jede Datei einmal und dauert entsprechend.</li>
-              <li>Windows-Alternative bei sehr grossen Beständen: <b>AllDup</b> mit Byte-Vergleich, deutlich schneller.</li>
-              <li><b>Welche Kopie gilt als Original?</b> In dieser Reihenfolge: die im aussagekräftigsten Ordner, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen. Bei Gleichstand: die aus der Quelle mit der niedrigsten Nummer.</li>
-              <li>Als Aktion <b>„Verschieben nach“</b> wählen, Ziel <code>D:\S\_QUARANTAENE\</code> — <b>niemals „Löschen“</b>. dupeGuru bietet beides an; ein Fehlklick ist endgültig.</li>
-              <li>Ergebnisliste vor dem Verschieben als CSV exportieren. Diese Datei wird später zur Spalte <code>dup_gruppe</code> im Index.</li>
-              <li>Fotos: der Modus <b>Bilder</b> findet auch ähnliche Aufnahmen — dieselbe Datei in anderer Auflösung, Screenshots von Screenshots. Diese Treffer nur markieren, nicht verschieben; sie brauchen dein Auge.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>4 · Dubletten</em>: die Sammelplatte als zu prüfenden Ordner wählen, einen Quarantäne-Ordner daneben, und ins Feld <b>Vorrang</b> die Quellkürzel in der Reihenfolge aus Phase 3 eintragen — <code>PC1, PC2, EXT1</code>. Dann <em>Suchen</em>. Ein Lauf über den <em>gesamten</em> Bestand ist der ganze Sinn der Sammelplatte.</li>
+              <li>Verglichen wird über die <b>Prüfsumme</b>, nicht über Namen oder Grösse. Vorgruppiert wird nach Dateigrösse, gerechnet nur bei Gleichstand — deshalb dauert der Lauf Stunden statt Tage.</li>
+              <li><b>Wer lieber AllDup nimmt:</b> alle Quellordner als Suchordner eintragen, Vergleichskriterium <em>Dateiinhalt</em>, Suchordner in Vorrangfolge, Auswahl automatisch treffen lassen und danach stichprobenartig prüfen — nicht Gruppe für Gruppe klicken.</li>
+              <li><b>Liste sichern, bevor du verschiebst.</b> Sie wird später zur Spalte <code>dup_gruppe</code> im Index und lässt sich danach nicht mehr rekonstruieren.</li>
+              <li>Dann <b>Duplikate in Quarantäne verschieben</b>, Ziel <code>D:\S\_QUARANTAENE\</code>. Das Werkzeug kennt kein Löschen — bei AllDup dagegen liegt „Löschen“ gleichberechtigt daneben, und ein Fehlklick ist endgültig.</li>
+              <li>Bleibt eine Entscheidung offen: die Kopie im aussagekräftigsten Ordner gewinnt, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen.</li>
+              <li>Ähnliche — nicht identische — Fotos bleiben hier noch liegen. Die kommen in Phase 5 dran, wenn alle Bilder an einem Ort sind; dort ist die Suche schneller und das Ergebnis übersichtlicher.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> die Quarantäne gefüllt, die CSV exportiert und ein zweiter dupeGuru-Lauf über die Sammelordner keine exakten Treffer mehr liefert.</p>
+            <p class="done"><b>Fertig, wenn</b> die Quarantäne gefüllt, die CSV-Liste exportiert ist und ein zweiter AllDup-Lauf über die Sammelplatte keine exakten Treffer mehr liefert.</p>
           </div>
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 5<em>1–5 Tage</em></div>
+          <div class="phase-marker">Phase 5<em>3–5 Std.</em></div>
           <div class="phase-body">
-            <h3>Upload nach Google Drive</h3>
-            <p>Weitgehend Wartezeit — aber Wartezeit, die schiefgehen kann, wenn sie unbeaufsichtigt in einem Rutsch läuft.</p>
+            <h3>Bilder zusammenführen, nach Jahr</h3>
+            <p>
+              Bilder sind die einzige Ausnahme von der Regel „Quelle zuerst“ — sie wandern aus allen
+              Quellen in <b>einen</b> Ordner, geordnet nach Aufnahmejahr. Bei einem Foto sagt der
+              Herkunftsrechner nichts über den Inhalt; das Jahr sagt fast alles. Die Herkunft geht
+              nicht verloren, sie steht weiter in der Spalte <code>quelle_id</code> des Index.
+            </p>
+            <p>
+              Das läuft <b>lokal auf der Sammelplatte</b>, vor dem Upload. Zehntausende Dateien in Drive
+              zu verschieben, dauert Tage; auf der Platte sind es Minuten.
+            </p>
             <ul>
-              <li>Google Drive für Desktop öffnen, den gestreamten Zielordner im Explorer oder Finder ansteuern.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>5 · Bilder</em>: links die Sammelplatte, rechts <code>D:\S\_BILDER\</code>. Erst <b>Probelauf</b> — er zeigt für jede Datei das ermittelte Jahr und woher es stammt, ohne etwas zu bewegen. Stimmt das Bild, dann <em>Ausführen</em>.</li>
+              <li>Das Jahr kommt in dieser Reihenfolge: <b>EXIF-Aufnahmedatum</b> bei JPEG und TIFF, sonst ein <b>Datum im Dateinamen</b> (<code>IMG_20190812_…</code>, <code>PXL_20230704_…</code>), sonst das <b>Dateidatum</b>. In der Spalte <em>Quelle</em> steht je Zeile, welcher der drei Wege gegriffen hat — <code>datei</code> ist der unzuverlässigste, sieh dir davon Stichproben an.</li>
+              <li><b>HEIC-Dateien vom iPhone</b> liest das Werkzeug nicht über EXIF, sondern über den Dateinamen — was bei iPhone-Aufnahmen praktisch immer ein Datum enthält. Wer es genauer will, nimmt für diese Gruppe zusätzlich Advanced Renamer mit <code>&lt;Img EXIF:DateTimeOriginal, yyyy&gt;</code>.</li>
+              <li><b>Vorschau lesen, bevor du ausführst.</b> Advanced Renamer zeigt für jede Datei alten und neuen Pfad. Das ist deine einzige Kontrolle — nach dem Lauf sind zehntausende Dateien woanders.</li>
+              <li><b>Kollisionsregel auf Nummer anhängen stellen</b>, nicht auf Überschreiben. <code>IMG_0001.jpg</code> gibt es aus vier Quellen garantiert mehrfach, und exakt gleiche wurden in Phase 4 schon aussortiert — was jetzt kollidiert, ist <em>verschieden</em> und muss beides bleiben.</li>
+              <li>Jahre, die nicht stimmen können — 1970, 1980, alles vor 1995 oder in der Zukunft — nach <code>_Jahr_unklar\</code>. Grosszügig sein: dieser Ordner ist billiger als ein falsch einsortiertes Jahrzehnt.</li>
+              <li>Dieser Ordner wird in Phase 6 <b>zweimal</b> gebraucht: einmal für Drive, einmal als Quelle für Google Fotos. Was hier fehlt, fehlt an beiden Stellen.</li>
+              <li><b>Jetzt der Ähnlichkeitslauf:</b> <b>dupeGuru</b> im Modus <b>Bilder</b> über <code>_BILDER\</code>. Er findet dieselbe Aufnahme in anderer Auflösung, neu komprimierte Kopien, Screenshots von Screenshots. Treffer als Liste exportieren und im Index auf <code>status:unklar</code> setzen — <b>nicht verschieben</b>, die brauchen dein Auge.</li>
+            </ul>
+
+            <div class="scroller">
+              <table>
+                <caption>Was in den Bilderordner wandert — und was bleibt, wo es ist</caption>
+                <thead><tr><th>Gruppe</th><th>Formate</th><th>Wohin</th></tr></thead>
+                <tbody>
+                  <tr><td>Fotos und Grafiken</td><td class="mono">*.jpg *.jpeg *.png *.heic *.heif *.webp *.tif *.tiff *.bmp *.gif</td><td><code>80_Bilder/&lt;Jahr&gt;/</code></td></tr>
+                  <tr><td>Bearbeitungsdateien</td><td class="mono">*.psd *.psb *.xcf *.ai *.svg *.eps</td><td><code>80_Bilder/&lt;Jahr&gt;/</code></td></tr>
+                  <tr><td>RAW-Dateien</td><td class="mono">*.cr2 *.cr3 *.nef *.arw *.dng *.raf *.orf *.rw2</td><td>bleiben bei ihrer Quelle in <code>02_Bilder_RAW/</code></td></tr>
+                  <tr><td>Schnittprojekte</td><td class="mono">*.prproj *.veg *.kdenlive *.mlt</td><td>bleiben bei ihrer Quelle in <code>04_Projekte/</code></td></tr>
+                  <tr><td>Videos</td><td class="mono">*.mp4 *.mov *.avi *.mkv u. a.</td><td>fahren gar nicht mit — stehen im Register (Phase 2)</td></tr>
+                  <tr><td>Gescannte Dokumente</td><td class="mono">*.pdf</td><td>bleiben bei ihrer Quelle in <code>01_Dokumente/</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              <b>RAW und Schnittprojekte bleiben bewusst bei der Quelle.</b> Sie gehören neben ihre
+              Bearbeitungsstände und sind meist schon nach Aufnahme geordnet — aus dem Zusammenhang
+              gerissen nützen sie wenig. Scans als PDF sind Dokumente, keine Bilder; sie stehen im
+              Index als <code>typ:dokument</code>. Und <b>Video ist gar nicht erst auf der Platte</b>,
+              es wurde schon in Phase 3 herausgefiltert.
+            </p>
+
+            <p class="done"><b>Fertig, wenn</b> <code>_BILDER\</code> nur noch Jahresordner und <code>_Jahr_unklar\</code> enthält, in den Quellordnern keine der oben gelisteten Formate mehr liegen, und die Ähnlichkeitsliste exportiert ist.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 6<em>1–5 Tage</em></div>
+          <div class="phase-body">
+            <h3>Upload — nach Drive, dann nach Google Fotos</h3>
+            <p>Weitgehend Wartezeit — aber Wartezeit, die schiefgehen kann, wenn sie unbeaufsichtigt in einem Rutsch läuft. Zwei getrennte Übertragungen: erst der gesamte Bestand nach Drive, danach die Bilder ein zweites Mal nach Google Fotos.</p>
+            <ul>
+              <li>Alles läuft <b>vom Sammelrechner</b> aus: Google Drive für Desktop öffnen, den gestreamten Zielordner im Explorer ansteuern, von der Sammelplatte hineinkopieren. Die anderen drei Rechner sind ab hier nicht mehr beteiligt.</li>
               <li><b>Quelle für Quelle</b> hochladen, nicht alles zusammen: eine Quelle anstossen, Abschluss prüfen, Dateianzahl vergleichen, dann die nächste. So bleibt ein Abbruch lokalisierbar.</li>
-              <li>Die Quarantäne kommt mit — nach <code>90_Quarantaene_Duplikate</code>, in Unterordnern je Quelle. Bei 2 TB Speicher kostet das nichts, und die Entscheidung „wirklich weg“ bleibt dir.</li>
-              <li>Rechner nicht in den Ruhezustand schicken. Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
+              <li>Die Quarantäne kommt mit — nach <code>90_Quarantaene_Duplikate</code>, in Unterordnern je Quelle. Bei 5 TB Speicher kostet das nichts, und die Entscheidung „wirklich weg“ bleibt dir.</li>
+              <li><b>Kabel vor dem Start prüfen</b> und das WLAN am Sammelrechner für die Dauer der Phase abschalten — sonst wechselt Windows mitten in der Nacht zurück auf Funk und der Durchsatz bricht ein, ohne dass etwas abbricht.</li>
+              <li>Damit der Upload nachts durchläuft: im Energiesparplan <b>Energiesparmodus und Ruhezustand auf „Nie“</b>, und in den Windows-Update-Einstellungen die <b>Nutzungszeit</b> so setzen, dass kein automatischer Neustart in die Nacht fällt. Der Bildschirm darf ausgehen, der Rechner nicht.</li>
+              <li>Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
               <li>Nach jedem Block: in Drive den Ordner öffnen, „Details“ prüfen, Anzahl gegen den lokalen Sammelordner halten.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> Drive für Desktop „Alles aktuell“ meldet <b>und</b> die Dateianzahl je Quellordner mit dem lokalen Sammelordner übereinstimmt.</p>
+            <h3 style="margin-top:var(--s5)">Und dann die Bilder nach Google Fotos</h3>
+            <p>
+              Erst wenn Drive vollständig durch ist. Google Fotos ist ein <b>eigener Dienst</b> —
+              seit 2021 gibt es keine Verbindung zu Drive mehr: was in Drive liegt, ist nicht in Fotos,
+              und was du in Fotos löschst, bleibt in Drive. Zwei Kopien, zwei Ablagen, kein Abgleich
+              zwischen ihnen.
+            </p>
+            <ul>
+              <li>In <b>Google Drive für Desktop</b> unter <em>Einstellungen → Mein Computer</em> den Ordner <code>D:\S\_BILDER\</code> hinzufügen und dort <b>„In Google Fotos sichern“</b> aktivieren. Die Drive-Synchronisierung für diesen Ordner <em>nicht</em> zusätzlich einschalten — sonst liegt derselbe Bestand ein drittes Mal im Konto.</li>
+              <li><b>Uploadqualität auf „Speicherplatzsparend“ stellen.</b> Das ist der entscheidende Griff: Fotos werden auf rund 16 Megapixel gerechnet, was für Ansehen, Suchen und Teilen völlig reicht. Deine Originale liegen ja unangetastet in <code>80_Bilder/</code>. Statt doppeltem Speicherbedarf zahlst du so nur zehn bis dreissig Prozent Aufschlag.</li>
+              <li>Google Fotos ordnet <b>selbst nach Aufnahmedatum</b> — die Jahresordner aus Phase 5 spielen dort keine Rolle. Was in <code>_Jahr_unklar\</code> lag, landet entsprechend an unklaren Stellen; das lässt sich in Fotos später je Bild korrigieren.</li>
+              <li>Fotos erkennt <b>identische Uploads</b> und legt sie nicht doppelt an. Ein abgebrochener und wiederholter Lauf schadet also nicht.</li>
+              <li>Nach dem Lauf die Zahl in Fotos gegen die Anzahl Bilddateien in <code>_BILDER\</code> halten. Eine Differenz ist normal — die Formate unten erklären sie.</li>
+            </ul>
+
+            <div class="scroller">
+              <table>
+                <caption>Was Google Fotos annimmt — und was nur in Drive existiert</caption>
+                <thead><tr><th>Formate</th><th>In Google Fotos</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">*.jpg *.jpeg *.png *.heic *.heif *.webp *.gif *.tif *.tiff</td><td>werden übernommen</td></tr>
+                  <tr><td class="mono">*.psd *.psb *.xcf *.ai *.svg *.eps</td><td>werden <b>nicht</b> angenommen — bleiben allein in <code>80_Bilder/</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="note">
+              <span class="note-label">Wer ist das Original</span>
+              <p>
+                <b><code>80_Bilder/</code> in Drive ist das Archiv</b> — vollständig, in Originalauflösung,
+                im Index verzeichnet. <b>Google Fotos ist die Oberfläche</b> zum Suchen und Ansehen:
+                Gesichter, Orte, Rückblicke, die App auf dem Telefon. Genau dafür machst du die zweite Kopie.
+              </p>
+              <p>
+                Halte das auseinander, sonst wird es später teuer: Aufräumen in Fotos ändert nichts
+                am Archiv, und Aufräumen im Archiv ändert nichts an Fotos. Was weg soll, muss an
+                beiden Stellen weg — <b>immer zuerst im Index vermerken</b>, dann in Drive, dann in Fotos.
+              </p>
+            </div>
+
+            <p class="done"><b>Fertig, wenn</b> Drive für Desktop „Alles aktuell“ meldet, die Dateianzahl je Quellordner mit dem lokalen Sammelordner übereinstimmt, und Google Fotos die Bilder aus <code>_BILDER\</code> vollzählig zeigt.</p>
           </div>
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 6<em>4–8 Std.</em></div>
+          <div class="phase-marker">Phase 7<em>4–8 Std.</em></div>
           <div class="phase-body">
             <h3>Einsortieren in Kategorien</h3>
             <p>Bis hierher liegt in Drive eine getreue Kopie der alten Unordnung. Jetzt entsteht die neue Ordnung — und zwar oberhalb der alten, nicht statt ihrer.</p>
             <ul>
-              <li>Unterhalb jeder Quelle die acht Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>).</li>
-              <li>Verschoben werden <b>Ordner, keine Einzeldateien</b>. Ein Ordner „Steuer 2019“ wandert als Ganzes nach <code>Dokumente/</code>. Das erledigt in wenigen Stunden, was auf Dateiebene Wochen dauert.</li>
+              <li>Unterhalb jeder Quelle die sieben Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>). <code>80_Bilder/</code> steht dabei aussen vor — das ist in Phase 5 schon fertig geordnet und wird hier nicht mehr angefasst.</li>
+              <li>Verschoben werden <b>Ordner, keine Einzeldateien</b>. Ein Ordner „Steuer 2019“ wandert als Ganzes nach <code>01_Dokumente/</code>. Das erledigt in wenigen Stunden, was auf Dateiebene Wochen dauert.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>7 · Kategorien</em>, geht das mit Vorschlag: es schlägt je Ordner eine Kategorie vor — nach dem Volumen darin, nicht nach der Dateianzahl, weil hundert Vorschaubilder neben zehn Verträgen sonst die Zuordnung kippen. Doppelklick auf eine Zeile schaltet den Vorschlag weiter, dann wird in einem Zug verschoben.</li>
               <li>Was sich nicht in einem Griff zuordnen lässt, kommt nach <code>99_Zu_Pruefen/</code> und wird nicht länger als zehn Sekunden betrachtet. Dieser Ordner darf gross sein — er ist der Grund, warum der Rest schnell geht.</li>
-              <li>Nach zwei Quellen innehalten: passen die acht Kategorien noch? Jetzt ist der Moment, sie zu ändern — später nicht mehr.</li>
+              <li>Nach zwei Quellen innehalten: passen die sieben Kategorien noch? Jetzt ist der Moment, sie zu ändern — später nicht mehr.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> jede Quelle ihre Kategorieordner hat und in keiner Quelle mehr lose Ordner ohne Kategorie liegen.</p>
           </div>
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 7<em>6–12 Std.</em></div>
+          <div class="phase-marker">Phase 8<em>6–12 Std.</em></div>
           <div class="phase-body">
             <h3>Index anlegen und taggen</h3>
             <p>Der Index ist das eigentliche Ergebnis des Projekts. Er beantwortet Fragen, die Drive nicht beantworten kann: Woher stammt das? Gibt es das doppelt? Wie lange muss ich es aufbewahren?</p>
             <ul>
               <li>In <code>00_Index</code> ein Google Sheet <b>Dateiindex_2026</b> anlegen, Spalten nach dem <a href="#index">Index-Schema</a>.</li>
-              <li>Die CSV-Exporte aus Phase 1 und die Dubletten-CSV aus Phase 4 importieren — damit sind neun der sechzehn Spalten ohne Handarbeit gefüllt.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>8 · Index</em>: den fertigen Zielordner wählen, dazu die Dublettenliste aus Phase 4 und die Bilderliste aus Phase 5. Es liest das Archiv frisch ein und verbindet beides — damit sind zwölf der sechzehn Spalten ohne Handarbeit gefüllt. Ergebnis sichern und in Sheets importieren.</li>
+              <li><b>Die Bilderliste ist nicht optional</b>, wenn du wissen willst, woher ein Foto stammt: im Archiv liegen Bilder in Jahresordnern, ihre Herkunft ist am Pfad nicht mehr ablesbar. Nur diese Liste holt sie zurück. Also in Phase 5 das Sichern nicht vergessen.</li>
+              <li>Die Ähnlichkeitsliste aus Phase 5 einspielen: die betroffenen Bilder bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner.</li>
               <li>Ein zweites Blatt <b>Ordnerregister</b>: eine Zeile pro Ordner der zweiten und dritten Ebene, mit Tags, Aufbewahrung und Notiz. <b>Hier findet das Taggen statt</b>, nicht auf Dateiebene.</li>
               <li>Ein drittes Blatt <b>Quellen</b> mit der Kürzelliste aus Phase 0, ergänzt um Volumen und Dateianzahl.</li>
               <li>Nur Tags aus dem festgelegten <a href="#tags">Vokabular</a> verwenden. In Sheets als Dropdown einrichten — Freitext macht den Index binnen Wochen wertlos.</li>
@@ -872,18 +1304,22 @@
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 8<em>2 Std. + 90 Tage</em></div>
+          <div class="phase-marker">Phase 9<em>2 Std. + 90 Tage</em></div>
           <div class="phase-body">
             <h3>Abgleich, Karenz, Dauerbetrieb</h3>
             <p>Ein Umzug ist erst zu Ende, wenn nachgewiesen ist, dass nichts fehlt — und wenn geregelt ist, was mit neuen Dateien passiert.</p>
             <ul>
-              <li><b>Kontrollzählung</b> je Quelle: Dateianzahl und Volumen in Drive gegen die Inventur aus Phase 1 abzüglich Ausschlüssen, Übergrossen und Quarantäne. Abweichungen über ein Prozent nachgehen.</li>
+              <li><b>Kontrollzählung</b> je Quelle: Dateianzahl und Volumen in Drive gegen die Inventur aus Phase 1 abzüglich Ausschlüssen, Register-Einträgen und Quarantäne. Abweichungen über ein Prozent nachgehen.</li>
               <li>Stichprobe: aus jeder Quelle fünf Dateien in Drive öffnen. Es geht um Lesbarkeit, nicht um Existenz — hier fallen Platzhalter-Hüllen auf.</li>
               <li><b>90 Tage Karenz.</b> Quellen bleiben unverändert liegen, Platten werden nicht formatiert. Erst danach entscheidest du über die Originale.</li>
               <li>Nach der Karenz die Quarantäne sichten — quellenweise, nicht auf einmal.</li>
-              <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur. Einmal im Halbjahr ein dupeGuru-Lauf und ein Blick in <code>99_Zu_Pruefen/</code>. Ein Termin im Kalender, sonst passiert es nicht.</li>
+              <li><b>Das Register durchgehen</b> — die Liste dessen, was nicht mitgefahren ist: Video und alles über 120 MB. Das ist der einzige Bestand ohne Cloud-Sicherung, und er ist bei dir vermutlich der grösste. Entscheide je Eintrag, ob er auf die Sammelplatte als Zweitkopie gehört oder mit dem Quellrechner verschwinden darf.</li>
+              <li><b>Wenn Video bleiben soll:</b> jetzt ist der Moment für eine eigene, getrennte Sicherung. Die Sammelplatte hat den Platz, dieselben Werkzeuge tun es, und mit dem Register weisst du genau, wo überall Material liegt. Als eigenes kleines Vorhaben, nicht als Anhängsel dieses Umzugs.</li>
+              <li><b>Die Sammelplatte wird nicht gelöscht.</b> Sie ist ab jetzt die Zweitkopie: einmal noch vollständig mit dem Drive-Stand abgleichen, dann beschriften, abziehen und weglegen. Eine Kopie, die im selben Konto liegt, ist keine — und hinter einem privaten Konto steht niemand, der es wieder aufsperrt.</li>
+              <li><b>Konto absichern</b>, jetzt wo alles daran hängt: zweistufige Bestätigung an, Wiederherstellungsadresse und -nummer prüfen, Backup-Codes ausdrucken und zu den Papieren legen.</li>
+              <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur; neue Bilder nach <code>80_Bilder/&lt;Jahr&gt;/</code>, von wo Drive für Desktop sie automatisch auch nach Fotos sichert. Einmal im Halbjahr ein AllDup-Lauf, ein Blick in <code>99_Zu_Pruefen/</code> und ein Abgleich der Sammelplatte. Ein Termin im Kalender, sonst passiert es nicht.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> die Kontrollzählung stimmt, die Stichprobe lesbar ist und ein wiederkehrender Termin steht.</p>
+            <p class="done"><b>Fertig, wenn</b> die Kontrollzählung stimmt, die Stichprobe lesbar ist, die Sammelplatte als Zweitkopie weggelegt ist und ein wiederkehrender Termin steht.</p>
           </div>
         </article>
 
@@ -896,7 +1332,9 @@
       <p class="lede">
         Erste Ebene: Herkunft. Zweite Ebene: Kategorie. Darunter bleibt die gewachsene
         Ordnerstruktur der Quelle unverändert erhalten. Die Zehnerschritte in den Nummern lassen
-        Platz für Quellen, die später dazukommen.
+        Platz für Quellen, die später dazukommen. Eine einzige Kategorie fällt aus diesem Muster
+        heraus — <b>Bilder</b>, die quer über alle Quellen in <code>80_Bilder/</code> zusammenkommen.
+        Video fehlt in dieser Struktur bewusst: es fährt nicht mit.
       </p>
 
       <pre class="tree"><b>Andreas_2026_Dateiverwaltung/</b>
@@ -904,19 +1342,18 @@
 │   ├── Dateiindex_2026            <i>Sheet · alle Dateien, automatisch befüllt</i>
 │   ├── Ordnerregister_2026        <i>Sheet · Tags und Aufbewahrung, gepflegt</i>
 │   ├── Quellen_2026               <i>Sheet · Kürzel, Gerät, Volumen</i>
-│   └── Uebergrossen_Register      <i>Sheet · was &gt;120 MB ist und wo es liegt</i>
+│   └── Register_Nicht_Uebernommen <i>Sheet · was auf den Platten blieb und warum</i>
 │
 ├── <b>10_PC1_&lt;Bezeichnung&gt;/</b>
-│   ├── 01_Dokumente/              <i>Texte, PDF, Tabellen, Verträge, Belege</i>
-│   ├── 02_Bilder/                 <i>Fotos, Scans, Grafiken</i>
-│   ├── 03_Video/
-│   ├── 04_Audio/
-│   ├── 05_Projekte/               <i>zusammengehörige Arbeitsstände</i>
-│   ├── 06_Code/
-│   ├── 07_Archive/                <i>ZIP, Mail-Archive, Backups von Programmen</i>
-│   └── 08_Sonstiges/
+│   ├── 01_Dokumente/              <i>Texte, PDF, Tabellen, Verträge, Belege, Scans</i>
+│   ├── 02_Bilder_RAW/             <i>nur RAW — alles andere liegt in 80_Bilder</i>
+│   ├── 03_Audio/                  <i>Musik, Sprachnotizen, Mitschnitte</i>
+│   ├── 04_Projekte/               <i>zusammengehörige Arbeitsstände, auch Schnittprojekte</i>
+│   ├── 05_Code/
+│   ├── 06_Archive/                <i>ZIP, Mail-Archive, Backups von Programmen</i>
+│   └── 07_Sonstiges/
 │
-├── <b>20_PC2_&lt;Bezeichnung&gt;/</b>       <i>gleiche acht Kategorien</i>
+├── <b>20_PC2_&lt;Bezeichnung&gt;/</b>       <i>gleiche sieben Kategorien</i>
 ├── <b>30_PC3_&lt;Bezeichnung&gt;/</b>
 ├── <b>40_PC4_&lt;Bezeichnung&gt;/</b>
 ├── <b>50_EXT_Externe_Laufwerke/</b>
@@ -929,8 +1366,14 @@
 ├── <b>70_GD_Weitere_Google_Konten/</b>
 │   └── GD2_&lt;Konto&gt;/
 │
+├── <b>80_Bilder/</b>                    <i>Ausnahme · alle Quellen zusammen, nach Aufnahmejahr</i>
+│   ├── 1998/
+│   ├── … /
+│   ├── 2026/
+│   └── _Jahr_unklar/              <i>ohne verwertbares Datum — Herkunft steht im Index</i>
+│
 ├── <b>90_Quarantaene_Duplikate/</b>     <i>je Quelle · wird nach der Karenz gesichtet</i>
-└── <b>99_Zu_Pruefen/</b>                <i>Auffangbecken aus Phase 6</i></pre>
+└── <b>99_Zu_Pruefen/</b>                <i>Auffangbecken aus Phase 7</i></pre>
 
       <div class="note">
         <span class="note-label">Warum Quelle vor Kategorie</span>
@@ -942,15 +1385,36 @@
           quer über alle Quellen kategorisieren.
         </p>
       </div>
+
+      <div class="note">
+        <span class="note-label">Warum Bilder die Ausnahme sind</span>
+        <p>
+          Genau die Begründung von oben trägt bei Fotos nicht. „Lag auf dem Büro-Rechner“ sagt nichts
+          über eine Aufnahme — das Aufnahmejahr dagegen fast alles. Dazu kommt: Bilder sind die
+          Kategorie mit den meisten quellenübergreifenden Doppelungen, und die findet man nur,
+          wenn sie beieinander liegen. Deshalb wandern sie in einen Ordner, nach Jahr sortiert,
+          und die Herkunft steht weiter in der Spalte <code>quelle_id</code> des Index.
+        </p>
+        <p>
+          Nicht mitgenommen werden <b>RAW-Dateien</b> und <b>Schnittprojekte</b> — die gehören neben
+          ihre Bearbeitungsstände und sind meist schon nach Aufnahme geordnet — sowie <b>Scans als
+          PDF</b>, die trotz ihres Ursprungs Dokumente sind. Alle drei bleiben bei ihrer Quelle.
+          <b>Video</b> ist gar nicht erst Teil des Umzugs und steht nur im Register.
+        </p>
+      </div>
     </section>
 
     <!-- ================= INDEX ================= -->
     <section id="index">
       <div class="sec-head"><span class="sec-num">#</span><h2>Index-Schema</h2></div>
       <p class="lede">
-        Blatt <b>Dateiindex_2026</b>, eine Zeile je Datei. Neun Spalten füllen sich aus den
-        Werkzeug-Exporten, sieben entstehen im Betrieb. Handarbeit auf Dateiebene ist nur bei
-        wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist.
+        Blatt <b>Dateiindex_2026</b>, eine Zeile je Datei. Zwölf Spalten füllen sich aus den
+        Werkzeug-Exporten, vier entstehen im Betrieb. Handarbeit auf Dateiebene ist nur bei
+        wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist. Für Bilder ist dieser Index
+        besonders wichtig: sie liegen in <code>80_Bilder/</code> von ihrer Herkunft getrennt,
+        und <code>quelle_id</code> ist dann die einzige Stelle, an der noch steht, woher sie kamen.
+        Der Index beschreibt dabei <b>das Archiv in Drive</b>, nicht die Zweitkopie in Google Fotos —
+        die ist eine Ansicht, kein eigener Bestand, und wird nicht getrennt verzeichnet.
       </p>
 
       <div class="scroller">
@@ -968,10 +1432,10 @@
             <tr><td class="mono">groesse_mb</td><td class="num">2,41</td><td><span class="pill auto">automatisch</span></td><td>Kontrolle der 120-MB-Grenze</td></tr>
             <tr><td class="mono">geaendert_am</td><td class="mono">2019-08-14</td><td><span class="pill auto">automatisch</span></td><td>Zeitliche Einordnung, Original-Entscheidung</td></tr>
             <tr><td class="mono">pruefsumme</td><td class="mono">9f2a…c71b</td><td><span class="pill auto">automatisch</span></td><td>der einzige belastbare Gleichheitsbeweis</td></tr>
-            <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der dupeGuru-CSV; leer heisst: einmalig</td></tr>
+            <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der Dublettenliste; leer heisst: einmalig</td></tr>
             <tr><td class="mono">dup_rolle</td><td class="mono">original | duplikat</td><td><span class="pill auto">automatisch</span></td><td>welche Kopie bleibt, welche in Quarantäne ging</td></tr>
             <tr><td class="mono">kategorie</td><td class="mono">01_Dokumente</td><td><span class="pill auto">automatisch</span></td><td>aus der Endung abgeleitet, per Hand korrigierbar</td></tr>
-            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt</td></tr>
+            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt — bei Bildern <code>80_Bilder/2019/</code></td></tr>
             <tr><td class="mono">tags</td><td class="mono">thema:steuer jahr:2019</td><td><span class="pill hand">Handarbeit</span></td><td>aus dem Vokabular, meist vom Ordner geerbt</td></tr>
             <tr><td class="mono">aufbewahrung</td><td class="mono">10jahre</td><td><span class="pill hand">Handarbeit</span></td><td>steuert die spätere Bereinigung</td></tr>
             <tr><td class="mono">status</td><td class="mono">geprueft</td><td><span class="pill hand">Handarbeit</span></td><td>Arbeitsstand dieser Zeile</td></tr>
@@ -1065,24 +1529,27 @@
     <section id="werkzeuge">
       <div class="sec-head"><span class="sec-num">⌾</span><h2>Werkzeugkasten</h2></div>
       <p class="lede">
-        Alles mit grafischer Oberfläche, alles kostenlos. Vor Phase 1 auf allen vier Rechnern installieren —
-        Werkzeugsuche mittendrin kostet mehr Zeit als der Umzug selbst.
+        Alles mit grafischer Oberfläche, alles kostenlos, alles für Windows. Das erste ist
+        eigens für diesen Ablauf gebaut und deckt vier Phasen allein ab — die darunter sind
+        die bewährten Einzelwerkzeuge, falls du lieber damit arbeitest oder ein Ergebnis
+        gegenprüfen willst. Vor Phase 1 bereitlegen: Werkzeugsuche mittendrin kostet mehr
+        Zeit als der Umzug selbst.
       </p>
 
       <div class="scroller">
         <table>
-          <thead><tr><th>Werkzeug</th><th>Läuft auf</th><th>Wofür</th><th>Phase</th></tr></thead>
+          <thead><tr><th>Werkzeug</th><th>Installieren auf</th><th>Wofür</th><th>Phase</th></tr></thead>
           <tbody>
-            <tr><td><b>Google Drive für Desktop</b></td><td>Windows, macOS</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer</td><td class="mono">0, 5</td></tr>
-            <tr><td><b>FreeFileSync</b></td><td>alle drei</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter speicherbar</td><td class="mono">2, 3</td></tr>
-            <tr><td><b>WizTree</b></td><td>Windows</td><td>Inventur in Sekunden, CSV-Export der Dateiliste</td><td class="mono">1</td></tr>
-            <tr><td><b>TreeSize Free</b></td><td>Windows</td><td>Alternative zu WizTree, etwas langsamer</td><td class="mono">1</td></tr>
-            <tr><td><b>GrandPerspective</b></td><td>macOS</td><td>Inventur, was belegt wie viel Platz</td><td class="mono">1</td></tr>
-            <tr><td><b>Filelight</b> / <b>Baobab</b></td><td>Linux</td><td>Inventur</td><td class="mono">1</td></tr>
-            <tr><td><b>dupeGuru</b></td><td>alle drei</td><td>Dubletten nach Inhalt, Bildmodus für ähnliche Fotos, Aktion „Verschieben“</td><td class="mono">4</td></tr>
-            <tr><td><b>AllDup</b></td><td>Windows</td><td>schnellere Alternative bei sehr grossen Beständen</td><td class="mono">4</td></tr>
-            <tr><td><b>Everything</b></td><td>Windows</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
-            <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">7</td></tr>
+            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, Kategorien und den Index in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 7, 8</td></tr>
+            <tr><td><b>WizTree</b></td><td>alle vier</td><td>Inventur in Sekunden, CSV-Export der kompletten Dateiliste — Rohdaten für den Index</td><td class="mono">1</td></tr>
+            <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
+            <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
+            <tr><td><b>AllDup</b></td><td>Sammelrechner</td><td>Dublettensuche nach Inhalt, Auswahl-Assistent, Aktion „Verschieben“ — auf Windows die schnellste Wahl</td><td class="mono">4</td></tr>
+            <tr><td><b>Advanced Renamer</b></td><td>Sammelrechner</td><td>Bilder anhand des EXIF-Aufnahmedatums in Jahresordner verschieben, mit Vorschau vor dem Ausführen</td><td class="mono">5</td></tr>
+            <tr><td><b>dupeGuru</b></td><td>Sammelrechner</td><td>ergänzend für <em>ähnliche</em> Fotos, die AllDup nicht findet</td><td class="mono">5</td></tr>
+            <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer, und die Sicherung des Bilderordners nach Google Fotos</td><td class="mono">0, 6</td></tr>
+            <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">8</td></tr>
+            <tr><td><b>TreeSize Free</b></td><td>optional</td><td>Alternative zu WizTree, langsamer, dafür bessere Auswertungen</td><td class="mono">1</td></tr>
           </tbody>
         </table>
       </div>
@@ -1101,14 +1568,15 @@
           <thead><tr><th>Fallstrick</th><th>Was passiert</th><th>Gegenmittel</th></tr></thead>
           <tbody>
             <tr><td><span class="pill risk">kritisch</span> <b>Platzhalter statt Dateien</b></td><td>„Nur online“-Dateien aus OneDrive, Dropbox oder iCloud werden als Hüllen von wenigen Bytes kopiert. Der Ordner sieht vollständig aus, ist aber leer.</td><td>Vor dem Kopieren „Immer auf diesem Gerät behalten“ setzen, Sync abwarten. Stichprobe: Dateigrösse im Sammelordner prüfen.</td></tr>
-            <tr><td><span class="pill risk">kritisch</span> <b>Löschen statt verschieben</b></td><td>Ein Fehlklick in dupeGuru entfernt tausende Dateien endgültig.</td><td>Immer „Verschieben nach“ wählen. Die Aktion vor dem ersten grossen Lauf an fünf Testdateien üben.</td></tr>
+            <tr><td><span class="pill risk">kritisch</span> <b>Löschen statt verschieben</b></td><td>Ein Fehlklick in AllDup oder dupeGuru entfernt tausende Dateien endgültig. Das eigene Werkzeug hat deshalb gar keine Löschfunktion.</td><td>Immer „Verschieben nach“ wählen. Die Aktion vor dem ersten grossen Lauf an fünf Testdateien üben.</td></tr>
             <tr><td><b>Zu lange Pfade</b></td><td>Windows bricht ab 260 Zeichen mitten im Kopieren ab, oft ohne klare Meldung.</td><td>Sammelpfad kurz halten: <code>D:\S\PC1</code>. Fehlerprotokoll von FreeFileSync nach jedem Lauf ansehen.</td></tr>
-            <tr><td><b>Fotos- und Mail-Bibliotheken</b></td><td>Apple Fotos, Apple Mail und Outlook speichern in Paketen und Containern. Einzeln kopiert sind sie unbrauchbar.</td><td>Aus dem Programm heraus exportieren: Fotos als Originale, Mail als PST oder MBOX. Erst dann in den Sammelordner.</td></tr>
+            <tr><td><b>Outlook-Postfächer</b></td><td>Mails liegen in einer einzigen PST- oder OST-Datei, die schnell mehrere Gigabyte gross wird und damit weit über der Grenze liegt. OST-Dateien lassen sich ausserdem nur mit dem zugehörigen Konto öffnen.</td><td>In Outlook <em>Datei → Öffnen und Exportieren → Importieren/Exportieren</em>, ordnerweise in mehrere PST-Dateien exportieren. Was dann noch zu gross ist, kommt ins Register.</td></tr>
             <tr><td><b>Gleicher Name, anderer Inhalt</b></td><td><code>Rechnung.pdf</code> gibt es dreimal, mit drei verschiedenen Inhalten. Ein Namensvergleich verwirft zwei davon.</td><td>Ausschliesslich Inhaltsvergleich. Die Quellordnerstruktur bleibt erhalten, damit Namensgleiche nicht kollidieren.</td></tr>
-            <tr><td><b>Gleicher Inhalt, anderer Name</b></td><td>Dieselbe Datei liegt als <code>IMG_2231.jpg</code> und <code>Urlaub_Kreta.jpg</code> vor und bleibt doppelt.</td><td>Ebenfalls Inhaltsvergleich — dupeGuru findet beide, unabhängig vom Namen.</td></tr>
+            <tr><td><b>Gleicher Inhalt, anderer Name</b></td><td>Dieselbe Datei liegt als <code>IMG_2231.jpg</code> und <code>Urlaub_Kreta.jpg</code> vor und bleibt doppelt.</td><td>Ebenfalls Prüfsummenvergleich — er findet beide, unabhängig vom Namen.</td></tr>
             <tr><td><b>Zeitstempel gehen verloren</b></td><td>Manche Kopierwege setzen das Änderungsdatum auf heute. Damit ist die zeitliche Einordnung des gesamten Bestands hin.</td><td>FreeFileSync erhält Zeitstempel. Nach dem ersten Lauf an drei Dateien im Sammelordner kontrollieren.</td></tr>
             <tr><td><b>Verschlüsselte Archive</b></td><td>Passwortgeschützte ZIP- und Container-Dateien wandern mit, lassen sich aber später nicht mehr öffnen.</td><td>Beim Sichten mit <code>status:unklar</code> markieren, Passwörter jetzt suchen, solange die alten Rechner noch laufen.</td></tr>
-            <tr><td><b>Umlaute und Sonderzeichen</b></td><td>Dateinamen aus alten Windows-Beständen kommen auf macOS oder in Drive verstümmelt an.</td><td>Fehlerprotokoll prüfen. Betroffene Ordner in <code>99_Zu_Pruefen/</code> und einzeln nacharbeiten.</td></tr>
+            <tr><td><b>Umlaute und Sonderzeichen</b></td><td>Dateinamen aus alten Beständen — noch in der Zeichenkodierung von Windows XP geschrieben — kommen in Drive verstümmelt an.</td><td>Fehlerprotokoll prüfen. Betroffene Ordner nach <code>99_Zu_Pruefen/</code> und einzeln nacharbeiten.</td></tr>
+            <tr><td><b>Der Upload schläft ein</b></td><td>Drive für Desktop nimmt eine unterbrochene Übertragung zwar wieder auf — aber ein Rechner im Energiesparmodus oder nach automatischem Update-Neustart überträgt tagelang gar nichts, ohne Fehlermeldung.</td><td>Energiesparmodus und Ruhezustand auf „Nie“, Nutzungszeit für Windows Update setzen, WLAN am Sammelrechner abschalten, damit er am Kabel bleibt. Jeden Morgen kurz den Fortschritt ansehen.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1122,7 +1590,9 @@
       <p>
         Massgeblich ist die <b>Upload</b>-Geschwindigkeit deines Anschlusses, nicht die Download-Rate,
         mit der Tarife beworben werden — bei DSL liegt sie oft zehnmal niedriger. Die Werte gelten
-        je 100 GB und enthalten einen Aufschlag von 30 Prozent für den Mehraufwand bei vielen kleinen Dateien.
+        je 100 GB, enthalten einen Aufschlag von 30 Prozent für den Mehraufwand bei vielen kleinen Dateien
+        und setzen eine Kabelverbindung voraus — <b>die bei dir gegeben ist, sie gelten also unverkürzt.</b>
+        Miss deinen Upload-Wert mit gestecktem Kabel, dann weisst du, welche Zeile deine ist.
       </p>
 
       <div class="scroller">
@@ -1153,11 +1623,12 @@
             <tr><td>2 · Filterregel</td><td class="num">2 Std.</td><td>keine</td></tr>
             <tr><td>3 · Sammeln</td><td class="num">3–5 Std.</td><td>hoch — Kopieren läuft allein</td></tr>
             <tr><td>4 · Dubletten</td><td class="num">2–4 Std.</td><td>hoch — Prüfsummen brauchen Zeit</td></tr>
-            <tr><td>5 · Upload</td><td class="num">2–3 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
-            <tr><td>6 · Einsortieren</td><td class="num">4–8 Std.</td><td>keine</td></tr>
-            <tr><td>7 · Index und Tags</td><td class="num">6–12 Std.</td><td>keine</td></tr>
-            <tr><td>8 · Abgleich</td><td class="num">2 Std.</td><td>keine</td></tr>
-            <tr><td><b>Zusammen</b></td><td class="num"><b>27–44 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
+            <tr><td>5 · Bilder nach Jahr</td><td class="num">3–5 Std.</td><td>mittel — Vorschau prüfen, dann laufen lassen</td></tr>
+            <tr><td>6 · Upload Drive und Fotos</td><td class="num">3–4 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
+            <tr><td>7 · Einsortieren</td><td class="num">4–8 Std.</td><td>keine</td></tr>
+            <tr><td>8 · Index und Tags</td><td class="num">6–12 Std.</td><td>keine</td></tr>
+            <tr><td>9 · Abgleich</td><td class="num">2 Std.</td><td>keine</td></tr>
+            <tr><td><b>Zusammen</b></td><td class="num"><b>31–50 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
           </tbody>
         </table>
       </div>
@@ -1167,18 +1638,16 @@
     <section id="fragen">
       <div class="sec-head"><span class="sec-num">?</span><h2>Was ich noch von dir brauche</h2></div>
       <p class="lede">
-        Der Plan steht und ist so ausführbar. Diese sieben Antworten machen ihn präzise —
-        die ersten drei entscheiden über die Weiche zwischen Variante A und B.
+        Vier Windows-Rechner, wandernde NTFS-Platte, Upload am Kabel, privates Google-Konto —
+        <b>der Plan ist damit vollständig festgelegt</b> und du kannst mit Phase 0 anfangen.
+        Diese drei Punkte ändern nichts mehr an der Reihenfolge; sie füllen Werte ein,
+        die sich in Phase 0 und 1 ohnehin ergeben.
       </p>
 
       <ol class="questions">
-        <li><div><b>Stehen die vier Rechner am selben Ort?</b><span>Entscheidet Variante A gegen B — und damit, ob quellenübergreifende Dubletten überhaupt sauber gefunden werden.</span></div></li>
-        <li><div><b>Gibt es eine externe Platte mit genug freiem Platz?</b><span>Variante A braucht mindestens das Gesamtvolumen aller Quellen. Die Zahl kennst du nach Phase 1.</span></div></li>
-        <li><div><b>Wie schnell ist dein Upload?</b><span>Auf <code>speedtest.net</code> messen, den <em>Upload</em>-Wert notieren. Bestimmt, ob Phase 5 ein Wochenende oder eine Woche dauert.</span></div></li>
-        <li><div><b>Welche Betriebssysteme laufen auf den vier Rechnern?</b><span>Damit ich Ausschlussliste und Werkzeugauswahl je Gerät konkret statt allgemein machen kann.</span></div></li>
-        <li><div><b>Ist das Zielkonto ein privates Google-Konto oder Workspace?</b><span>Nur Workspace hat Drive-Labels. Dann liessen sich Tags direkt an den Dateien führen statt in der Tabelle.</span></div></li>
-        <li><div><b>Sollen Fotos separat nach Google Fotos?</b><span>Dort gibt es Gesichts- und Ortssuche, aber getrennten Speicher und eigene Regeln. Beides zugleich ergibt doppelte Buchhaltung.</span></div></li>
-        <li><div><b>Was ist der eine Bestand, dessen Verlust am meisten wehtäte?</b><span>Der kommt zuerst dran und bekommt eine zweite, unabhängige Kopie — bevor irgendetwas anderes beginnt.</span></div></li>
+        <li><div><b>Welche externe Platte wird die Sammelplatte — Grösse, freier Platz, schon NTFS?</b><span>Nötig ist das Gesamtvolumen aus Phase 1 plus 20 Prozent für die Quarantäne. Falls sie heute exFAT ist: Umformatieren löscht sie vollständig, das will vorher geklärt sein. Sie bleibt danach dauerhaft als Zweitkopie liegen — also keine, die du bald anders brauchst.</span></div></li>
+        <li><div><b>Welcher Rechner hat den wichtigsten, gepflegtesten Bestand?</b><span>Er geht als Erster auf die Platte und steht in AllDup ganz oben — seine Ordnernamen prägen die spätere Ablage, seine Dateien landen nie in der Quarantäne.</span></div></li>
+        <li><div><b>Wie viel von den 5 TB sind wirklich frei?</b><span>Unter <code>one.google.com/storage</code> nachsehen: Drive, Gmail und Fotos teilen sich den Speicher. Die freie Menge gehört neben das Volumen aus Phase 1 in die Quellenliste.</span></div></li>
       </ol>
     </section>
 
@@ -1188,4 +1657,661 @@
     </footer>
 
   </main>
+
+  <section id="explorer" aria-label="File Explorer">
+
+    <div class="sec-head"><span class="sec-num">⌸</span><h2>File Explorer</h2></div>
+
+    <div class="xp-intro">
+      <p class="lede">
+        Zwei Ordner nebeneinander, gemeinsame Filter darüber. Gedacht für den Probelauf vor Phase 3:
+        einen Quellordner laden, die Regeln aus Phase 2 anlegen und sehen, was tatsächlich mitkäme —
+        Anzahl und Volumen, bevor eine einzige Datei bewegt wird. Und für die Kontrolle danach:
+        Quelle links, Sammelplatte rechts, Vergleich auf „nur hier“.
+      </p>
+      <p>
+        <b>Gelöscht wird hier nichts.</b> Das Werkzeug kennt keine Löschfunktion — es liest, filtert,
+        vergleicht und kopiert.
+      </p>
+    </div>
+
+    <div class="note" style="margin-bottom:var(--s2)">
+      <span class="note-label">Es gibt das auch als richtiges Programm</span>
+      <p>
+        Der Explorer hier ist an die Grenzen eines Browsers gebunden. Für den Ernstfall liegt im
+        Repository unter <code>tool/</code> ein Windows-Programm, das dieselbe Arbeit ohne diese
+        Grenzen tut — und dazu Inventur, Dublettensuche über Prüfsummen und die
+        Bildereinsortierung nach Jahr. Eine Datei, Doppelklick, nichts zu installieren.
+        Die fertige Datei liegt unter
+        <a href="https://github.com/Andreas76761/Dateiverwaltung_Google_Drive/releases/download/werkzeug-neueste/Dateiumzug2026.exe">Veröffentlichungen</a>
+        — anklicken, speichern, doppelklicken. Die Anleitung steht in <code>tool/README.md</code>.
+      </p>
+      <p>
+        <b>Was das Programm besser kann:</b> Hunderttausende Dateien statt einiger tausend,
+        echte Prüfsummen, Aufnahmejahre direkt aus den EXIF-Daten, lange Windows-Pfade,
+        Probeläufe vor jedem Schreibvorgang — und es läuft weiter, wenn du das Fenster wegklickst.
+        Der Explorer hier bleibt für den schnellen Blick zwischendurch.
+      </p>
+    </div>
+
+    <div class="xp-status" id="xpStatus">Bereit. Lade links und rechts je einen Ordner.</div>
+
+    <!-- ================= FILTER ================= -->
+    <div class="xp-panel">
+      <span class="xp-legend">Filter · gelten für beide Seiten</span>
+
+      <div class="xp-filters">
+        <div class="xp-field">
+          <label for="fName">Dateiname enthält</label>
+          <input type="text" id="fName" placeholder="z. B. rechnung oder *.pdf" autocomplete="off">
+        </div>
+
+        <div class="xp-field">
+          <label for="fMin">Grösse in MB · von / bis</label>
+          <div class="pair">
+            <input type="number" id="fMin" placeholder="0" min="0" step="any">
+            <input type="number" id="fMax" placeholder="120" min="0" step="any">
+          </div>
+        </div>
+
+        <div class="xp-field">
+          <label for="fFrom">Geändert · von / bis</label>
+          <div class="pair">
+            <input type="date" id="fFrom">
+            <input type="date" id="fTo">
+          </div>
+        </div>
+
+        <div class="xp-field">
+          <label for="fExt">Weitere Endungen</label>
+          <input type="text" id="fExt" placeholder="pst, dwg, eml" autocomplete="off">
+        </div>
+
+        <div class="xp-field">
+          <label for="fCompare">Vergleich</label>
+          <select id="fCompare">
+            <option value="all">alle Dateien zeigen</option>
+            <option value="only">nur hier vorhanden</option>
+            <option value="both">auf beiden Seiten</option>
+            <option value="diff">Grösse weicht ab</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="xp-field" style="margin-top:var(--s4)">
+        <label>Dateityp</label>
+        <div class="xp-cats" id="fCats"></div>
+      </div>
+
+      <div class="xp-actions">
+        <label class="xp-check"><input type="checkbox" id="fJunk" checked> Ausschlussliste aus Phase 2 anwenden</label>
+        <button type="button" class="xp-btn" data-preset="phase2">Voreinstellung Phase 2</button>
+        <button type="button" class="xp-btn" data-preset="bilder">Nur Bilder</button>
+        <button type="button" class="xp-btn" data-preset="reset">Filter zurücksetzen</button>
+      </div>
+    </div>
+
+    <!-- ================= PANES ================= -->
+    <div class="xp-panes">
+      <div class="xp-pane">
+        <div class="xp-pane-head">
+          <span class="xp-pane-id">Seite A</span>
+          <span class="xp-pane-path" id="pathA">kein Ordner geladen</span>
+          <button type="button" class="xp-btn" data-open="A">Ordner wählen</button>
+        </div>
+        <div class="xp-stats" id="statsA"><span>—</span></div>
+        <div class="xp-list" id="listA"><p class="xp-empty">Noch nichts geladen.</p></div>
+      </div>
+
+      <div class="xp-pane">
+        <div class="xp-pane-head">
+          <span class="xp-pane-id">Seite B</span>
+          <span class="xp-pane-path" id="pathB">kein Ordner geladen</span>
+          <button type="button" class="xp-btn" data-open="B">Ordner wählen</button>
+        </div>
+        <div class="xp-stats" id="statsB"><span>—</span></div>
+        <div class="xp-list" id="listB"><p class="xp-empty">Noch nichts geladen.</p></div>
+      </div>
+    </div>
+
+    <!-- ================= AKTIONEN ================= -->
+    <div class="xp-panel">
+      <span class="xp-legend">Aktionen · Auswahl übertragen oder ausgeben</span>
+      <div class="xp-actions">
+        <button type="button" class="xp-btn primary" id="copyAB" disabled>Auswahl A → B kopieren</button>
+        <button type="button" class="xp-btn primary" id="copyBA" disabled>Auswahl B → A kopieren</button>
+        <button type="button" class="xp-btn" id="expList" disabled>Auswahl als Liste sichern</button>
+        <button type="button" class="xp-btn" id="expFilter" disabled>FreeFileSync-Filter erzeugen</button>
+        <button type="button" class="xp-btn" id="expIndex" disabled>Index-Zeilen erzeugen</button>
+      </div>
+      <p class="xp-note" id="copyNote"></p>
+    </div>
+
+    <div class="xp-panel">
+      <span class="xp-legend">Was dieses Werkzeug kann — und was nicht</span>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Funktion</th><th>Stand</th></tr></thead>
+          <tbody>
+            <tr><td>Ordner samt Unterordnern einlesen, filtern, sortieren, vergleichen</td><td>funktioniert in jedem Browser</td></tr>
+            <tr><td>Dateien wirklich von A nach B kopieren</td><td id="capCopy">wird beim Laden geprüft</td></tr>
+            <tr><td>Auswahl als Liste, Filter oder Index-Zeilen sichern</td><td id="capSave">wird beim Laden geprüft</td></tr>
+            <tr><td>Löschen, Umbenennen, Verschieben</td><td>bewusst nicht eingebaut</td></tr>
+            <tr><td>Google Drive direkt anbinden</td><td>nicht möglich — siehe Hinweis unten</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note" style="margin-top:var(--s4)">
+        <span class="note-label">Warum Google Drive hier nicht auftaucht</span>
+        <p>
+          Diese Seite läuft abgeschottet im Browser und darf keine Verbindung zu fremden Servern
+          aufbauen — auch nicht zu Google. Eine Anmeldung an deinem Drive ist von hier aus nicht möglich.
+        </p>
+        <p>
+          Der Weg dahin führt über <b>Google Drive für Desktop</b> aus Phase 0: es hängt dein Drive als
+          Laufwerk in den Windows-Explorer, üblicherweise als <code>G:\</code>. Damit ist es ein
+          Ordner wie jeder andere — <b>du kannst ihn hier links oder rechts laden</b> und genauso
+          filtern und vergleichen wie die Sammelplatte. Für den Abgleich in Phase 9 ist das
+          genau der richtige Griff: links <code>D:\S\</code>, rechts <code>G:\Meine Ablage\Andreas_2026_Dateiverwaltung\</code>,
+          Vergleich auf „nur hier“.
+        </p>
+      </div>
+    </div>
+
+  </section>
+
 </div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Register ---------- */
+  var body = document.body;
+  body.dataset.view = "plan";
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+    t.addEventListener("click", function () {
+      var go = t.dataset.go;
+      body.dataset.view = go;
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (o) {
+        o.setAttribute("aria-selected", String(o.dataset.go === go));
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  /* ---------- Kategorien ---------- */
+  var CATS = {
+    dokument: "pdf doc docx odt rtf txt md xls xlsx ods csv ppt pptx odp pages numbers",
+    bild:     "jpg jpeg png heic heif webp tif tiff bmp gif psd psb xcf ai svg eps cr2 cr3 nef arw dng raf orf rw2",
+    video:    "mp4 mov m4v avi mkv wmv mpg mpeg 3gp mts m2ts webm flv",
+    audio:    "mp3 wav flac m4a aac ogg wma aiff",
+    archiv:   "zip rar 7z tar gz bz2 iso pst ost mbox eml",
+    code:     "js ts jsx tsx py java c cpp h hpp cs php rb go rs html css scss json xml yml yaml sql sh ps1"
+  };
+  var EXT2CAT = {};
+  Object.keys(CATS).forEach(function (c) {
+    CATS[c].split(" ").forEach(function (e) { EXT2CAT[e] = c; });
+  });
+  var CAT_LABEL = {
+    dokument: "Dokumente", bild: "Bilder", video: "Video",
+    audio: "Audio", archiv: "Archive", code: "Code", sonstiges: "Sonstiges"
+  };
+
+  /* Ausschlussliste aus Phase 2 */
+  var JUNK_DIR = ["/windows/", "/program files", "/programdata/", "/appdata/", "/$recycle.bin/",
+    "/system volume information/", "/recovery/", "/perflogs/", "/node_modules/", "/.git/",
+    "/venv/", "/__pycache__/", "/temp/", "/tmp/", "/cache", "/inetcache/", "/crashdumps/",
+    "/virtual machines/", "/virtualbox vms/", "/hyper-v/", "/windowsimagebackup/"];
+  var JUNK_EXT = ["dll", "exe", "sys", "msi", "cab", "lnk", "ini", "pyc", "obj", "class", "pdb",
+    "tmp", "temp", "bak", "crdownload", "part", "log", "dmp", "vmdk", "vdi", "vhd", "vhdx",
+    "img", "qcow2", "wim", "esd", "regtrans-ms", "blf", "o"];
+  var JUNK_NAME = ["thumbs.db", "desktop.ini", "ntuser.dat"];
+
+  /* ---------- Zustand ---------- */
+  var panes = {
+    A: { files: [], sel: {}, handle: null, root: "", sort: "name", dir: 1, limit: 300 },
+    B: { files: [], sel: {}, handle: null, root: "", sort: "name", dir: 1, limit: 300 }
+  };
+  var filters = { name: "", min: null, max: null, from: null, to: null, ext: [], cats: {}, junk: true, compare: "all" };
+  var CAN_PICK = typeof window.showDirectoryPicker === "function";
+  var CAN_SAVE = !!(window.claude && window.claude.downloads);
+
+  var $ = function (id) { return document.getElementById(id); };
+  var status = $("xpStatus");
+
+  function say(msg, kind) {
+    status.textContent = msg;
+    status.className = "xp-status" + (kind ? " " + kind : "");
+  }
+  function fmtSize(b) {
+    if (b >= 1073741824) return (b / 1073741824).toFixed(2) + " GB";
+    if (b >= 1048576) return (b / 1048576).toFixed(1) + " MB";
+    if (b >= 1024) return (b / 1024).toFixed(0) + " KB";
+    return b + " B";
+  }
+  function fmtDate(ms) {
+    var d = new Date(ms);
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+  function extOf(n) {
+    var i = n.lastIndexOf(".");
+    return i > 0 ? n.slice(i + 1).toLowerCase() : "";
+  }
+  function mkEntry(name, relPath, size, mtime, fileObj, parentHandle) {
+    var e = extOf(name);
+    return {
+      name: name, path: relPath, dir: relPath.slice(0, Math.max(0, relPath.length - name.length - 1)),
+      size: size, mtime: mtime, ext: e, cat: EXT2CAT[e] || "sonstiges",
+      file: fileObj || null, parent: parentHandle || null,
+      key: relPath.toLowerCase()
+    };
+  }
+
+  /* ---------- Kategorie-Chips ---------- */
+  var catBox = $("fCats");
+  Object.keys(CAT_LABEL).forEach(function (c) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "xp-cat"; b.textContent = CAT_LABEL[c];
+    b.setAttribute("aria-pressed", "false"); b.dataset.cat = c;
+    b.addEventListener("click", function () {
+      var on = b.getAttribute("aria-pressed") === "true";
+      b.setAttribute("aria-pressed", String(!on));
+      if (on) { delete filters.cats[c]; } else { filters.cats[c] = true; }
+      refresh();
+    });
+    catBox.appendChild(b);
+  });
+
+  /* ---------- Ordner laden ---------- */
+  function fallbackInput(id) {
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.multiple = true;
+    inp.webkitdirectory = true; inp.setAttribute("webkitdirectory", "");
+    inp.style.display = "none";
+    document.body.appendChild(inp);
+    inp.addEventListener("change", function () {
+      var list = inp.files, out = [], root = "";
+      for (var i = 0; i < list.length; i++) {
+        var f = list[i];
+        var rp = f.webkitRelativePath || f.name;
+        if (!root) { root = rp.split("/")[0]; }
+        var rel = rp.indexOf("/") >= 0 ? rp.slice(rp.indexOf("/") + 1) : rp;
+        out.push(mkEntry(f.name, rel, f.size, f.lastModified, f, null));
+      }
+      panes[id].files = out; panes[id].handle = null; panes[id].root = root || "Ordner";
+      $("path" + id).textContent = panes[id].root + "  (nur lesen)";
+      say("Seite " + id + ": " + out.length.toLocaleString("de-DE") + " Dateien gelesen.", "ok");
+      document.body.removeChild(inp);
+      refresh();
+    });
+    inp.click();
+  }
+
+  async function scanHandle(dirHandle, prefix, out, budget) {
+    for await (var entry of dirHandle.values()) {
+      if (out.length >= budget) { return; }
+      var rel = prefix ? prefix + "/" + entry.name : entry.name;
+      if (entry.kind === "directory") {
+        await scanHandle(entry, rel, out, budget);
+      } else {
+        try {
+          var f = await entry.getFile();
+          out.push(mkEntry(entry.name, rel, f.size, f.lastModified, f, dirHandle));
+        } catch (e) { /* unlesbare Datei überspringen */ }
+      }
+    }
+  }
+
+  async function openPane(id) {
+    if (!CAN_PICK) { fallbackInput(id); return; }
+    var h;
+    try {
+      h = await window.showDirectoryPicker({ mode: "readwrite" });
+    } catch (e) {
+      if (e && e.name === "AbortError") { return; }
+      fallbackInput(id); return;
+    }
+    say("Seite " + id + ": lese " + h.name + " …");
+    var out = [];
+    try {
+      await scanHandle(h, "", out, 200000);
+    } catch (e) {
+      say("Seite " + id + ": Lesen abgebrochen — " + (e.message || e), "warn");
+    }
+    panes[id].files = out; panes[id].handle = h; panes[id].root = h.name;
+    $("path" + id).textContent = h.name + "  (lesen und schreiben)";
+    say("Seite " + id + ": " + out.length.toLocaleString("de-DE") + " Dateien gelesen.", "ok");
+    refresh();
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-open]"), function (b) {
+    b.addEventListener("click", function () { openPane(b.dataset.open); });
+  });
+
+  /* ---------- Filter ---------- */
+  function readFilters() {
+    filters.name = $("fName").value.trim().toLowerCase();
+    var mn = parseFloat($("fMin").value), mx = parseFloat($("fMax").value);
+    filters.min = isNaN(mn) ? null : mn * 1048576;
+    filters.max = isNaN(mx) ? null : mx * 1048576;
+    filters.from = $("fFrom").value ? new Date($("fFrom").value + "T00:00:00").getTime() : null;
+    filters.to = $("fTo").value ? new Date($("fTo").value + "T23:59:59").getTime() : null;
+    filters.ext = $("fExt").value.split(/[\s,;]+/).map(function (x) {
+      return x.replace(/^[*.]+/, "").toLowerCase();
+    }).filter(Boolean);
+    filters.junk = $("fJunk").checked;
+    filters.compare = $("fCompare").value;
+  }
+
+  function isJunk(e) {
+    var p = ("/" + e.path).toLowerCase();
+    for (var i = 0; i < JUNK_DIR.length; i++) { if (p.indexOf(JUNK_DIR[i]) >= 0) { return true; } }
+    if (JUNK_EXT.indexOf(e.ext) >= 0) { return true; }
+    if (JUNK_NAME.indexOf(e.name.toLowerCase()) >= 0) { return true; }
+    if (e.name.indexOf("~$") === 0) { return true; }
+    return false;
+  }
+
+  function nameHit(e) {
+    if (!filters.name) { return true; }
+    var q = filters.name;
+    if (q.indexOf("*") >= 0) {
+      var rx = new RegExp("^" + q.split("*").map(function (s) {
+        return s.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+      }).join(".*") + "$");
+      return rx.test(e.name.toLowerCase());
+    }
+    return e.name.toLowerCase().indexOf(q) >= 0;
+  }
+
+  function otherIndex(id) {
+    var o = id === "A" ? "B" : "A", map = {};
+    panes[o].files.forEach(function (e) { map[e.key] = e; });
+    return map;
+  }
+
+  function filtered(id) {
+    var cats = Object.keys(filters.cats);
+    var needCompare = filters.compare !== "all";
+    var other = needCompare ? otherIndex(id) : null;
+    return panes[id].files.filter(function (e) {
+      if (filters.junk && isJunk(e)) { return false; }
+      if (!nameHit(e)) { return false; }
+      if (filters.min !== null && e.size < filters.min) { return false; }
+      if (filters.max !== null && e.size > filters.max) { return false; }
+      if (filters.from !== null && e.mtime < filters.from) { return false; }
+      if (filters.to !== null && e.mtime > filters.to) { return false; }
+      if (cats.length && !filters.cats[e.cat] && filters.ext.indexOf(e.ext) < 0) { return false; }
+      if (!cats.length && filters.ext.length && filters.ext.indexOf(e.ext) < 0) { return false; }
+      if (needCompare) {
+        var m = other[e.key];
+        if (filters.compare === "only" && m) { return false; }
+        if (filters.compare === "both" && !m) { return false; }
+        if (filters.compare === "diff" && (!m || m.size === e.size)) { return false; }
+      }
+      return true;
+    });
+  }
+
+  /* ---------- Darstellung ---------- */
+  var COLS = [
+    { k: "name", t: "Name" },
+    { k: "dir", t: "Ordner" },
+    { k: "size", t: "Grösse" },
+    { k: "mtime", t: "Geändert" }
+  ];
+
+  function render(id) {
+    var st = panes[id], rows = filtered(id);
+    st.view = rows;
+
+    var d = st.dir, key = st.sort;
+    rows.sort(function (a, b) {
+      var x = a[key], y = b[key];
+      if (typeof x === "string") { return d * x.localeCompare(y, "de"); }
+      return d * (x - y);
+    });
+
+    var selCount = 0, selBytes = 0, totalBytes = 0;
+    rows.forEach(function (e) {
+      totalBytes += e.size;
+      if (st.sel[e.key]) { selCount++; selBytes += e.size; }
+    });
+
+    $("stats" + id).innerHTML = st.files.length
+      ? "<span><b>" + rows.length.toLocaleString("de-DE") + "</b> von " + st.files.length.toLocaleString("de-DE") + " Dateien</span>" +
+        "<span><b>" + fmtSize(totalBytes) + "</b> gefiltert</span>" +
+        "<span>" + selCount.toLocaleString("de-DE") + " gewählt · " + fmtSize(selBytes) + "</span>"
+      : "<span>—</span>";
+
+    var box = $("list" + id);
+    if (!st.files.length) { box.innerHTML = '<p class="xp-empty">Noch nichts geladen.</p>'; return; }
+    if (!rows.length) { box.innerHTML = '<p class="xp-empty">Kein Treffer für diese Filter.</p>'; return; }
+
+    var shown = rows.slice(0, st.limit);
+    var html = "<table><thead><tr><th><input type='checkbox' data-all='" + id + "'></th>";
+    COLS.forEach(function (c) {
+      html += "<th data-sort='" + c.k + "' data-pane='" + id + "'>" + c.t + (st.sort === c.k ? (d > 0 ? " ↑" : " ↓") : "") + "</th>";
+    });
+    html += "</tr></thead><tbody>";
+    shown.forEach(function (e) {
+      html += "<tr><td><input type='checkbox' data-pick='" + id + "' value='" + e.key.replace(/'/g, "&#39;") + "'" +
+        (st.sel[e.key] ? " checked" : "") + "></td>" +
+        "<td class='f-name'>" + esc(e.name) + "</td>" +
+        "<td class='f-dir'>" + esc(e.dir || "·") + "</td>" +
+        "<td class='num'>" + fmtSize(e.size) + "</td>" +
+        "<td class='num'>" + fmtDate(e.mtime) + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    if (rows.length > shown.length) {
+      html += "<p class='xp-more'>" + (rows.length - shown.length).toLocaleString("de-DE") +
+        " weitere ausgeblendet · <button type='button' class='xp-btn' data-more='" + id + "'>mehr zeigen</button></p>";
+    }
+    box.innerHTML = html;
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (t.dataset && t.dataset.sort) {
+      var id = t.dataset.pane, st = panes[id];
+      if (st.sort === t.dataset.sort) { st.dir *= -1; } else { st.sort = t.dataset.sort; st.dir = 1; }
+      render(id); return;
+    }
+    if (t.dataset && t.dataset.more) {
+      panes[t.dataset.more].limit += 500; render(t.dataset.more); return;
+    }
+  });
+
+  document.addEventListener("change", function (ev) {
+    var t = ev.target;
+    if (t.dataset && t.dataset.pick) {
+      panes[t.dataset.pick].sel[t.value] = t.checked;
+      if (!t.checked) { delete panes[t.dataset.pick].sel[t.value]; }
+      render(t.dataset.pick); syncActions(); return;
+    }
+    if (t.dataset && t.dataset.all) {
+      var id = t.dataset.all, st = panes[id];
+      (st.view || []).forEach(function (e) {
+        if (t.checked) { st.sel[e.key] = true; } else { delete st.sel[e.key]; }
+      });
+      render(id); syncActions(); return;
+    }
+  });
+
+  function refresh() { readFilters(); render("A"); render("B"); syncActions(); }
+
+  ["fName", "fMin", "fMax", "fFrom", "fTo", "fExt", "fJunk", "fCompare"].forEach(function (id) {
+    var el = $(id);
+    el.addEventListener(el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input", refresh);
+  });
+
+  /* ---------- Voreinstellungen ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-preset]"), function (b) {
+    b.addEventListener("click", function () {
+      var p = b.dataset.preset;
+      var setCats = function (on) {
+        Array.prototype.forEach.call(catBox.children, function (c) {
+          var yes = on.indexOf(c.dataset.cat) >= 0;
+          c.setAttribute("aria-pressed", String(yes));
+          if (yes) { filters.cats[c.dataset.cat] = true; } else { delete filters.cats[c.dataset.cat]; }
+        });
+      };
+      if (p === "reset") {
+        ["fName", "fMin", "fMax", "fFrom", "fTo", "fExt"].forEach(function (i) { $(i).value = ""; });
+        $("fCompare").value = "all"; $("fJunk").checked = true; setCats([]);
+      } else if (p === "phase2") {
+        $("fName").value = ""; $("fMin").value = ""; $("fMax").value = "120";
+        $("fFrom").value = ""; $("fTo").value = ""; $("fExt").value = "";
+        $("fJunk").checked = true; $("fCompare").value = "all"; setCats([]);
+      } else if (p === "bilder") {
+        $("fName").value = ""; $("fMin").value = ""; $("fMax").value = "120";
+        $("fJunk").checked = true; setCats(["bild"]);
+      }
+      refresh();
+    });
+  });
+
+  /* ---------- Aktionen ---------- */
+  function selectedOf(id) {
+    var st = panes[id];
+    return (st.view || []).filter(function (e) { return st.sel[e.key]; });
+  }
+
+  function syncActions() {
+    var a = selectedOf("A").length, b = selectedOf("B").length;
+    $("copyAB").disabled = !(a && panes.B.handle);
+    $("copyBA").disabled = !(b && panes.A.handle);
+    $("expList").disabled = !(a + b) || !CAN_SAVE;
+    $("expFilter").disabled = !(a + b) || !CAN_SAVE;
+    $("expIndex").disabled = !(a + b) || !CAN_SAVE;
+
+    var note = [];
+    if (!CAN_PICK) {
+      note.push("Dein Browser erlaubt dieser Seite kein Schreiben auf die Festplatte — Ordner werden nur gelesen. Zum Kopieren die Auswahl als Liste oder FreeFileSync-Filter sichern und den Kopiervorgang dort ausführen.");
+    } else if (!panes.A.handle && !panes.B.handle) {
+      note.push("Kopieren wird möglich, sobald die Zielseite über „Ordner wählen“ geladen ist und du den Schreibzugriff bestätigst.");
+    }
+    if (!CAN_SAVE) { note.push("Das Sichern von Dateien ist in dieser Ansicht nicht verfügbar."); }
+    $("copyNote").textContent = note.join(" ");
+  }
+
+  async function ensureDir(rootHandle, relDir) {
+    var h = rootHandle;
+    if (!relDir) { return h; }
+    var parts = relDir.split("/").filter(Boolean);
+    for (var i = 0; i < parts.length; i++) {
+      h = await h.getDirectoryHandle(parts[i], { create: true });
+    }
+    return h;
+  }
+
+  async function doCopy(from, to) {
+    var target = panes[to].handle;
+    var items = selectedOf(from);
+    if (!target || !items.length) { return; }
+    if (target.requestPermission) {
+      var perm = await target.requestPermission({ mode: "readwrite" });
+      if (perm !== "granted") { say("Schreibzugriff auf Seite " + to + " wurde nicht erteilt.", "warn"); return; }
+    }
+    var ok = 0, skip = 0, fail = 0;
+    for (var i = 0; i < items.length; i++) {
+      var e = items[i];
+      say("Kopiere " + (i + 1) + " von " + items.length + " …");
+      try {
+        var dir = await ensureDir(target, e.dir);
+        var exists = false;
+        try { await dir.getFileHandle(e.name); exists = true; } catch (x) { exists = false; }
+        if (exists) { skip++; continue; }
+        var fh = await dir.getFileHandle(e.name, { create: true });
+        var w = await fh.createWritable();
+        await w.write(e.file);
+        await w.close();
+        ok++;
+      } catch (x) { fail++; }
+    }
+    say("Fertig: " + ok + " kopiert, " + skip + " übersprungen (schon vorhanden), " + fail + " fehlgeschlagen. Nichts wurde gelöscht.", fail ? "warn" : "ok");
+    openPane_refreshHint(to);
+  }
+
+  function openPane_refreshHint(id) {
+    $("path" + id).textContent = panes[id].root + "  (lesen und schreiben · neu laden für aktuelle Liste)";
+  }
+
+  $("copyAB").addEventListener("click", function () { doCopy("A", "B"); });
+  $("copyBA").addEventListener("click", function () { doCopy("B", "A"); });
+
+  async function offer(filename, text, alt) {
+    if (!CAN_SAVE) { say("Sichern ist in dieser Ansicht nicht verfügbar.", "warn"); return; }
+    try {
+      await window.claude.downloads.save({ filename: filename, data: text });
+      say("Gesichert: " + filename, "ok");
+    } catch (e) {
+      if (e && e.code === "extension_not_enabled" && alt) { return offer(alt, text, null); }
+      if (e && e.code === "declined") { say("Sichern abgebrochen."); return; }
+      say("Sichern nicht möglich: " + ((e && e.message) || e), "warn");
+    }
+  }
+
+  function allSelected() {
+    return selectedOf("A").map(function (e) { return ["A", e]; })
+      .concat(selectedOf("B").map(function (e) { return ["B", e]; }));
+  }
+
+  $("expList").addEventListener("click", function () {
+    var rows = ["seite;ordner;datei;groesse_mb;geaendert"];
+    allSelected().forEach(function (p) {
+      var e = p[1];
+      rows.push([p[0], e.dir, e.name, (e.size / 1048576).toFixed(2).replace(".", ","), fmtDate(e.mtime)].join(";"));
+    });
+    offer("auswahl.csv", rows.join("\r\n"), "auswahl.txt");
+  });
+
+  $("expFilter").addEventListener("click", function () {
+    var dirs = {}, exts = {};
+    allSelected().forEach(function (p) {
+      if (p[1].dir) { dirs["\\" + p[1].dir.replace(/\//g, "\\") + "\\"] = 1; }
+      if (p[1].ext) { exts["*." + p[1].ext] = 1; }
+    });
+    var txt = [
+      "FreeFileSync — Einschluss aus der Auswahl im File Explorer",
+      "Erzeugt aus " + allSelected().length + " gewaehlten Dateien.",
+      "In FreeFileSync unter Filter > Einschliessen einfuegen, eine Zeile je Eintrag.",
+      "", "== Ordner ==", ""
+    ].concat(Object.keys(dirs).sort())
+      .concat(["", "== Endungen ==", ""])
+      .concat(Object.keys(exts).sort());
+    offer("freefilesync-filter.txt", txt.join("\r\n"), null);
+  });
+
+  $("expIndex").addEventListener("click", function () {
+    var rows = ["quelle_id;original_pfad;dateiname;endung;groesse_mb;geaendert_am;kategorie"];
+    allSelected().forEach(function (p) {
+      var e = p[1];
+      rows.push([panes[p[0]].root, e.dir, e.name, e.ext,
+        (e.size / 1048576).toFixed(2).replace(".", ","), fmtDate(e.mtime), e.cat].join(";"));
+    });
+    offer("index-zeilen.csv", rows.join("\r\n"), "index-zeilen.txt");
+  });
+
+  /* ---------- Fähigkeiten anzeigen ---------- */
+  $("capCopy").textContent = CAN_PICK
+    ? "verfügbar — Zielordner muss über „Ordner wählen“ geladen und der Schreibzugriff bestätigt sein"
+    : "in diesem Browser nicht verfügbar — stattdessen Liste oder Filter sichern";
+  $("capSave").textContent = CAN_SAVE ? "verfügbar" : "in dieser Ansicht nicht verfügbar";
+
+  if (!CAN_PICK) {
+    say("Hinweis: Dieser Browser erlaubt der Seite nur Lesezugriff. Filtern und Vergleichen geht vollständig, Kopieren nicht.", "warn");
+  }
+
+  syncActions();
+})();
+</script>
