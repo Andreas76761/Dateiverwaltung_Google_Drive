@@ -561,6 +561,7 @@
       <div class="fact"><dt>Zielkonto</dt><dd>privates Google-Konto</dd></div>
       <div class="fact"><dt>Speicher</dt><dd>2 TB, geteilt mit Gmail und Fotos</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
+      <div class="fact"><dt>Bilder</dt><dd>zentral, nach Jahr</dd></div>
       <div class="fact"><dt>Rechner</dt><dd>4 × Windows, im WLAN</dd></div>
       <div class="fact"><dt>Einsammeln</dt><dd>NTFS-Platte, wandert per USB</dd></div>
       <div class="fact"><dt>Upload</dt><dd>Sammelrechner am LAN-Kabel</dd></div>
@@ -575,7 +576,7 @@
       <li><a href="#regeln"><span>§</span>Grundregeln</a></li>
       <li><a href="#realitaet"><span>!</span>Realitätscheck</a></li>
       <li><a href="#variante"><span>A</span>Der Weg</a></li>
-      <li><a href="#phasen"><span>0–8</span>Die Phasen</a></li>
+      <li><a href="#phasen"><span>0–9</span>Die Phasen</a></li>
       <li><a href="#struktur"><span>/</span>Zielstruktur</a></li>
       <li><a href="#index"><span>#</span>Index-Schema</a></li>
       <li><a href="#tags"><span>@</span>Tag-Vokabular</a></li>
@@ -599,7 +600,7 @@
       <ul class="rules">
         <li>
           <h3>Es wird kopiert, nie verschoben</h3>
-          <p>Bis zum Schlussabgleich in Phase 8 bleibt jede Quelle unangetastet. Ein abgebrochener Umzug darf nie Daten kosten.</p>
+          <p>Bis zum Schlussabgleich in Phase 9 bleibt jede Quelle unangetastet. Ein abgebrochener Umzug darf nie Daten kosten.</p>
         </li>
         <li>
           <h3>Gelöscht wird erst nach Sichtung</h3>
@@ -643,12 +644,12 @@
             <tr>
               <td><b>Ein Speicher für drei Dienste</b></td>
               <td>Die 2 TB teilen sich <b>Drive, Gmail und Google Fotos</b>. Ein volles Postfach oder eine grosse Fotomediathek verkleinern den Platz für den Umzug.</td>
-              <td>Vor Phase 5 unter <code>one.google.com/storage</code> die tatsächliche Aufteilung ansehen und die freie Menge gegen das Volumen aus Phase 1 halten.</td>
+              <td>Vor Phase 6 unter <code>one.google.com/storage</code> die tatsächliche Aufteilung ansehen und die freie Menge gegen das Volumen aus Phase 1 halten.</td>
             </tr>
             <tr>
               <td><b>Kein Administrator im Rücken</b></td>
               <td>Bei Geschäftskonten kann ein Admin gelöschte Dateien noch nach dem Papierkorb zurückholen und ein gesperrtes Konto entsperren. Bei einem privaten Konto gibt es beides nicht: nach 30 Tagen Papierkorb ist eine Datei endgültig weg.</td>
-              <td>Die 90-Tage-Karenz in Phase 8 ist deshalb Pflicht, nicht Vorsicht — und die Sammelplatte bleibt dauerhaft als Zweitkopie erhalten.</td>
+              <td>Die 90-Tage-Karenz in Phase 9 ist deshalb Pflicht, nicht Vorsicht — und die Sammelplatte bleibt dauerhaft als Zweitkopie erhalten.</td>
             </tr>
             <tr>
               <td><b>750 GB Upload pro Tag</b></td>
@@ -736,7 +737,7 @@
           weiter im Funknetz, ihr Weg zum Sammelrechner führt also so oder so über WLAN. Die Platte wandert.
         </p>
         <p>
-          Wo das Kabel zählt, ist <b>Phase 5</b> — Tage Dauerübertragung vom Sammelrechner zu Google Drive.
+          Wo das Kabel zählt, ist <b>Phase 6</b> — Tage Dauerübertragung vom Sammelrechner zu Google Drive.
           Da du es legen kannst, gelten die Zeiten in der <a href="#zeit">Uploadtabelle</a> unverkürzt,
           statt sich über Funk zu verdoppeln, und der Upload läuft nachts unbeaufsichtigt durch.
           <b>Damit ist der Sammelrechner der, den du mit dem Kabel erreichst</b> — dieses Kriterium
@@ -750,7 +751,7 @@
         <li>Die Platte geht nacheinander an die anderen drei, nimmt deren Auswahl auf, kommt zurück.</li>
         <li>Jedes Mal <b>sicher auswerfen</b>, bevor der Stecker gezogen wird. NTFS verzeiht viel, aber nicht alles.</li>
         <li>Nach jedem Rechner in der Datenträgerverwaltung kurz eine Fehlerprüfung laufen lassen — dauert Minuten und erspart böse Überraschungen in Phase 4.</li>
-        <li>Bis Phase 8 liegen die Originale ohnehin noch auf den Rechnern. Die Platte ist nie die einzige Kopie.</li>
+        <li>Bis Phase 9 liegen die Originale ohnehin noch auf den Rechnern. Die Platte ist nie die einzige Kopie.</li>
       </ul>
 
       <h3>Die Reihenfolge</h3>
@@ -771,7 +772,7 @@
 
     <!-- ================= PHASEN ================= -->
     <section id="phasen">
-      <div class="sec-head"><span class="sec-num">0–8</span><h2>Der Ablauf in neun Phasen</h2></div>
+      <div class="sec-head"><span class="sec-num">0–9</span><h2>Der Ablauf in zehn Phasen</h2></div>
       <p class="lede">
         Die Reihenfolge ist nicht beliebig: jede Phase liefert das Material, das die nächste braucht.
         Wer bei Phase 3 anfängt, weil das Kopieren am produktivsten aussieht, lädt Müll hoch.
@@ -789,9 +790,9 @@
               <li><code>Andreas_2026_Dateiverwaltung</code> in „Meine Ablage“ anlegen, dazu das Ordnergerüst aus Abschnitt <a href="#struktur">Zielstruktur</a>.</li>
               <li><b>Quellenliste</b> anlegen: jede Quelle bekommt ein kurzes Kürzel, das nie wieder geändert wird — <code>PC1</code> bis <code>PC4</code>, <code>EXT1</code> ff., <code>DBX</code>, <code>ODR</code>, <code>ICL</code>, <code>GD2</code>. Dazu Notiz: welches Gerät, welche Laufwerke, wer nutzt es.</li>
               <li><b>Sammelrechner bestimmen.</b> Erstes Kriterium: das LAN-Kabel muss ihn erreichen. Zweites: freier Platz. Von ihm aus laufen Dublettensuche und Upload; er ist für ein bis zwei Wochen die Zentrale.</li>
-              <li><b>Kabel jetzt schon legen und testen</b>, nicht erst in Phase 5. Auf <code>speedtest.net</code> den Upload-Wert mit Kabel messen und notieren — daraus ergibt sich, wie lange Phase 5 dauert und wie du sie einteilst.</li>
+              <li><b>Kabel jetzt schon legen und testen</b>, nicht erst in Phase 6. Auf <code>speedtest.net</code> den Upload-Wert mit Kabel messen und notieren — daraus ergibt sich, wie lange Phase 6 dauert und wie du sie einteilst.</li>
               <li><b>Sammelplatte prüfen:</b> Dateisystem <b>NTFS</b> (im Explorer unter Eigenschaften ablesbar), freier Platz mindestens in Höhe des Gesamtvolumens aus Phase 1 plus 20 Prozent Reserve für die Quarantäne.</li>
-              <li><b>Freien Drive-Speicher ablesen</b> unter <code>one.google.com/storage</code>. Die 2 TB teilen sich Drive, Gmail und Fotos — massgeblich ist, was davon übrig ist. Zahl in die Quellenliste eintragen, sie ist die Obergrenze für Phase 5.</li>
+              <li><b>Freien Drive-Speicher ablesen</b> unter <code>one.google.com/storage</code>. Die 2 TB teilen sich Drive, Gmail und Fotos — massgeblich ist, was davon übrig ist. Zahl in die Quellenliste eintragen, sie ist die Obergrenze für Phase 6.</li>
               <li>Werkzeuge installieren (siehe <a href="#werkzeuge">Werkzeuge</a>): WizTree, Everything und FreeFileSync auf allen vier Rechnern, AllDup und Drive für Desktop nur auf dem Sammelrechner.</li>
               <li>Google Drive für Desktop <b>nur auf dem Sammelrechner</b> einrichten, Zielordner als gestreamten Ordner einbinden.</li>
             </ul>
@@ -807,7 +808,7 @@
             <ul>
               <li>Pro Rechner mit <b>WizTree</b> alle Laufwerke scannen — es liest die NTFS-Dateitabelle direkt und ist deshalb in Sekunden fertig, wo andere Werkzeuge eine Stunde brauchen.</li>
               <li>Notieren: Gesamtvolumen, Anzahl Dateien, die zehn grössten Ordner, und wo die Nutzdaten wirklich liegen.</li>
-              <li>In WizTree über <em>Datei → Als CSV exportieren</em> die komplette Dateiliste sichern — <b>diese Exporte aufheben</b>, sie sind die Rohdaten für den Index in Phase 7. Direkt auf die Sammelplatte, unter <code>D:\S\_INVENTUR\PC1.csv</code>.</li>
+              <li>In WizTree über <em>Datei → Als CSV exportieren</em> die komplette Dateiliste sichern — <b>diese Exporte aufheben</b>, sie sind die Rohdaten für den Index in Phase 8. Direkt auf die Sammelplatte, unter <code>D:\S\_INVENTUR\PC1.csv</code>.</li>
               <li>Vergessene Orte gezielt mit <b>Everything</b> suchen: Downloads, Desktop, alte Benutzerprofile unter <code>C:\Users\</code>, <code>C:\Users\Public</code>, zweite Partitionen, Mail-Archive (<code>*.pst</code>), Scanner-Ausgabeordner, Handy-Backups, alte <code>Eigene Dateien</code>-Ordner aus XP-Zeiten.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> du für jede Quelle eine Zeile hast: Volumen, Dateianzahl, und die drei bis fünf Ordner, die tatsächlich mitkommen sollen.</p>
@@ -820,7 +821,7 @@
             <h3>Die Filterregel festlegen</h3>
             <p>Einmal sauber definiert, gilt sie für alle vier Rechner identisch. Das ist der Grund, warum die Bestände später überhaupt vergleichbar sind.</p>
             <ul>
-              <li><b>Aufnahme:</b> alle Dateien bis 120 MB aus den in Phase 1 bestimmten Nutzdaten-Ordnern.</li>
+              <li><b>Aufnahme:</b> alle Dateien bis 120 MB aus den in Phase 1 bestimmten Nutzdaten-Ordnern. Bilder werden hier <em>nicht</em> gesondert behandelt — sie kommen normal mit und werden erst in Phase 5 herausgezogen.</li>
               <li><b>Ausschluss über die Ordnerwahl</b> — das ist der wirksamste Filter: Programmordner, Systemordner und Benutzerprofil-Innereien werden gar nicht erst ausgewählt.</li>
               <li><b>Ausschluss über Masken</b> für den Rest, direkt im Kopierwerkzeug eingetragen.</li>
               <li>Dateien über 120 MB kommen auf eine eigene Liste „<b>Übergrossen-Register</b>“ (Pfad, Grösse, Quelle) — sie fahren nicht mit, aber du weisst, dass es sie gibt und wo sie liegen.</li>
@@ -894,14 +895,62 @@
               <li><b>Ergebnisliste vor jeder Aktion als CSV exportieren.</b> Diese Datei wird später zur Spalte <code>dup_gruppe</code> im Index — nach dem Verschieben lässt sie sich nicht mehr rekonstruieren.</li>
               <li>Als Aktion <b>„Verschieben“</b> wählen, Ziel <code>D:\S\_QUARANTAENE\</code> — <b>niemals „Löschen“</b>. AllDup bietet beides gleichberechtigt an; ein Fehlklick ist endgültig. Vorher an fünf Testdateien üben.</li>
               <li>Bleibt eine Entscheidung offen: die Kopie im aussagekräftigsten Ordner gewinnt, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen.</li>
-              <li>Danach ein zweiter Durchgang mit <b>dupeGuru</b> im Modus <b>Bilder</b>: er findet <em>ähnliche</em> Aufnahmen, die AllDup nicht sieht — dieselbe Datei in anderer Auflösung, Screenshots von Screenshots, Kopien mit anderer Kompression. Diese Treffer nur als Liste exportieren und <code>status:unklar</code> setzen, nicht verschieben; sie brauchen dein Auge.</li>
+              <li>Ähnliche — nicht identische — Fotos bleiben hier noch liegen. Die kommen in Phase 5 dran, wenn alle Bilder an einem Ort sind; dort ist die Suche schneller und das Ergebnis übersichtlicher.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> die Quarantäne gefüllt, beide CSV-Listen exportiert sind und ein zweiter AllDup-Lauf über die Sammelplatte keine exakten Treffer mehr liefert.</p>
+            <p class="done"><b>Fertig, wenn</b> die Quarantäne gefüllt, die CSV-Liste exportiert ist und ein zweiter AllDup-Lauf über die Sammelplatte keine exakten Treffer mehr liefert.</p>
           </div>
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 5<em>1–5 Tage</em></div>
+          <div class="phase-marker">Phase 5<em>3–5 Std.</em></div>
+          <div class="phase-body">
+            <h3>Bilder zusammenführen, nach Jahr</h3>
+            <p>
+              Bilder bekommen als einzige Kategorie eine Ausnahme von der Regel „Quelle zuerst“ —
+              sie wandern aus allen Quellen in <b>einen</b> Ordner, geordnet nach Aufnahmejahr.
+              Bei einem Foto sagt der Herkunftsrechner nichts über den Inhalt; das Jahr sagt fast alles.
+              Die Herkunft geht dabei nicht verloren, sie steht weiter in der Spalte <code>quelle_id</code> des Index.
+            </p>
+            <p>
+              Das läuft <b>lokal auf der Sammelplatte</b>, vor dem Upload. Zehntausende Dateien in Drive
+              zu verschieben, dauert Tage; auf der Platte sind es Minuten.
+            </p>
+            <ul>
+              <li>Zielordner <code>D:\S\_BILDER\</code> anlegen.</li>
+              <li>In <b>Advanced Renamer</b> den Stapelmodus <b>Verschieben</b> wählen und alle Quellordner der Sammelplatte hinzufügen. Dateifilter setzen — was mitkommt, steht in der Formatliste unten.</li>
+              <li><b>Erster Durchgang, Aufnahmedatum:</b> als neuen Pfad <code>D:\S\_BILDER\&lt;Img EXIF:DateTimeOriginal, yyyy&gt;\</code> eintragen. Greift bei JPEG, HEIC, HEIF und TIFF — allem, was aus Kamera oder Telefon kommt.</li>
+              <li><b>Zweiter Durchgang, Dateidatum:</b> PNG, WEBP, BMP, GIF und Bearbeitungsdateien haben meist kein Aufnahmedatum. Für sie das Änderungsdatum als Jahr verwenden.</li>
+              <li><b>Vorschau lesen, bevor du ausführst.</b> Advanced Renamer zeigt für jede Datei alten und neuen Pfad. Das ist deine einzige Kontrolle — nach dem Lauf sind zehntausende Dateien woanders.</li>
+              <li><b>Kollisionsregel auf Nummer anhängen stellen</b>, nicht auf Überschreiben. <code>IMG_0001.jpg</code> gibt es aus vier Quellen garantiert mehrfach, und exakt gleiche wurden in Phase 4 schon aussortiert — was jetzt kollidiert, ist <em>verschieden</em> und muss beides bleiben.</li>
+              <li>Jahre, die nicht stimmen können — 1970, 1980, alles vor 1995 oder in der Zukunft — nach <code>_Jahr_unklar\</code>. Grosszügig sein: dieser Ordner ist billiger als ein falsch einsortiertes Jahrzehnt.</li>
+              <li><b>Jetzt der Ähnlichkeitslauf:</b> <b>dupeGuru</b> im Modus <b>Bilder</b> über <code>_BILDER\</code>. Er findet dieselbe Aufnahme in anderer Auflösung, neu komprimierte Kopien, Screenshots von Screenshots. Treffer als Liste exportieren und im Index auf <code>status:unklar</code> setzen — <b>nicht verschieben</b>, die brauchen dein Auge.</li>
+            </ul>
+
+            <div class="scroller">
+              <table>
+                <caption>Was in den Bilderordner wandert — und was nicht</caption>
+                <thead><tr><th>Gruppe</th><th>Formate</th><th>Wohin</th></tr></thead>
+                <tbody>
+                  <tr><td>Fotos und Grafiken</td><td class="mono">*.jpg *.jpeg *.png *.heic *.heif *.webp *.tif *.tiff *.bmp *.gif</td><td><code>80_Bilder/&lt;Jahr&gt;/</code></td></tr>
+                  <tr><td>Bearbeitungsdateien</td><td class="mono">*.psd *.psb *.xcf *.ai *.svg *.eps</td><td><code>80_Bilder/&lt;Jahr&gt;/</code></td></tr>
+                  <tr><td>RAW-Dateien</td><td class="mono">*.cr2 *.cr3 *.nef *.arw *.dng *.raf *.orf *.rw2</td><td>bleiben bei ihrer Quelle in <code>02_Bilder_RAW/</code></td></tr>
+                  <tr><td>Gescannte Dokumente</td><td class="mono">*.pdf</td><td>bleiben bei ihrer Quelle in <code>01_Dokumente/</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              <b>RAW bleibt bewusst bei der Quelle.</b> Diese Dateien gehören neben ihre Bearbeitungsstände
+              und sind meist schon nach Aufnahme geordnet — aus dem Zusammenhang gerissen nützen sie wenig.
+              Scans als PDF sind Dokumente, keine Bilder; sie stehen im Index als <code>typ:dokument</code>.
+            </p>
+
+            <p class="done"><b>Fertig, wenn</b> <code>_BILDER\</code> nur noch Jahresordner und <code>_Jahr_unklar\</code> enthält, in den Quellordnern keine der oben gelisteten Formate mehr liegen, und die Ähnlichkeitsliste exportiert ist.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 6<em>1–5 Tage</em></div>
           <div class="phase-body">
             <h3>Upload nach Google Drive</h3>
             <p>Weitgehend Wartezeit — aber Wartezeit, die schiefgehen kann, wenn sie unbeaufsichtigt in einem Rutsch läuft.</p>
@@ -919,12 +968,12 @@
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 6<em>4–8 Std.</em></div>
+          <div class="phase-marker">Phase 7<em>4–8 Std.</em></div>
           <div class="phase-body">
             <h3>Einsortieren in Kategorien</h3>
             <p>Bis hierher liegt in Drive eine getreue Kopie der alten Unordnung. Jetzt entsteht die neue Ordnung — und zwar oberhalb der alten, nicht statt ihrer.</p>
             <ul>
-              <li>Unterhalb jeder Quelle die acht Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>).</li>
+              <li>Unterhalb jeder Quelle die acht Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>). <code>80_Bilder/</code> steht dabei aussen vor — das ist in Phase 5 schon fertig geordnet und wird hier nicht mehr angefasst.</li>
               <li>Verschoben werden <b>Ordner, keine Einzeldateien</b>. Ein Ordner „Steuer 2019“ wandert als Ganzes nach <code>Dokumente/</code>. Das erledigt in wenigen Stunden, was auf Dateiebene Wochen dauert.</li>
               <li>Was sich nicht in einem Griff zuordnen lässt, kommt nach <code>99_Zu_Pruefen/</code> und wird nicht länger als zehn Sekunden betrachtet. Dieser Ordner darf gross sein — er ist der Grund, warum der Rest schnell geht.</li>
               <li>Nach zwei Quellen innehalten: passen die acht Kategorien noch? Jetzt ist der Moment, sie zu ändern — später nicht mehr.</li>
@@ -934,13 +983,14 @@
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 7<em>6–12 Std.</em></div>
+          <div class="phase-marker">Phase 8<em>6–12 Std.</em></div>
           <div class="phase-body">
             <h3>Index anlegen und taggen</h3>
             <p>Der Index ist das eigentliche Ergebnis des Projekts. Er beantwortet Fragen, die Drive nicht beantworten kann: Woher stammt das? Gibt es das doppelt? Wie lange muss ich es aufbewahren?</p>
             <ul>
               <li>In <code>00_Index</code> ein Google Sheet <b>Dateiindex_2026</b> anlegen, Spalten nach dem <a href="#index">Index-Schema</a>.</li>
-              <li>Die CSV-Exporte aus Phase 1 und die Dubletten-CSV aus Phase 4 importieren — damit sind neun der sechzehn Spalten ohne Handarbeit gefüllt.</li>
+              <li>Die CSV-Exporte aus Phase 1 und die Dubletten-CSV aus Phase 4 importieren — damit sind zwölf der sechzehn Spalten ohne Handarbeit gefüllt.</li>
+              <li>Die Ähnlichkeitsliste aus Phase 5 einspielen: die betroffenen Bilder bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner.</li>
               <li>Ein zweites Blatt <b>Ordnerregister</b>: eine Zeile pro Ordner der zweiten und dritten Ebene, mit Tags, Aufbewahrung und Notiz. <b>Hier findet das Taggen statt</b>, nicht auf Dateiebene.</li>
               <li>Ein drittes Blatt <b>Quellen</b> mit der Kürzelliste aus Phase 0, ergänzt um Volumen und Dateianzahl.</li>
               <li>Nur Tags aus dem festgelegten <a href="#tags">Vokabular</a> verwenden. In Sheets als Dropdown einrichten — Freitext macht den Index binnen Wochen wertlos.</li>
@@ -950,7 +1000,7 @@
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 8<em>2 Std. + 90 Tage</em></div>
+          <div class="phase-marker">Phase 9<em>2 Std. + 90 Tage</em></div>
           <div class="phase-body">
             <h3>Abgleich, Karenz, Dauerbetrieb</h3>
             <p>Ein Umzug ist erst zu Ende, wenn nachgewiesen ist, dass nichts fehlt — und wenn geregelt ist, was mit neuen Dateien passiert.</p>
@@ -976,7 +1026,8 @@
       <p class="lede">
         Erste Ebene: Herkunft. Zweite Ebene: Kategorie. Darunter bleibt die gewachsene
         Ordnerstruktur der Quelle unverändert erhalten. Die Zehnerschritte in den Nummern lassen
-        Platz für Quellen, die später dazukommen.
+        Platz für Quellen, die später dazukommen. Eine einzige Kategorie fällt aus diesem Muster
+        heraus — <b>Bilder</b>, die quer über alle Quellen in <code>80_Bilder/</code> zusammenkommen.
       </p>
 
       <pre class="tree"><b>Andreas_2026_Dateiverwaltung/</b>
@@ -987,8 +1038,8 @@
 │   └── Uebergrossen_Register      <i>Sheet · was &gt;120 MB ist und wo es liegt</i>
 │
 ├── <b>10_PC1_&lt;Bezeichnung&gt;/</b>
-│   ├── 01_Dokumente/              <i>Texte, PDF, Tabellen, Verträge, Belege</i>
-│   ├── 02_Bilder/                 <i>Fotos, Scans, Grafiken</i>
+│   ├── 01_Dokumente/              <i>Texte, PDF, Tabellen, Verträge, Belege, Scans</i>
+│   ├── 02_Bilder_RAW/             <i>nur RAW — alles andere liegt in 80_Bilder</i>
 │   ├── 03_Video/
 │   ├── 04_Audio/
 │   ├── 05_Projekte/               <i>zusammengehörige Arbeitsstände</i>
@@ -1009,8 +1060,14 @@
 ├── <b>70_GD_Weitere_Google_Konten/</b>
 │   └── GD2_&lt;Konto&gt;/
 │
+├── <b>80_Bilder/</b>                    <i>Ausnahme · alle Quellen zusammen, nach Aufnahmejahr</i>
+│   ├── 1998/
+│   ├── … /
+│   ├── 2026/
+│   └── _Jahr_unklar/              <i>ohne verwertbares Datum — Herkunft steht im Index</i>
+│
 ├── <b>90_Quarantaene_Duplikate/</b>     <i>je Quelle · wird nach der Karenz gesichtet</i>
-└── <b>99_Zu_Pruefen/</b>                <i>Auffangbecken aus Phase 6</i></pre>
+└── <b>99_Zu_Pruefen/</b>                <i>Auffangbecken aus Phase 7</i></pre>
 
       <div class="note">
         <span class="note-label">Warum Quelle vor Kategorie</span>
@@ -1022,15 +1079,33 @@
           quer über alle Quellen kategorisieren.
         </p>
       </div>
+
+      <div class="note">
+        <span class="note-label">Warum Bilder die Ausnahme sind</span>
+        <p>
+          Genau die Begründung von oben trägt bei Fotos nicht. „Lag auf dem Büro-Rechner“ sagt nichts
+          über eine Aufnahme — das Aufnahmejahr dagegen fast alles. Dazu kommt: Bilder sind die
+          Kategorie mit den meisten quellenübergreifenden Doppelungen, und die findet man nur,
+          wenn sie beieinander liegen. Deshalb wandern sie in einen Ordner, nach Jahr sortiert,
+          und die Herkunft steht weiter in der Spalte <code>quelle_id</code> des Index.
+        </p>
+        <p>
+          Nicht mitgenommen werden <b>RAW-Dateien</b> — die gehören neben ihre Bearbeitungsstände
+          und sind meist schon nach Aufnahme geordnet — und <b>Scans als PDF</b>, die trotz ihres
+          Ursprungs Dokumente sind. Beide bleiben bei ihrer Quelle.
+        </p>
+      </div>
     </section>
 
     <!-- ================= INDEX ================= -->
     <section id="index">
       <div class="sec-head"><span class="sec-num">#</span><h2>Index-Schema</h2></div>
       <p class="lede">
-        Blatt <b>Dateiindex_2026</b>, eine Zeile je Datei. Neun Spalten füllen sich aus den
-        Werkzeug-Exporten, sieben entstehen im Betrieb. Handarbeit auf Dateiebene ist nur bei
-        wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist.
+        Blatt <b>Dateiindex_2026</b>, eine Zeile je Datei. Zwölf Spalten füllen sich aus den
+        Werkzeug-Exporten, vier entstehen im Betrieb. Handarbeit auf Dateiebene ist nur bei
+        wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist. Für Bilder ist dieser Index
+        besonders wichtig: sie liegen in <code>80_Bilder/</code> von ihrer Herkunft getrennt,
+        und <code>quelle_id</code> ist dann die einzige Stelle, an der noch steht, woher sie kamen.
       </p>
 
       <div class="scroller">
@@ -1051,7 +1126,7 @@
             <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der dupeGuru-CSV; leer heisst: einmalig</td></tr>
             <tr><td class="mono">dup_rolle</td><td class="mono">original | duplikat</td><td><span class="pill auto">automatisch</span></td><td>welche Kopie bleibt, welche in Quarantäne ging</td></tr>
             <tr><td class="mono">kategorie</td><td class="mono">01_Dokumente</td><td><span class="pill auto">automatisch</span></td><td>aus der Endung abgeleitet, per Hand korrigierbar</td></tr>
-            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt</td></tr>
+            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt — bei Bildern <code>80_Bilder/2019/</code></td></tr>
             <tr><td class="mono">tags</td><td class="mono">thema:steuer jahr:2019</td><td><span class="pill hand">Handarbeit</span></td><td>aus dem Vokabular, meist vom Ordner geerbt</td></tr>
             <tr><td class="mono">aufbewahrung</td><td class="mono">10jahre</td><td><span class="pill hand">Handarbeit</span></td><td>steuert die spätere Bereinigung</td></tr>
             <tr><td class="mono">status</td><td class="mono">geprueft</td><td><span class="pill hand">Handarbeit</span></td><td>Arbeitsstand dieser Zeile</td></tr>
@@ -1158,9 +1233,10 @@
             <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
             <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
             <tr><td><b>AllDup</b></td><td>Sammelrechner</td><td>Dublettensuche nach Inhalt, Auswahl-Assistent, Aktion „Verschieben“ — auf Windows die schnellste Wahl</td><td class="mono">4</td></tr>
-            <tr><td><b>dupeGuru</b></td><td>Sammelrechner</td><td>ergänzend für <em>ähnliche</em> Fotos, die AllDup nicht findet</td><td class="mono">4</td></tr>
-            <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer</td><td class="mono">0, 5</td></tr>
-            <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">7</td></tr>
+            <tr><td><b>Advanced Renamer</b></td><td>Sammelrechner</td><td>Bilder anhand des EXIF-Aufnahmedatums in Jahresordner verschieben, mit Vorschau vor dem Ausführen</td><td class="mono">5</td></tr>
+            <tr><td><b>dupeGuru</b></td><td>Sammelrechner</td><td>ergänzend für <em>ähnliche</em> Fotos, die AllDup nicht findet</td><td class="mono">5</td></tr>
+            <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer</td><td class="mono">0, 6</td></tr>
+            <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">8</td></tr>
             <tr><td><b>TreeSize Free</b></td><td>optional</td><td>Alternative zu WizTree, langsamer, dafür bessere Auswertungen</td><td class="mono">1</td></tr>
           </tbody>
         </table>
@@ -1235,11 +1311,12 @@
             <tr><td>2 · Filterregel</td><td class="num">2 Std.</td><td>keine</td></tr>
             <tr><td>3 · Sammeln</td><td class="num">3–5 Std.</td><td>hoch — Kopieren läuft allein</td></tr>
             <tr><td>4 · Dubletten</td><td class="num">2–4 Std.</td><td>hoch — Prüfsummen brauchen Zeit</td></tr>
-            <tr><td>5 · Upload</td><td class="num">2–3 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
-            <tr><td>6 · Einsortieren</td><td class="num">4–8 Std.</td><td>keine</td></tr>
-            <tr><td>7 · Index und Tags</td><td class="num">6–12 Std.</td><td>keine</td></tr>
-            <tr><td>8 · Abgleich</td><td class="num">2 Std.</td><td>keine</td></tr>
-            <tr><td><b>Zusammen</b></td><td class="num"><b>27–44 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
+            <tr><td>5 · Bilder nach Jahr</td><td class="num">3–5 Std.</td><td>mittel — Vorschau prüfen, dann laufen lassen</td></tr>
+            <tr><td>6 · Upload</td><td class="num">2–3 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
+            <tr><td>7 · Einsortieren</td><td class="num">4–8 Std.</td><td>keine</td></tr>
+            <tr><td>8 · Index und Tags</td><td class="num">6–12 Std.</td><td>keine</td></tr>
+            <tr><td>9 · Abgleich</td><td class="num">2 Std.</td><td>keine</td></tr>
+            <tr><td><b>Zusammen</b></td><td class="num"><b>30–49 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
           </tbody>
         </table>
       </div>
