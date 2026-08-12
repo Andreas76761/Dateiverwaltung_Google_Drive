@@ -1,0 +1,8 @@
+# Nebenprodukte von Python
+__pycache__/
+*.py[cod]
+
+# Bauverzeichnisse von PyInstaller
+/build/
+/dist/
+*.spec
