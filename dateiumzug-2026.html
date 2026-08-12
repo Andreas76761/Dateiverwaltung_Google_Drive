@@ -1276,7 +1276,8 @@
             <p>Bis hierher liegt in Drive eine getreue Kopie der alten Unordnung. Jetzt entsteht die neue Ordnung — und zwar oberhalb der alten, nicht statt ihrer.</p>
             <ul>
               <li>Unterhalb jeder Quelle die sieben Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>). <code>80_Bilder/</code> steht dabei aussen vor — das ist in Phase 5 schon fertig geordnet und wird hier nicht mehr angefasst.</li>
-              <li>Verschoben werden <b>Ordner, keine Einzeldateien</b>. Ein Ordner „Steuer 2019“ wandert als Ganzes nach <code>Dokumente/</code>. Das erledigt in wenigen Stunden, was auf Dateiebene Wochen dauert.</li>
+              <li>Verschoben werden <b>Ordner, keine Einzeldateien</b>. Ein Ordner „Steuer 2019“ wandert als Ganzes nach <code>01_Dokumente/</code>. Das erledigt in wenigen Stunden, was auf Dateiebene Wochen dauert.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>7 · Kategorien</em>, geht das mit Vorschlag: es schlägt je Ordner eine Kategorie vor — nach dem Volumen darin, nicht nach der Dateianzahl, weil hundert Vorschaubilder neben zehn Verträgen sonst die Zuordnung kippen. Doppelklick auf eine Zeile schaltet den Vorschlag weiter, dann wird in einem Zug verschoben.</li>
               <li>Was sich nicht in einem Griff zuordnen lässt, kommt nach <code>99_Zu_Pruefen/</code> und wird nicht länger als zehn Sekunden betrachtet. Dieser Ordner darf gross sein — er ist der Grund, warum der Rest schnell geht.</li>
               <li>Nach zwei Quellen innehalten: passen die sieben Kategorien noch? Jetzt ist der Moment, sie zu ändern — später nicht mehr.</li>
             </ul>
@@ -1291,7 +1292,8 @@
             <p>Der Index ist das eigentliche Ergebnis des Projekts. Er beantwortet Fragen, die Drive nicht beantworten kann: Woher stammt das? Gibt es das doppelt? Wie lange muss ich es aufbewahren?</p>
             <ul>
               <li>In <code>00_Index</code> ein Google Sheet <b>Dateiindex_2026</b> anlegen, Spalten nach dem <a href="#index">Index-Schema</a>.</li>
-              <li>Die CSV-Exporte aus Phase 1 und die Dubletten-CSV aus Phase 4 importieren — damit sind zwölf der sechzehn Spalten ohne Handarbeit gefüllt.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>8 · Index</em>: den fertigen Zielordner wählen, dazu die Dublettenliste aus Phase 4 und die Bilderliste aus Phase 5. Es liest das Archiv frisch ein und verbindet beides — damit sind zwölf der sechzehn Spalten ohne Handarbeit gefüllt. Ergebnis sichern und in Sheets importieren.</li>
+              <li><b>Die Bilderliste ist nicht optional</b>, wenn du wissen willst, woher ein Foto stammt: im Archiv liegen Bilder in Jahresordnern, ihre Herkunft ist am Pfad nicht mehr ablesbar. Nur diese Liste holt sie zurück. Also in Phase 5 das Sichern nicht vergessen.</li>
               <li>Die Ähnlichkeitsliste aus Phase 5 einspielen: die betroffenen Bilder bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner.</li>
               <li>Ein zweites Blatt <b>Ordnerregister</b>: eine Zeile pro Ordner der zweiten und dritten Ebene, mit Tags, Aufbewahrung und Notiz. <b>Hier findet das Taggen statt</b>, nicht auf Dateiebene.</li>
               <li>Ein drittes Blatt <b>Quellen</b> mit der Kürzelliste aus Phase 0, ergänzt um Volumen und Dateianzahl.</li>
@@ -1538,7 +1540,7 @@
         <table>
           <thead><tr><th>Werkzeug</th><th>Installieren auf</th><th>Wofür</th><th>Phase</th></tr></thead>
           <tbody>
-            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten und Bilder in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5</td></tr>
+            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, Kategorien und den Index in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 7, 8</td></tr>
             <tr><td><b>WizTree</b></td><td>alle vier</td><td>Inventur in Sekunden, CSV-Export der kompletten Dateiliste — Rohdaten für den Index</td><td class="mono">1</td></tr>
             <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
             <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
