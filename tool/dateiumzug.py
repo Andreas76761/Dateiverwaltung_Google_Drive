@@ -1185,35 +1185,44 @@ class ExplorerTab(Section):
         self.var_cmp = tk.StringVar(value="alle zeigen")
         self.var_junk = tk.BooleanVar(value=True)
 
+        # Zwei Zeilen zu je drei Feldpaaren — so bleibt auch im schmalsten
+        # zugelassenen Fenster jedes Feld vollstaendig sichtbar.
         fields = [
-            ("Name enthält", self.var_name, 22),
-            ("MB von", self.var_min, 7), ("bis", self.var_max, 7),
-            ("Datum von", self.var_from, 11), ("bis", self.var_to, 11),
-            ("Endungen", self.var_ext, 16),
+            (0, "Name enthält", self.var_name, 24),
+            (0, "MB von", self.var_min, 8), (0, "bis", self.var_max, 8),
+            (1, "Datum von", self.var_from, 12), (1, "bis", self.var_to, 12),
+            (1, "Endungen", self.var_ext, 18),
         ]
-        col = 0
-        for lab, var, width in fields:
-            ttk.Label(f, text=lab).grid(row=0, column=col, sticky="e", padx=(8, 3))
-            e = ttk.Entry(f, textvariable=var, width=width)
-            e.grid(row=0, column=col + 1, sticky="w")
+        cols = {0: 0, 1: 0}
+        for row_i, lab, var, width in fields:
+            ttk.Label(f, text=lab).grid(row=row_i, column=cols[row_i], sticky="e",
+                                        padx=(8, 3), pady=(0 if row_i == 0 else 6, 0))
+            ttk.Entry(f, textvariable=var, width=width).grid(
+                row=row_i, column=cols[row_i] + 1, sticky="w",
+                pady=(0 if row_i == 0 else 6, 0))
             var.trace_add("write", lambda *a: self.refresh())
-            col += 2
-        ttk.Label(f, text="Art").grid(row=1, column=0, sticky="e", padx=(8, 3), pady=(6, 0))
-        cb = ttk.Combobox(f, textvariable=self.var_cat, width=14, state="readonly",
+            cols[row_i] += 2
+
+        ttk.Label(f, text="Art").grid(row=0, column=6, sticky="e", padx=(16, 3))
+        cb = ttk.Combobox(f, textvariable=self.var_cat, width=13, state="readonly",
                           values=["alle"] + list(CATS.keys()) + ["sonstiges"])
-        cb.grid(row=1, column=1, sticky="w", pady=(6, 0))
-        ttk.Label(f, text="Vergleich").grid(row=1, column=2, sticky="e", padx=(8, 3), pady=(6, 0))
-        cb2 = ttk.Combobox(f, textvariable=self.var_cmp, width=20, state="readonly",
+        cb.grid(row=0, column=7, sticky="w")
+        ttk.Label(f, text="Vergleich").grid(row=1, column=6, sticky="e", padx=(16, 3), pady=(6, 0))
+        cb2 = ttk.Combobox(f, textvariable=self.var_cmp, width=18, state="readonly",
                            values=["alle zeigen", "nur hier vorhanden", "auf beiden Seiten",
                                    "Grösse weicht ab"])
-        cb2.grid(row=1, column=3, columnspan=2, sticky="w", pady=(6, 0))
+        cb2.grid(row=1, column=7, sticky="w", pady=(6, 0))
         cb.bind("<<ComboboxSelected>>", lambda e: self.refresh())
         cb2.bind("<<ComboboxSelected>>", lambda e: self.refresh())
-        ttk.Checkbutton(f, text="Ausschlussliste anwenden", variable=self.var_junk,
-                        command=self.refresh).grid(row=1, column=5, columnspan=2,
-                                                   sticky="w", padx=8, pady=(6, 0))
-        ttk.Button(f, text="Voreinstellung Phase 2", command=self.preset).grid(
-            row=1, column=7, sticky="w", padx=8, pady=(6, 0))
+
+        # Eigene Zeile statt einer weiteren Spalte: sonst schiebt sich beides
+        # im schmalen Fenster ueber den rechten Rand hinaus.
+        extra = ttk.Frame(f)
+        extra.grid(row=2, column=0, columnspan=8, sticky="w", padx=(8, 0), pady=(8, 0))
+        ttk.Checkbutton(extra, text="Ausschlussliste anwenden", variable=self.var_junk,
+                        command=self.refresh).pack(side="left")
+        ttk.Button(extra, text="Voreinstellung Phase 2",
+                   command=self.preset).pack(side="left", padx=(16, 0))
 
         panes = ttk.Frame(self.body)
         panes.pack(fill="both", expand=True, pady=10)
@@ -1735,8 +1744,8 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("{} — Werkzeug".format(APP_NAME))
-        self.geometry("1180x780")
-        self.minsize(980, 640)
+        self.geometry("1180x820")
+        self.minsize(1040, 760)
 
         self.source_id = ""
         self.source_path = ""
