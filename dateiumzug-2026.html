@@ -557,7 +557,7 @@
 
     <dl class="facts">
       <div class="fact"><dt>Zielordner</dt><dd>Andreas_2026_Dateiverwaltung</dd></div>
-      <div class="fact"><dt>Grösse pro Datei</dt><dd>höchstens 120 MB</dd></div>
+      <div class="fact"><dt>Grösse pro Datei</dt><dd>120 MB · Video 150 MB</dd></div>
       <div class="fact"><dt>Zielkonto</dt><dd>privates Google-Konto</dd></div>
       <div class="fact"><dt>Speicher</dt><dd>2 TB, geteilt mit Gmail und Fotos</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
@@ -821,10 +821,11 @@
             <h3>Die Filterregel festlegen</h3>
             <p>Einmal sauber definiert, gilt sie für alle vier Rechner identisch. Das ist der Grund, warum die Bestände später überhaupt vergleichbar sind.</p>
             <ul>
-              <li><b>Aufnahme:</b> alle Dateien bis 120 MB aus den in Phase 1 bestimmten Nutzdaten-Ordnern. Bilder werden hier <em>nicht</em> gesondert behandelt — sie kommen normal mit und werden erst in Phase 5 herausgezogen.</li>
+              <li><b>Aufnahme:</b> alle Dateien bis <b>120 MB</b> aus den in Phase 1 bestimmten Nutzdaten-Ordnern — <b>Videodateien bis 150 MB</b>. Bilder werden hier <em>nicht</em> gesondert behandelt; sie kommen normal mit und werden erst in Phase 5 herausgezogen.</li>
+              <li><b>Zwei Grenzen, zwei Konfigurationen</b> — warum das so sein muss und wie beide aussehen, steht direkt unter dieser Liste.</li>
               <li><b>Ausschluss über die Ordnerwahl</b> — das ist der wirksamste Filter: Programmordner, Systemordner und Benutzerprofil-Innereien werden gar nicht erst ausgewählt.</li>
               <li><b>Ausschluss über Masken</b> für den Rest, direkt im Kopierwerkzeug eingetragen.</li>
-              <li>Dateien über 120 MB kommen auf eine eigene Liste „<b>Übergrossen-Register</b>“ (Pfad, Grösse, Quelle) — sie fahren nicht mit, aber du weisst, dass es sie gibt und wo sie liegen. <b>Rechne damit, dass hier vor allem Video landet</b>: unter 120 MB passen nur zwei bis drei Minuten Telefonvideo in 1080p.</li>
+              <li>Was darüber liegt, kommt auf eine eigene Liste „<b>Übergrossen-Register</b>“ (Pfad, Grösse, Quelle) — es fährt nicht mit, aber du weisst, dass es existiert und wo es liegt. <b>Rechne damit, dass hier vor allem Video landet.</b></li>
             </ul>
 
             <div class="scroller">
@@ -861,7 +862,35 @@
               </table>
             </div>
 
-            <p class="done"><b>Fertig, wenn</b> die Filtereinstellung in FreeFileSync als Konfiguration gespeichert ist und auf jedem Rechner geladen werden kann.</p>
+            <div class="note warn">
+              <span class="note-label">Zwei Grenzen heissen zwei Konfigurationen</span>
+              <p>
+                FreeFileSync kennt nur <b>eine</b> Maximalgrösse je Konfiguration. Für zwei Grenzen
+                brauchst du deshalb zwei gespeicherte Filterdateien, die in Phase 3 nacheinander
+                auf dieselbe Quelle laufen — in denselben Zielordner, sie ergänzen sich.
+              </p>
+            </div>
+
+            <div class="scroller">
+              <table>
+                <caption>Die zwei Filterdateien — einmal anlegen, auf der Sammelplatte mitführen</caption>
+                <thead><tr><th>Datei</th><th>Maximalgrösse</th><th>Ein- und Ausschluss</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">filter_allgemein.ffs_gui</td>
+                    <td class="num">120 MB</td>
+                    <td>Einschluss <code>*</code>, dazu die Ausschlussliste unten <b>plus alle Video-Endungen</b> — die holt der zweite Lauf.</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">filter_video.ffs_gui</td>
+                    <td class="num">150 MB</td>
+                    <td>Einschluss <b>nur</b> <code class="mono">*.mp4 *.mov *.m4v *.avi *.mkv *.wmv *.mpg *.mpeg *.3gp *.mts *.m2ts *.webm *.flv</code>, dazu dieselbe Ausschlussliste.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class="done"><b>Fertig, wenn</b> beide Filterdateien gespeichert sind, auf der Sammelplatte liegen und sich auf einem zweiten Rechner laden lassen.</p>
           </div>
         </article>
 
@@ -872,15 +901,16 @@
             <p>Jetzt wird kopiert — aber noch nicht in die Cloud, sondern auf die Sammelplatte, ein Ordner je Quelle. Dazwischen liegt die Dublettenprüfung, und die willst du auf schneller lokaler Platte machen, nicht über die Leitung.</p>
             <ul>
               <li>Auf der Sammelplatte je Quelle einen Ordner mit <b>kurzem Pfad</b> anlegen: <code>D:\S\PC1</code> statt <code>D:\Umzug\Sammlung\Rechner Büro\</code>. Windows bricht bei langen Pfaden mitten im Kopieren ab.</li>
-              <li>In <b>FreeFileSync</b>: links der Quellordner des Rechners, rechts der Ordner auf der angesteckten Sammelplatte, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherten Filter aus Phase 2 laden, Maximalgrösse 120 MB eintragen.</li>
-              <li>Die Filterdatei aus Phase 2 <b>auf der Sammelplatte mitführen</b> und an jedem Rechner von dort laden — so ist ausgeschlossen, dass die vier Rechner mit leicht verschiedenen Regeln arbeiten.</li>
+              <li>In <b>FreeFileSync</b>: links der Quellordner des Rechners, rechts der Ordner auf der angesteckten Sammelplatte, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherte Filterdatei aus Phase 2 laden.</li>
+              <li><b>Beide Durchläufe machen, nacheinander:</b> erst <i>Allgemein</i> mit 120 MB, dann <i>Video</i> mit 150 MB — in denselben Zielordner. Wird der zweite vergessen, fehlt später sämtliches Video dieser Quelle, ohne dass irgendwo ein Fehler steht.</li>
+              <li>Beide Filterdateien aus Phase 2 <b>auf der Sammelplatte mitführen</b> und an jedem Rechner von dort laden — so ist ausgeschlossen, dass die vier Rechner mit leicht verschiedenen Regeln arbeiten.</li>
               <li>Reihenfolge einhalten: wichtigster Rechner zuerst, externe Laufwerke nach den Rechnern, Clouds zuletzt.</li>
               <li>Erst „Vergleichen“, das Ergebnis ansehen, dann „Synchronisieren“. Die Vorschau ist deine letzte Kontrolle vor dem Schreiben.</li>
               <li>Die Ordnerstruktur der Quelle bleibt im Sammelordner erhalten — sie ist die beste vorhandene Information darüber, was eine Datei ist.</li>
               <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist.</li>
               <li><b>Weitere Google-Konten laufen anders</b> und gar nicht über die Platte: Ordner im Quellkonto für das Zielkonto freigeben, dann im Zielkonto <b>Kopie erstellen</b>. Docs und Sheets bleiben dabei nativ. Wichtig ist der Schritt „Kopie erstellen“ selbst — eine bloss <em>freigegebene</em> Datei gehört weiterhin dem anderen Konto, belegt keinen Platz bei dir und ist weg, sobald dort jemand aufräumt oder das Konto schliesst. Erst die Kopie macht dich zum Eigentümer.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> die Sammelplatte für jede Quelle einen Ordner trägt und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
+            <p class="done"><b>Fertig, wenn</b> die Sammelplatte für jede Quelle einen Ordner trägt, <b>beide</b> Filterläufe durch sind und FreeFileSync bei einer Wiederholung null zu kopierende Dateien meldet.</p>
           </div>
         </article>
 
@@ -954,10 +984,12 @@
             <div class="note warn">
               <span class="note-label">Rechne bei Video mit einem dünnen Ordner</span>
               <p>
-                Die 120-MB-Grenze trifft Videos härter als alles andere. Es passen ungefähr
-                <b>zwei bis drei Minuten Telefonvideo in 1080p</b> — bei 4K weniger als eine.
-                Alles Längere, jede Kameraaufnahme, jeder fertige Schnitt landet nicht in Drive,
-                sondern im <b>Übergrossen-Register</b> aus Phase 2.
+                Die Grössengrenze trifft Videos härter als alles andere. In <b>150 MB</b> passen,
+                je nach Telefon und Kompression, <b>eineinhalb bis drei Minuten in 1080p</b> —
+                bei 4K etwa eine halbe. Die Anhebung von 120 auf 150 MB verschiebt diese Marke um
+                ein Viertel: Clips, die knapp darüber lagen, fahren jetzt mit. Am Grundbild ändert
+                sie nichts, jede längere Aufnahme und jeder fertige Schnitt landen weiter im
+                <b>Übergrossen-Register</b> aus Phase 2.
               </p>
               <p>
                 Das ist kein Fehler im Plan, aber es heisst: <code>81_Video/</code> wird kurze
@@ -1032,7 +1064,7 @@
               <li>Stichprobe: aus jeder Quelle fünf Dateien in Drive öffnen. Es geht um Lesbarkeit, nicht um Existenz — hier fallen Platzhalter-Hüllen auf.</li>
               <li><b>90 Tage Karenz.</b> Quellen bleiben unverändert liegen, Platten werden nicht formatiert. Erst danach entscheidest du über die Originale.</li>
               <li>Nach der Karenz die Quarantäne sichten — quellenweise, nicht auf einmal.</li>
-              <li><b>Das Übergrossen-Register durchgehen.</b> Hier steht, was wegen der 120-MB-Grenze nicht mitgefahren ist, überwiegend Video. Entscheide je Eintrag: gehört das auf die Sammelplatte als Zweitkopie, oder darf es mit dem Quellrechner verschwinden? Das ist der einzige Bestand, für den dieser Plan keine Cloud-Sicherung vorsieht.</li>
+              <li><b>Das Übergrossen-Register durchgehen.</b> Hier steht, was wegen der Grössengrenze nicht mitgefahren ist, überwiegend Video. Entscheide je Eintrag: gehört das auf die Sammelplatte als Zweitkopie, oder darf es mit dem Quellrechner verschwinden? Das ist der einzige Bestand, für den dieser Plan keine Cloud-Sicherung vorsieht.</li>
               <li><b>Die Sammelplatte wird nicht gelöscht.</b> Sie ist ab jetzt die Zweitkopie: einmal noch vollständig mit dem Drive-Stand abgleichen, dann beschriften, abziehen und weglegen. Eine Kopie, die im selben Konto liegt, ist keine — und hinter einem privaten Konto steht niemand, der es wieder aufsperrt.</li>
               <li><b>Konto absichern</b>, jetzt wo alles daran hängt: zweistufige Bestätigung an, Wiederherstellungsadresse und -nummer prüfen, Backup-Codes ausdrucken und zu den Papieren legen.</li>
               <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur. Einmal im Halbjahr ein AllDup-Lauf, ein Blick in <code>99_Zu_Pruefen/</code> und ein Abgleich der Sammelplatte. Ein Termin im Kalender, sonst passiert es nicht.</li>
@@ -1060,7 +1092,7 @@
 │   ├── Dateiindex_2026            <i>Sheet · alle Dateien, automatisch befüllt</i>
 │   ├── Ordnerregister_2026        <i>Sheet · Tags und Aufbewahrung, gepflegt</i>
 │   ├── Quellen_2026               <i>Sheet · Kürzel, Gerät, Volumen</i>
-│   └── Uebergrossen_Register      <i>Sheet · was &gt;120 MB ist und wo es liegt</i>
+│   └── Uebergrossen_Register      <i>Sheet · was über der Grenze liegt und wo</i>
 │
 ├── <b>10_PC1_&lt;Bezeichnung&gt;/</b>
 │   ├── 01_Dokumente/              <i>Texte, PDF, Tabellen, Verträge, Belege, Scans</i>
@@ -1090,7 +1122,7 @@
 │   ├── 2026/
 │   └── _Jahr_unklar/              <i>ohne verwertbares Datum — Herkunft steht im Index</i>
 │
-├── <b>81_Video/</b>                     <i>Ausnahme · nur Clips unter 120 MB, nach Jahr</i>
+├── <b>81_Video/</b>                     <i>Ausnahme · Clips bis 150 MB, nach Jahr</i>
 │   ├── 2019/
 │   ├── … /
 │   └── _Jahr_unklar/
@@ -1149,7 +1181,7 @@
             <tr><td class="mono">original_pfad</td><td class="mono">C:\Users\a\Docs\Steuer2019\</td><td><span class="pill auto">automatisch</span></td><td>Wo es herkam — die wertvollste Spalte überhaupt</td></tr>
             <tr><td class="mono">dateiname</td><td class="mono">Bescheid_2019.pdf</td><td><span class="pill auto">automatisch</span></td><td>ohne Pfad, für die Suche</td></tr>
             <tr><td class="mono">endung</td><td class="mono">pdf</td><td><span class="pill auto">automatisch</span></td><td>Grundlage der Kategorie</td></tr>
-            <tr><td class="mono">groesse_mb</td><td class="num">2,41</td><td><span class="pill auto">automatisch</span></td><td>Kontrolle der 120-MB-Grenze</td></tr>
+            <tr><td class="mono">groesse_mb</td><td class="num">2,41</td><td><span class="pill auto">automatisch</span></td><td>Kontrolle der Grenze — 120 MB, bei Video 150 MB</td></tr>
             <tr><td class="mono">geaendert_am</td><td class="mono">2019-08-14</td><td><span class="pill auto">automatisch</span></td><td>Zeitliche Einordnung, Original-Entscheidung</td></tr>
             <tr><td class="mono">pruefsumme</td><td class="mono">9f2a…c71b</td><td><span class="pill auto">automatisch</span></td><td>der einzige belastbare Gleichheitsbeweis</td></tr>
             <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der dupeGuru-CSV; leer heisst: einmalig</td></tr>
@@ -1287,7 +1319,7 @@
             <tr><td><span class="pill risk">kritisch</span> <b>Platzhalter statt Dateien</b></td><td>„Nur online“-Dateien aus OneDrive, Dropbox oder iCloud werden als Hüllen von wenigen Bytes kopiert. Der Ordner sieht vollständig aus, ist aber leer.</td><td>Vor dem Kopieren „Immer auf diesem Gerät behalten“ setzen, Sync abwarten. Stichprobe: Dateigrösse im Sammelordner prüfen.</td></tr>
             <tr><td><span class="pill risk">kritisch</span> <b>Löschen statt verschieben</b></td><td>Ein Fehlklick in dupeGuru entfernt tausende Dateien endgültig.</td><td>Immer „Verschieben nach“ wählen. Die Aktion vor dem ersten grossen Lauf an fünf Testdateien üben.</td></tr>
             <tr><td><b>Zu lange Pfade</b></td><td>Windows bricht ab 260 Zeichen mitten im Kopieren ab, oft ohne klare Meldung.</td><td>Sammelpfad kurz halten: <code>D:\S\PC1</code>. Fehlerprotokoll von FreeFileSync nach jedem Lauf ansehen.</td></tr>
-            <tr><td><b>Outlook-Postfächer</b></td><td>Mails liegen in einer einzigen PST- oder OST-Datei, die schnell mehrere Gigabyte gross wird und damit an der 120-MB-Grenze scheitert. OST-Dateien lassen sich ausserdem nur mit dem zugehörigen Konto öffnen.</td><td>In Outlook <em>Datei → Öffnen und Exportieren → Importieren/Exportieren</em>, ordnerweise in mehrere PST-Dateien exportieren. Was dann noch zu gross ist, kommt ins Übergrossen-Register.</td></tr>
+            <tr><td><b>Outlook-Postfächer</b></td><td>Mails liegen in einer einzigen PST- oder OST-Datei, die schnell mehrere Gigabyte gross wird und damit weit über der Grenze liegt. OST-Dateien lassen sich ausserdem nur mit dem zugehörigen Konto öffnen.</td><td>In Outlook <em>Datei → Öffnen und Exportieren → Importieren/Exportieren</em>, ordnerweise in mehrere PST-Dateien exportieren. Was dann noch zu gross ist, kommt ins Übergrossen-Register.</td></tr>
             <tr><td><b>Gleicher Name, anderer Inhalt</b></td><td><code>Rechnung.pdf</code> gibt es dreimal, mit drei verschiedenen Inhalten. Ein Namensvergleich verwirft zwei davon.</td><td>Ausschliesslich Inhaltsvergleich. Die Quellordnerstruktur bleibt erhalten, damit Namensgleiche nicht kollidieren.</td></tr>
             <tr><td><b>Gleicher Inhalt, anderer Name</b></td><td>Dieselbe Datei liegt als <code>IMG_2231.jpg</code> und <code>Urlaub_Kreta.jpg</code> vor und bleibt doppelt.</td><td>Ebenfalls Inhaltsvergleich — dupeGuru findet beide, unabhängig vom Namen.</td></tr>
             <tr><td><b>Zeitstempel gehen verloren</b></td><td>Manche Kopierwege setzen das Änderungsdatum auf heute. Damit ist die zeitliche Einordnung des gesamten Bestands hin.</td><td>FreeFileSync erhält Zeitstempel. Nach dem ersten Lauf an drei Dateien im Sammelordner kontrollieren.</td></tr>
