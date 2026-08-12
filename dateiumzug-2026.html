@@ -558,7 +558,8 @@
     <dl class="facts">
       <div class="fact"><dt>Zielordner</dt><dd>Andreas_2026_Dateiverwaltung</dd></div>
       <div class="fact"><dt>Grösse pro Datei</dt><dd>höchstens 120 MB</dd></div>
-      <div class="fact"><dt>Speicher im Ziel</dt><dd>2 TB oder mehr</dd></div>
+      <div class="fact"><dt>Zielkonto</dt><dd>privates Google-Konto</dd></div>
+      <div class="fact"><dt>Speicher</dt><dd>2 TB, geteilt mit Gmail und Fotos</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
       <div class="fact"><dt>Rechner</dt><dd>4 × Windows, im WLAN</dd></div>
       <div class="fact"><dt>Einsammeln</dt><dd>NTFS-Platte, wandert per USB</dd></div>
@@ -635,9 +636,19 @@
               <td>Die Dublettensuche läuft <b>lokal vor dem Upload</b>, wo die Werkzeuge stark sind.</td>
             </tr>
             <tr>
-              <td><b>Labels gibt es nur in Workspace</b></td>
-              <td>Die Drive-Funktion „Labels“ ist Geschäftskonten vorbehalten. Ein privates Google-Konto hat sie nicht.</td>
-              <td>Tags leben in einer Tabelle in <code>00_Index</code>, nicht in Drive selbst.</td>
+              <td><b>Keine Labels an den Dateien</b></td>
+              <td>Die Drive-Funktion „Labels“ ist Geschäftskonten vorbehalten. Dein privates Konto hat sie nicht — Drive kennt ausser Ordner, Stern und Farbe keine Ordnungsmerkmale.</td>
+              <td>Tags leben in einer Tabelle in <code>00_Index</code>. Das ist keine Notlösung: eine Tabelle lässt sich filtern, sortieren und massenhaft ändern, Labels nicht.</td>
+            </tr>
+            <tr>
+              <td><b>Ein Speicher für drei Dienste</b></td>
+              <td>Die 2 TB teilen sich <b>Drive, Gmail und Google Fotos</b>. Ein volles Postfach oder eine grosse Fotomediathek verkleinern den Platz für den Umzug.</td>
+              <td>Vor Phase 5 unter <code>one.google.com/storage</code> die tatsächliche Aufteilung ansehen und die freie Menge gegen das Volumen aus Phase 1 halten.</td>
+            </tr>
+            <tr>
+              <td><b>Kein Administrator im Rücken</b></td>
+              <td>Bei Geschäftskonten kann ein Admin gelöschte Dateien noch nach dem Papierkorb zurückholen und ein gesperrtes Konto entsperren. Bei einem privaten Konto gibt es beides nicht: nach 30 Tagen Papierkorb ist eine Datei endgültig weg.</td>
+              <td>Die 90-Tage-Karenz in Phase 8 ist deshalb Pflicht, nicht Vorsicht — und die Sammelplatte bleibt dauerhaft als Zweitkopie erhalten.</td>
             </tr>
             <tr>
               <td><b>750 GB Upload pro Tag</b></td>
@@ -661,6 +672,23 @@
           landen leere Hüllen in deinem Drive, und du merkst es erst Monate später.
           <b>Vor jedem Kopiervorgang</b> den Ordner im Explorer mit
           „Immer auf diesem Gerät behalten“ herunterladen und warten, bis der Sync fertig ist.
+        </p>
+      </div>
+
+      <div class="note warn">
+        <span class="note-label">Was dieser Umzug nebenbei erzeugt</span>
+        <p>
+          Am Ende hängt dein gesamter digitaler Bestand an einem privaten Google-Konto — an einer
+          Mailadresse, einem Passwort, einer Telefonnummer. Bisher war er über vier Rechner und
+          mehrere Platten verteilt und damit unbequem, aber schwer vollständig zu verlieren.
+          Diese Streuung gibst du auf. Zwei Dinge fangen das auf, beide kosten wenig:
+        </p>
+        <p>
+          <b>Zweistufige Bestätigung einschalten</b>, mindestens zwei Wiederherstellungswege
+          hinterlegen (zweite Mailadresse und Telefonnummer, beide aktuell), und die
+          <b>Backup-Codes ausdrucken</b> — nicht in Drive ablegen, das wäre der Schlüssel im
+          verschlossenen Schrank. Und: die <b>Sammelplatte wird nach dem Umzug nicht gelöscht</b>,
+          sondern bleibt als vollständige Zweitkopie liegen, offline und unabhängig von Google.
         </p>
       </div>
     </section>
@@ -763,6 +791,7 @@
               <li><b>Sammelrechner bestimmen.</b> Erstes Kriterium: das LAN-Kabel muss ihn erreichen. Zweites: freier Platz. Von ihm aus laufen Dublettensuche und Upload; er ist für ein bis zwei Wochen die Zentrale.</li>
               <li><b>Kabel jetzt schon legen und testen</b>, nicht erst in Phase 5. Auf <code>speedtest.net</code> den Upload-Wert mit Kabel messen und notieren — daraus ergibt sich, wie lange Phase 5 dauert und wie du sie einteilst.</li>
               <li><b>Sammelplatte prüfen:</b> Dateisystem <b>NTFS</b> (im Explorer unter Eigenschaften ablesbar), freier Platz mindestens in Höhe des Gesamtvolumens aus Phase 1 plus 20 Prozent Reserve für die Quarantäne.</li>
+              <li><b>Freien Drive-Speicher ablesen</b> unter <code>one.google.com/storage</code>. Die 2 TB teilen sich Drive, Gmail und Fotos — massgeblich ist, was davon übrig ist. Zahl in die Quellenliste eintragen, sie ist die Obergrenze für Phase 5.</li>
               <li>Werkzeuge installieren (siehe <a href="#werkzeuge">Werkzeuge</a>): WizTree, Everything und FreeFileSync auf allen vier Rechnern, AllDup und Drive für Desktop nur auf dem Sammelrechner.</li>
               <li>Google Drive für Desktop <b>nur auf dem Sammelrechner</b> einrichten, Zielordner als gestreamten Ordner einbinden.</li>
             </ul>
@@ -847,7 +876,8 @@
               <li>Reihenfolge einhalten: wichtigster Rechner zuerst, externe Laufwerke nach den Rechnern, Clouds zuletzt.</li>
               <li>Erst „Vergleichen“, das Ergebnis ansehen, dann „Synchronisieren“. Die Vorschau ist deine letzte Kontrolle vor dem Schreiben.</li>
               <li>Die Ordnerstruktur der Quelle bleibt im Sammelordner erhalten — sie ist die beste vorhandene Information darüber, was eine Datei ist.</li>
-              <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist. Weitere Google-Konten stattdessen: Ordner im Quellkonto für das Zielkonto freigeben, im Zielkonto <b>Kopie erstellen</b> — so bleiben Docs und Sheets nativ und der Umweg über die Festplatte entfällt.</li>
+              <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist.</li>
+              <li><b>Weitere Google-Konten laufen anders</b> und gar nicht über die Platte: Ordner im Quellkonto für das Zielkonto freigeben, dann im Zielkonto <b>Kopie erstellen</b>. Docs und Sheets bleiben dabei nativ. Wichtig ist der Schritt „Kopie erstellen“ selbst — eine bloss <em>freigegebene</em> Datei gehört weiterhin dem anderen Konto, belegt keinen Platz bei dir und ist weg, sobald dort jemand aufräumt oder das Konto schliesst. Erst die Kopie macht dich zum Eigentümer.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> die Sammelplatte für jede Quelle einen Ordner trägt und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
           </div>
@@ -929,9 +959,11 @@
               <li>Stichprobe: aus jeder Quelle fünf Dateien in Drive öffnen. Es geht um Lesbarkeit, nicht um Existenz — hier fallen Platzhalter-Hüllen auf.</li>
               <li><b>90 Tage Karenz.</b> Quellen bleiben unverändert liegen, Platten werden nicht formatiert. Erst danach entscheidest du über die Originale.</li>
               <li>Nach der Karenz die Quarantäne sichten — quellenweise, nicht auf einmal.</li>
-              <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur. Einmal im Halbjahr ein dupeGuru-Lauf und ein Blick in <code>99_Zu_Pruefen/</code>. Ein Termin im Kalender, sonst passiert es nicht.</li>
+              <li><b>Die Sammelplatte wird nicht gelöscht.</b> Sie ist ab jetzt die Zweitkopie: einmal noch vollständig mit dem Drive-Stand abgleichen, dann beschriften, abziehen und weglegen. Eine Kopie, die im selben Konto liegt, ist keine — und hinter einem privaten Konto steht niemand, der es wieder aufsperrt.</li>
+              <li><b>Konto absichern</b>, jetzt wo alles daran hängt: zweistufige Bestätigung an, Wiederherstellungsadresse und -nummer prüfen, Backup-Codes ausdrucken und zu den Papieren legen.</li>
+              <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur. Einmal im Halbjahr ein AllDup-Lauf, ein Blick in <code>99_Zu_Pruefen/</code> und ein Abgleich der Sammelplatte. Ein Termin im Kalender, sonst passiert es nicht.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> die Kontrollzählung stimmt, die Stichprobe lesbar ist und ein wiederkehrender Termin steht.</p>
+            <p class="done"><b>Fertig, wenn</b> die Kontrollzählung stimmt, die Stichprobe lesbar ist, die Sammelplatte als Zweitkopie weggelegt ist und ein wiederkehrender Termin steht.</p>
           </div>
         </article>
 
@@ -1217,17 +1249,17 @@
     <section id="fragen">
       <div class="sec-head"><span class="sec-num">?</span><h2>Was ich noch von dir brauche</h2></div>
       <p class="lede">
-        Vier Windows-Rechner, wandernde NTFS-Platte, Upload am Kabel — <b>der Ablauf steht damit
-        vollständig</b> und du kannst mit Phase 0 anfangen. Keine dieser fünf Antworten ändert noch
-        etwas an der Reihenfolge; sie füllen nur Werte ein, die sich unterwegs sowieso ergeben.
+        Vier Windows-Rechner, wandernde NTFS-Platte, Upload am Kabel, privates Google-Konto —
+        <b>der Plan ist damit vollständig festgelegt</b> und du kannst mit Phase 0 anfangen.
+        Diese vier Punkte ändern nichts mehr an der Reihenfolge; sie füllen Werte ein,
+        die sich in Phase 0 und 1 ohnehin ergeben.
       </p>
 
       <ol class="questions">
-        <li><div><b>Welche externe Platte wird die Sammelplatte — Grösse, freier Platz, schon NTFS?</b><span>Nötig ist das Gesamtvolumen aus Phase 1 plus 20 Prozent für die Quarantäne. Falls sie heute exFAT ist: Umformatieren löscht sie vollständig, das will vorher geklärt sein.</span></div></li>
+        <li><div><b>Welche externe Platte wird die Sammelplatte — Grösse, freier Platz, schon NTFS?</b><span>Nötig ist das Gesamtvolumen aus Phase 1 plus 20 Prozent für die Quarantäne. Falls sie heute exFAT ist: Umformatieren löscht sie vollständig, das will vorher geklärt sein. Sie bleibt danach dauerhaft als Zweitkopie liegen — also keine, die du bald anders brauchst.</span></div></li>
         <li><div><b>Welcher Rechner hat den wichtigsten, gepflegtesten Bestand?</b><span>Er geht als Erster auf die Platte und steht in AllDup ganz oben — seine Ordnernamen prägen die spätere Ablage, seine Dateien landen nie in der Quarantäne.</span></div></li>
-        <li><div><b>Wie schnell ist dein Upload mit gestecktem Kabel?</b><span>Auf <code>speedtest.net</code> messen, den <em>Upload</em>-Wert notieren. Sagt dir, welche Zeile der Uploadtabelle deine ist — Wochenende oder Woche.</span></div></li>
-        <li><div><b>Ist das Zielkonto ein privates Google-Konto oder Workspace?</b><span>Nur Workspace hat Drive-Labels. Dann liessen sich Tags direkt an den Dateien führen statt in der Tabelle.</span></div></li>
-        <li><div><b>Sollen Fotos separat nach Google Fotos?</b><span>Dort gibt es Gesichts- und Ortssuche, aber getrennten Speicher und eigene Regeln. Beides zugleich ergibt doppelte Buchhaltung.</span></div></li>
+        <li><div><b>Wie viel von den 2 TB sind wirklich frei?</b><span>Unter <code>one.google.com/storage</code> nachsehen: Drive, Gmail und Fotos teilen sich den Speicher. Die freie Menge gehört neben das Volumen aus Phase 1 in die Quellenliste.</span></div></li>
+        <li><div><b>Sollen Fotos separat nach Google Fotos?</b><span>Dort gibt es Gesichts- und Ortssuche — aber der Speicher ist derselbe, und dieselben Bilder in Drive <em>und</em> in Fotos zählen doppelt. Entweder, oder.</span></div></li>
       </ol>
     </section>
 
