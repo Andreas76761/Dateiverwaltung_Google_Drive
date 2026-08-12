@@ -557,11 +557,12 @@
 
     <dl class="facts">
       <div class="fact"><dt>Zielordner</dt><dd>Andreas_2026_Dateiverwaltung</dd></div>
-      <div class="fact"><dt>Grösse pro Datei</dt><dd>120 MB · Video 150 MB</dd></div>
+      <div class="fact"><dt>Grösse pro Datei</dt><dd>höchstens 120 MB</dd></div>
       <div class="fact"><dt>Zielkonto</dt><dd>privates Google-Konto</dd></div>
       <div class="fact"><dt>Speicher</dt><dd>2 TB, geteilt mit Gmail und Fotos</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
-      <div class="fact"><dt>Bilder &amp; Video</dt><dd>zentral, nach Jahr</dd></div>
+      <div class="fact"><dt>Video</dt><dd>nicht dabei, nur erfasst</dd></div>
+      <div class="fact"><dt>Bilder</dt><dd>zentral, nach Jahr</dd></div>
       <div class="fact"><dt>Rechner</dt><dd>4 × Windows, im WLAN</dd></div>
       <div class="fact"><dt>Einsammeln</dt><dd>NTFS-Platte, wandert per USB</dd></div>
       <div class="fact"><dt>Upload</dt><dd>Sammelrechner am LAN-Kabel</dd></div>
@@ -821,11 +822,11 @@
             <h3>Die Filterregel festlegen</h3>
             <p>Einmal sauber definiert, gilt sie für alle vier Rechner identisch. Das ist der Grund, warum die Bestände später überhaupt vergleichbar sind.</p>
             <ul>
-              <li><b>Aufnahme:</b> alle Dateien bis <b>120 MB</b> aus den in Phase 1 bestimmten Nutzdaten-Ordnern — <b>Videodateien bis 150 MB</b>. Bilder werden hier <em>nicht</em> gesondert behandelt; sie kommen normal mit und werden erst in Phase 5 herausgezogen.</li>
-              <li><b>Zwei Grenzen, zwei Konfigurationen</b> — warum das so sein muss und wie beide aussehen, steht direkt unter dieser Liste.</li>
+              <li><b>Aufnahme:</b> alle Dateien bis <b>120 MB</b> aus den in Phase 1 bestimmten Nutzdaten-Ordnern. Bilder werden hier <em>nicht</em> gesondert behandelt; sie kommen normal mit und werden erst in Phase 5 herausgezogen.</li>
+              <li><b>Video fährt nicht mit.</b> Sämtliche Videoformate stehen auf der Ausschlussliste — unabhängig von der Grösse. Sie werden stattdessen im Register erfasst und bleiben auf den Quellrechnern.</li>
               <li><b>Ausschluss über die Ordnerwahl</b> — das ist der wirksamste Filter: Programmordner, Systemordner und Benutzerprofil-Innereien werden gar nicht erst ausgewählt.</li>
               <li><b>Ausschluss über Masken</b> für den Rest, direkt im Kopierwerkzeug eingetragen.</li>
-              <li>Was darüber liegt, kommt auf eine eigene Liste „<b>Übergrossen-Register</b>“ (Pfad, Grösse, Quelle) — es fährt nicht mit, aber du weisst, dass es existiert und wo es liegt. <b>Rechne damit, dass hier vor allem Video landet.</b></li>
+              <li>Alles, was nicht mitfährt, kommt auf eine Liste — das <b>Register</b> in <code>00_Index</code>, mit Pfad, Grösse, Quelle und <b>Grund</b>: <code>zu gross</code> oder <code>video</code>. Es ist die Landkarte dessen, was weiter nur auf den Platten liegt.</li>
             </ul>
 
             <div class="scroller">
@@ -854,6 +855,11 @@
                     <td class="mono">*.tmp *.temp ~$* *.bak Thumbs.db desktop.ini *.crdownload *.part *.log *.dmp</td>
                   </tr>
                   <tr>
+                    <td>Video</td>
+                    <td class="mono">—</td>
+                    <td class="mono">*.mp4 *.mov *.m4v *.avi *.mkv *.wmv *.mpg *.mpeg *.3gp *.mts *.m2ts *.webm *.flv</td>
+                  </tr>
+                  <tr>
                     <td>Abbilder &amp; Maschinen</td>
                     <td class="mono">\Virtual Machines\ · \VirtualBox VMs\ · \Hyper-V\ · \WindowsImageBackup\</td>
                     <td class="mono">*.vmdk *.vdi *.vhd *.vhdx *.iso *.img *.qcow2 *.wim *.esd</td>
@@ -862,35 +868,23 @@
               </table>
             </div>
 
-            <div class="note warn">
-              <span class="note-label">Zwei Grenzen heissen zwei Konfigurationen</span>
+            <div class="note">
+              <span class="note-label">Warum Video draussen bleibt</span>
               <p>
-                FreeFileSync kennt nur <b>eine</b> Maximalgrösse je Konfiguration. Für zwei Grenzen
-                brauchst du deshalb zwei gespeicherte Filterdateien, die in Phase 3 nacheinander
-                auf dieselbe Quelle laufen — in denselben Zielordner, sie ergänzen sich.
+                Unter der 120-MB-Grenze passt kaum mehr als eine Minute Telefonvideo. Was mitkäme,
+                wären also Schnipsel — der eigentliche Videobestand bliebe ohnehin zurück, und du
+                hättest die Sammlung an zwei Orten statt an einem. Sauberer ist der klare Schnitt:
+                Video wird in diesem Umzug <b>nicht kopiert, sondern nur verzeichnet</b>, und bleibt
+                geschlossen auf den Quellrechnern und Platten.
+              </p>
+              <p>
+                Das Register aus dieser Phase sagt dir hinterher, wo wie viel liegt. Ob daraus eine
+                eigene Videosicherung wird — auf der Sammelplatte, mit anderen Werkzeugen, zu
+                anderer Zeit — entscheidest du in Phase 9 mit dieser Liste in der Hand.
               </p>
             </div>
 
-            <div class="scroller">
-              <table>
-                <caption>Die zwei Filterdateien — einmal anlegen, auf der Sammelplatte mitführen</caption>
-                <thead><tr><th>Datei</th><th>Maximalgrösse</th><th>Ein- und Ausschluss</th></tr></thead>
-                <tbody>
-                  <tr>
-                    <td class="mono">filter_allgemein.ffs_gui</td>
-                    <td class="num">120 MB</td>
-                    <td>Einschluss <code>*</code>, dazu die Ausschlussliste unten <b>plus alle Video-Endungen</b> — die holt der zweite Lauf.</td>
-                  </tr>
-                  <tr>
-                    <td class="mono">filter_video.ffs_gui</td>
-                    <td class="num">150 MB</td>
-                    <td>Einschluss <b>nur</b> <code class="mono">*.mp4 *.mov *.m4v *.avi *.mkv *.wmv *.mpg *.mpeg *.3gp *.mts *.m2ts *.webm *.flv</code>, dazu dieselbe Ausschlussliste.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <p class="done"><b>Fertig, wenn</b> beide Filterdateien gespeichert sind, auf der Sammelplatte liegen und sich auf einem zweiten Rechner laden lassen.</p>
+            <p class="done"><b>Fertig, wenn</b> die Filterdatei gespeichert ist, auf der Sammelplatte liegt und sich auf einem zweiten Rechner laden lässt.</p>
           </div>
         </article>
 
@@ -902,15 +896,14 @@
             <ul>
               <li>Auf der Sammelplatte je Quelle einen Ordner mit <b>kurzem Pfad</b> anlegen: <code>D:\S\PC1</code> statt <code>D:\Umzug\Sammlung\Rechner Büro\</code>. Windows bricht bei langen Pfaden mitten im Kopieren ab.</li>
               <li>In <b>FreeFileSync</b>: links der Quellordner des Rechners, rechts der Ordner auf der angesteckten Sammelplatte, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherte Filterdatei aus Phase 2 laden.</li>
-              <li><b>Beide Durchläufe machen, nacheinander:</b> erst <i>Allgemein</i> mit 120 MB, dann <i>Video</i> mit 150 MB — in denselben Zielordner. Wird der zweite vergessen, fehlt später sämtliches Video dieser Quelle, ohne dass irgendwo ein Fehler steht.</li>
-              <li>Beide Filterdateien aus Phase 2 <b>auf der Sammelplatte mitführen</b> und an jedem Rechner von dort laden — so ist ausgeschlossen, dass die vier Rechner mit leicht verschiedenen Regeln arbeiten.</li>
+              <li>Die Filterdatei aus Phase 2 <b>auf der Sammelplatte mitführen</b> und an jedem Rechner von dort laden — so ist ausgeschlossen, dass die vier Rechner mit leicht verschiedenen Regeln arbeiten.</li>
               <li>Reihenfolge einhalten: wichtigster Rechner zuerst, externe Laufwerke nach den Rechnern, Clouds zuletzt.</li>
               <li>Erst „Vergleichen“, das Ergebnis ansehen, dann „Synchronisieren“. Die Vorschau ist deine letzte Kontrolle vor dem Schreiben.</li>
               <li>Die Ordnerstruktur der Quelle bleibt im Sammelordner erhalten — sie ist die beste vorhandene Information darüber, was eine Datei ist.</li>
               <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist.</li>
               <li><b>Weitere Google-Konten laufen anders</b> und gar nicht über die Platte: Ordner im Quellkonto für das Zielkonto freigeben, dann im Zielkonto <b>Kopie erstellen</b>. Docs und Sheets bleiben dabei nativ. Wichtig ist der Schritt „Kopie erstellen“ selbst — eine bloss <em>freigegebene</em> Datei gehört weiterhin dem anderen Konto, belegt keinen Platz bei dir und ist weg, sobald dort jemand aufräumt oder das Konto schliesst. Erst die Kopie macht dich zum Eigentümer.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> die Sammelplatte für jede Quelle einen Ordner trägt, <b>beide</b> Filterläufe durch sind und FreeFileSync bei einer Wiederholung null zu kopierende Dateien meldet.</p>
+            <p class="done"><b>Fertig, wenn</b> die Sammelplatte für jede Quelle einen Ordner trägt und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
           </div>
         </article>
 
@@ -932,27 +925,24 @@
         </article>
 
         <article class="phase">
-          <div class="phase-marker">Phase 5<em>4–6 Std.</em></div>
+          <div class="phase-marker">Phase 5<em>3–5 Std.</em></div>
           <div class="phase-body">
-            <h3>Bilder und Videos zusammenführen, nach Jahr</h3>
+            <h3>Bilder zusammenführen, nach Jahr</h3>
             <p>
-              Aufnahmen sind die Ausnahme von der Regel „Quelle zuerst“ — sie wandern aus allen
-              Quellen in zwei Ordner, <code>80_Bilder/</code> und <code>81_Video/</code>, jeweils
-              geordnet nach Aufnahmejahr. Bei einem Foto oder Clip sagt der Herkunftsrechner nichts
-              über den Inhalt; das Jahr sagt fast alles. Die Herkunft geht nicht verloren, sie steht
-              weiter in der Spalte <code>quelle_id</code> des Index.
+              Bilder sind die einzige Ausnahme von der Regel „Quelle zuerst“ — sie wandern aus allen
+              Quellen in <b>einen</b> Ordner, geordnet nach Aufnahmejahr. Bei einem Foto sagt der
+              Herkunftsrechner nichts über den Inhalt; das Jahr sagt fast alles. Die Herkunft geht
+              nicht verloren, sie steht weiter in der Spalte <code>quelle_id</code> des Index.
             </p>
             <p>
               Das läuft <b>lokal auf der Sammelplatte</b>, vor dem Upload. Zehntausende Dateien in Drive
               zu verschieben, dauert Tage; auf der Platte sind es Minuten.
             </p>
             <ul>
-              <li>Zielordner <code>D:\S\_BILDER\</code> und <code>D:\S\_VIDEO\</code> anlegen.</li>
+              <li>Zielordner <code>D:\S\_BILDER\</code> anlegen.</li>
               <li>In <b>Advanced Renamer</b> den Stapelmodus <b>Verschieben</b> wählen und alle Quellordner der Sammelplatte hinzufügen. Dateifilter setzen — was mitkommt, steht in der Formatliste unten.</li>
-              <li><b>Bilder, erster Durchgang — Aufnahmedatum:</b> als neuen Pfad <code>D:\S\_BILDER\&lt;Img EXIF:DateTimeOriginal, yyyy&gt;\</code> eintragen. Greift bei JPEG, HEIC, HEIF und TIFF — allem, was aus Kamera oder Telefon kommt.</li>
-              <li><b>Bilder, zweiter Durchgang — Dateidatum:</b> PNG, WEBP, BMP, GIF und Bearbeitungsdateien haben meist kein Aufnahmedatum. Für sie das Änderungsdatum als Jahr verwenden.</li>
-              <li><b>Videos, erster Durchgang — Datum aus dem Dateinamen.</b> Videos tragen kein EXIF, aber Telefone schreiben das Datum fast immer in den Namen: <code>VID_20190812_143022.mp4</code>, <code>20220103_181500.mp4</code>, <code>PXL_20230704_…</code>. In Advanced Renamer die Jahreszahl per Teilzeichenkette aus dem Namen ziehen und als Zielordner verwenden. Das deckt den Grossteil ab.</li>
-              <li><b>Videos, zweiter Durchgang — Dateidatum</b> für alles Übrige: Kameraclips, heruntergeladene Dateien, alte Konvertierungen.</li>
+              <li><b>Erster Durchgang — Aufnahmedatum:</b> als neuen Pfad <code>D:\S\_BILDER\&lt;Img EXIF:DateTimeOriginal, yyyy&gt;\</code> eintragen. Greift bei JPEG, HEIC, HEIF und TIFF — allem, was aus Kamera oder Telefon kommt.</li>
+              <li><b>Zweiter Durchgang — Dateidatum:</b> PNG, WEBP, BMP, GIF und Bearbeitungsdateien haben meist kein Aufnahmedatum. Für sie das Änderungsdatum als Jahr verwenden.</li>
               <li><b>Vorschau lesen, bevor du ausführst.</b> Advanced Renamer zeigt für jede Datei alten und neuen Pfad. Das ist deine einzige Kontrolle — nach dem Lauf sind zehntausende Dateien woanders.</li>
               <li><b>Kollisionsregel auf Nummer anhängen stellen</b>, nicht auf Überschreiben. <code>IMG_0001.jpg</code> gibt es aus vier Quellen garantiert mehrfach, und exakt gleiche wurden in Phase 4 schon aussortiert — was jetzt kollidiert, ist <em>verschieden</em> und muss beides bleiben.</li>
               <li>Jahre, die nicht stimmen können — 1970, 1980, alles vor 1995 oder in der Zukunft — nach <code>_Jahr_unklar\</code>. Grosszügig sein: dieser Ordner ist billiger als ein falsch einsortiertes Jahrzehnt.</li>
@@ -961,14 +951,14 @@
 
             <div class="scroller">
               <table>
-                <caption>Was in den Bilderordner wandert — und was nicht</caption>
+                <caption>Was in den Bilderordner wandert — und was bleibt, wo es ist</caption>
                 <thead><tr><th>Gruppe</th><th>Formate</th><th>Wohin</th></tr></thead>
                 <tbody>
                   <tr><td>Fotos und Grafiken</td><td class="mono">*.jpg *.jpeg *.png *.heic *.heif *.webp *.tif *.tiff *.bmp *.gif</td><td><code>80_Bilder/&lt;Jahr&gt;/</code></td></tr>
                   <tr><td>Bearbeitungsdateien</td><td class="mono">*.psd *.psb *.xcf *.ai *.svg *.eps</td><td><code>80_Bilder/&lt;Jahr&gt;/</code></td></tr>
-                  <tr><td>Videos</td><td class="mono">*.mp4 *.mov *.m4v *.avi *.mkv *.wmv *.mpg *.mpeg *.3gp *.mts *.m2ts *.webm *.flv</td><td><code>81_Video/&lt;Jahr&gt;/</code></td></tr>
                   <tr><td>RAW-Dateien</td><td class="mono">*.cr2 *.cr3 *.nef *.arw *.dng *.raf *.orf *.rw2</td><td>bleiben bei ihrer Quelle in <code>02_Bilder_RAW/</code></td></tr>
                   <tr><td>Schnittprojekte</td><td class="mono">*.prproj *.veg *.kdenlive *.mlt</td><td>bleiben bei ihrer Quelle in <code>04_Projekte/</code></td></tr>
+                  <tr><td>Videos</td><td class="mono">*.mp4 *.mov *.avi *.mkv u. a.</td><td>fahren gar nicht mit — stehen im Register (Phase 2)</td></tr>
                   <tr><td>Gescannte Dokumente</td><td class="mono">*.pdf</td><td>bleiben bei ihrer Quelle in <code>01_Dokumente/</code></td></tr>
                 </tbody>
               </table>
@@ -977,30 +967,12 @@
             <p>
               <b>RAW und Schnittprojekte bleiben bewusst bei der Quelle.</b> Sie gehören neben ihre
               Bearbeitungsstände und sind meist schon nach Aufnahme geordnet — aus dem Zusammenhang
-              gerissen nützen sie wenig, und ein Schnittprojekt ohne sein Rohmaterial gar nichts.
-              Scans als PDF sind Dokumente, keine Bilder; sie stehen im Index als <code>typ:dokument</code>.
+              gerissen nützen sie wenig. Scans als PDF sind Dokumente, keine Bilder; sie stehen im
+              Index als <code>typ:dokument</code>. Und <b>Video ist gar nicht erst auf der Platte</b>,
+              es wurde schon in Phase 3 herausgefiltert.
             </p>
 
-            <div class="note warn">
-              <span class="note-label">Rechne bei Video mit einem dünnen Ordner</span>
-              <p>
-                Die Grössengrenze trifft Videos härter als alles andere. In <b>150 MB</b> passen,
-                je nach Telefon und Kompression, <b>eineinhalb bis drei Minuten in 1080p</b> —
-                bei 4K etwa eine halbe. Die Anhebung von 120 auf 150 MB verschiebt diese Marke um
-                ein Viertel: Clips, die knapp darüber lagen, fahren jetzt mit. Am Grundbild ändert
-                sie nichts, jede längere Aufnahme und jeder fertige Schnitt landen weiter im
-                <b>Übergrossen-Register</b> aus Phase 2.
-              </p>
-              <p>
-                Das ist kein Fehler im Plan, aber es heisst: <code>81_Video/</code> wird kurze
-                Clips enthalten, während dein eigentlicher Videobestand weiter auf den Platten liegt.
-                Beim Sichten des Registers in Phase 9 lohnt darum die Frage, ob dieser Bestand
-                nicht eine eigene, getrennte Sicherung braucht — die Sammelplatte hat den Platz,
-                Drive unter dieser Grenze nicht.
-              </p>
-            </div>
-
-            <p class="done"><b>Fertig, wenn</b> <code>_BILDER\</code> und <code>_VIDEO\</code> nur noch Jahresordner und <code>_Jahr_unklar\</code> enthalten, in den Quellordnern keine der oben gelisteten Formate mehr liegen, und die Ähnlichkeitsliste exportiert ist.</p>
+            <p class="done"><b>Fertig, wenn</b> <code>_BILDER\</code> nur noch Jahresordner und <code>_Jahr_unklar\</code> enthält, in den Quellordnern keine der oben gelisteten Formate mehr liegen, und die Ähnlichkeitsliste exportiert ist.</p>
           </div>
         </article>
 
@@ -1028,7 +1000,7 @@
             <h3>Einsortieren in Kategorien</h3>
             <p>Bis hierher liegt in Drive eine getreue Kopie der alten Unordnung. Jetzt entsteht die neue Ordnung — und zwar oberhalb der alten, nicht statt ihrer.</p>
             <ul>
-              <li>Unterhalb jeder Quelle die sieben Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>). <code>80_Bilder/</code> und <code>81_Video/</code> stehen dabei aussen vor — die sind in Phase 5 schon fertig geordnet und werden hier nicht mehr angefasst.</li>
+              <li>Unterhalb jeder Quelle die sieben Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>). <code>80_Bilder/</code> steht dabei aussen vor — das ist in Phase 5 schon fertig geordnet und wird hier nicht mehr angefasst.</li>
               <li>Verschoben werden <b>Ordner, keine Einzeldateien</b>. Ein Ordner „Steuer 2019“ wandert als Ganzes nach <code>Dokumente/</code>. Das erledigt in wenigen Stunden, was auf Dateiebene Wochen dauert.</li>
               <li>Was sich nicht in einem Griff zuordnen lässt, kommt nach <code>99_Zu_Pruefen/</code> und wird nicht länger als zehn Sekunden betrachtet. Dieser Ordner darf gross sein — er ist der Grund, warum der Rest schnell geht.</li>
               <li>Nach zwei Quellen innehalten: passen die sieben Kategorien noch? Jetzt ist der Moment, sie zu ändern — später nicht mehr.</li>
@@ -1045,7 +1017,7 @@
             <ul>
               <li>In <code>00_Index</code> ein Google Sheet <b>Dateiindex_2026</b> anlegen, Spalten nach dem <a href="#index">Index-Schema</a>.</li>
               <li>Die CSV-Exporte aus Phase 1 und die Dubletten-CSV aus Phase 4 importieren — damit sind zwölf der sechzehn Spalten ohne Handarbeit gefüllt.</li>
-              <li>Die Ähnlichkeitsliste aus Phase 5 einspielen: die betroffenen Aufnahmen bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner.</li>
+              <li>Die Ähnlichkeitsliste aus Phase 5 einspielen: die betroffenen Bilder bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner.</li>
               <li>Ein zweites Blatt <b>Ordnerregister</b>: eine Zeile pro Ordner der zweiten und dritten Ebene, mit Tags, Aufbewahrung und Notiz. <b>Hier findet das Taggen statt</b>, nicht auf Dateiebene.</li>
               <li>Ein drittes Blatt <b>Quellen</b> mit der Kürzelliste aus Phase 0, ergänzt um Volumen und Dateianzahl.</li>
               <li>Nur Tags aus dem festgelegten <a href="#tags">Vokabular</a> verwenden. In Sheets als Dropdown einrichten — Freitext macht den Index binnen Wochen wertlos.</li>
@@ -1060,11 +1032,12 @@
             <h3>Abgleich, Karenz, Dauerbetrieb</h3>
             <p>Ein Umzug ist erst zu Ende, wenn nachgewiesen ist, dass nichts fehlt — und wenn geregelt ist, was mit neuen Dateien passiert.</p>
             <ul>
-              <li><b>Kontrollzählung</b> je Quelle: Dateianzahl und Volumen in Drive gegen die Inventur aus Phase 1 abzüglich Ausschlüssen, Übergrossen und Quarantäne. Abweichungen über ein Prozent nachgehen.</li>
+              <li><b>Kontrollzählung</b> je Quelle: Dateianzahl und Volumen in Drive gegen die Inventur aus Phase 1 abzüglich Ausschlüssen, Register-Einträgen und Quarantäne. Abweichungen über ein Prozent nachgehen.</li>
               <li>Stichprobe: aus jeder Quelle fünf Dateien in Drive öffnen. Es geht um Lesbarkeit, nicht um Existenz — hier fallen Platzhalter-Hüllen auf.</li>
               <li><b>90 Tage Karenz.</b> Quellen bleiben unverändert liegen, Platten werden nicht formatiert. Erst danach entscheidest du über die Originale.</li>
               <li>Nach der Karenz die Quarantäne sichten — quellenweise, nicht auf einmal.</li>
-              <li><b>Das Übergrossen-Register durchgehen.</b> Hier steht, was wegen der Grössengrenze nicht mitgefahren ist, überwiegend Video. Entscheide je Eintrag: gehört das auf die Sammelplatte als Zweitkopie, oder darf es mit dem Quellrechner verschwinden? Das ist der einzige Bestand, für den dieser Plan keine Cloud-Sicherung vorsieht.</li>
+              <li><b>Das Register durchgehen</b> — die Liste dessen, was nicht mitgefahren ist: Video und alles über 120 MB. Das ist der einzige Bestand ohne Cloud-Sicherung, und er ist bei dir vermutlich der grösste. Entscheide je Eintrag, ob er auf die Sammelplatte als Zweitkopie gehört oder mit dem Quellrechner verschwinden darf.</li>
+              <li><b>Wenn Video bleiben soll:</b> jetzt ist der Moment für eine eigene, getrennte Sicherung. Die Sammelplatte hat den Platz, dieselben Werkzeuge tun es, und mit dem Register weisst du genau, wo überall Material liegt. Als eigenes kleines Vorhaben, nicht als Anhängsel dieses Umzugs.</li>
               <li><b>Die Sammelplatte wird nicht gelöscht.</b> Sie ist ab jetzt die Zweitkopie: einmal noch vollständig mit dem Drive-Stand abgleichen, dann beschriften, abziehen und weglegen. Eine Kopie, die im selben Konto liegt, ist keine — und hinter einem privaten Konto steht niemand, der es wieder aufsperrt.</li>
               <li><b>Konto absichern</b>, jetzt wo alles daran hängt: zweistufige Bestätigung an, Wiederherstellungsadresse und -nummer prüfen, Backup-Codes ausdrucken und zu den Papieren legen.</li>
               <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur. Einmal im Halbjahr ein AllDup-Lauf, ein Blick in <code>99_Zu_Pruefen/</code> und ein Abgleich der Sammelplatte. Ein Termin im Kalender, sonst passiert es nicht.</li>
@@ -1082,9 +1055,9 @@
       <p class="lede">
         Erste Ebene: Herkunft. Zweite Ebene: Kategorie. Darunter bleibt die gewachsene
         Ordnerstruktur der Quelle unverändert erhalten. Die Zehnerschritte in den Nummern lassen
-        Platz für Quellen, die später dazukommen. Zwei Kategorien fallen aus diesem Muster
-        heraus — <b>Bilder und Videos</b>, die quer über alle Quellen in <code>80_Bilder/</code>
-        und <code>81_Video/</code> zusammenkommen.
+        Platz für Quellen, die später dazukommen. Eine einzige Kategorie fällt aus diesem Muster
+        heraus — <b>Bilder</b>, die quer über alle Quellen in <code>80_Bilder/</code> zusammenkommen.
+        Video fehlt in dieser Struktur bewusst: es fährt nicht mit.
       </p>
 
       <pre class="tree"><b>Andreas_2026_Dateiverwaltung/</b>
@@ -1092,7 +1065,7 @@
 │   ├── Dateiindex_2026            <i>Sheet · alle Dateien, automatisch befüllt</i>
 │   ├── Ordnerregister_2026        <i>Sheet · Tags und Aufbewahrung, gepflegt</i>
 │   ├── Quellen_2026               <i>Sheet · Kürzel, Gerät, Volumen</i>
-│   └── Uebergrossen_Register      <i>Sheet · was über der Grenze liegt und wo</i>
+│   └── Register_Nicht_Uebernommen <i>Sheet · was auf den Platten blieb und warum</i>
 │
 ├── <b>10_PC1_&lt;Bezeichnung&gt;/</b>
 │   ├── 01_Dokumente/              <i>Texte, PDF, Tabellen, Verträge, Belege, Scans</i>
@@ -1122,11 +1095,6 @@
 │   ├── 2026/
 │   └── _Jahr_unklar/              <i>ohne verwertbares Datum — Herkunft steht im Index</i>
 │
-├── <b>81_Video/</b>                     <i>Ausnahme · Clips bis 150 MB, nach Jahr</i>
-│   ├── 2019/
-│   ├── … /
-│   └── _Jahr_unklar/
-│
 ├── <b>90_Quarantaene_Duplikate/</b>     <i>je Quelle · wird nach der Karenz gesichtet</i>
 └── <b>99_Zu_Pruefen/</b>                <i>Auffangbecken aus Phase 7</i></pre>
 
@@ -1142,18 +1110,19 @@
       </div>
 
       <div class="note">
-        <span class="note-label">Warum Aufnahmen die Ausnahme sind</span>
+        <span class="note-label">Warum Bilder die Ausnahme sind</span>
         <p>
-          Genau die Begründung von oben trägt bei Fotos und Videos nicht. „Lag auf dem Büro-Rechner“
-          sagt nichts über eine Aufnahme — das Aufnahmejahr dagegen fast alles. Dazu kommt: es sind
-          die Kategorien mit den meisten quellenübergreifenden Doppelungen, und die findet man nur,
-          wenn sie beieinander liegen. Deshalb wandern sie in je einen Ordner, nach Jahr sortiert,
+          Genau die Begründung von oben trägt bei Fotos nicht. „Lag auf dem Büro-Rechner“ sagt nichts
+          über eine Aufnahme — das Aufnahmejahr dagegen fast alles. Dazu kommt: Bilder sind die
+          Kategorie mit den meisten quellenübergreifenden Doppelungen, und die findet man nur,
+          wenn sie beieinander liegen. Deshalb wandern sie in einen Ordner, nach Jahr sortiert,
           und die Herkunft steht weiter in der Spalte <code>quelle_id</code> des Index.
         </p>
         <p>
           Nicht mitgenommen werden <b>RAW-Dateien</b> und <b>Schnittprojekte</b> — die gehören neben
           ihre Bearbeitungsstände und sind meist schon nach Aufnahme geordnet — sowie <b>Scans als
           PDF</b>, die trotz ihres Ursprungs Dokumente sind. Alle drei bleiben bei ihrer Quelle.
+          <b>Video</b> ist gar nicht erst Teil des Umzugs und steht nur im Register.
         </p>
       </div>
     </section>
@@ -1164,8 +1133,8 @@
       <p class="lede">
         Blatt <b>Dateiindex_2026</b>, eine Zeile je Datei. Zwölf Spalten füllen sich aus den
         Werkzeug-Exporten, vier entstehen im Betrieb. Handarbeit auf Dateiebene ist nur bei
-        wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist. Für Bilder und Videos ist dieser Index
-        besonders wichtig: sie liegen in <code>80_Bilder/</code> und <code>81_Video/</code> von ihrer Herkunft getrennt,
+        wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist. Für Bilder ist dieser Index
+        besonders wichtig: sie liegen in <code>80_Bilder/</code> von ihrer Herkunft getrennt,
         und <code>quelle_id</code> ist dann die einzige Stelle, an der noch steht, woher sie kamen.
       </p>
 
@@ -1181,13 +1150,13 @@
             <tr><td class="mono">original_pfad</td><td class="mono">C:\Users\a\Docs\Steuer2019\</td><td><span class="pill auto">automatisch</span></td><td>Wo es herkam — die wertvollste Spalte überhaupt</td></tr>
             <tr><td class="mono">dateiname</td><td class="mono">Bescheid_2019.pdf</td><td><span class="pill auto">automatisch</span></td><td>ohne Pfad, für die Suche</td></tr>
             <tr><td class="mono">endung</td><td class="mono">pdf</td><td><span class="pill auto">automatisch</span></td><td>Grundlage der Kategorie</td></tr>
-            <tr><td class="mono">groesse_mb</td><td class="num">2,41</td><td><span class="pill auto">automatisch</span></td><td>Kontrolle der Grenze — 120 MB, bei Video 150 MB</td></tr>
+            <tr><td class="mono">groesse_mb</td><td class="num">2,41</td><td><span class="pill auto">automatisch</span></td><td>Kontrolle der 120-MB-Grenze</td></tr>
             <tr><td class="mono">geaendert_am</td><td class="mono">2019-08-14</td><td><span class="pill auto">automatisch</span></td><td>Zeitliche Einordnung, Original-Entscheidung</td></tr>
             <tr><td class="mono">pruefsumme</td><td class="mono">9f2a…c71b</td><td><span class="pill auto">automatisch</span></td><td>der einzige belastbare Gleichheitsbeweis</td></tr>
             <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der dupeGuru-CSV; leer heisst: einmalig</td></tr>
             <tr><td class="mono">dup_rolle</td><td class="mono">original | duplikat</td><td><span class="pill auto">automatisch</span></td><td>welche Kopie bleibt, welche in Quarantäne ging</td></tr>
             <tr><td class="mono">kategorie</td><td class="mono">01_Dokumente</td><td><span class="pill auto">automatisch</span></td><td>aus der Endung abgeleitet, per Hand korrigierbar</td></tr>
-            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt — bei Aufnahmen <code>80_Bilder/2019/</code> oder <code>81_Video/2019/</code></td></tr>
+            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt — bei Bildern <code>80_Bilder/2019/</code></td></tr>
             <tr><td class="mono">tags</td><td class="mono">thema:steuer jahr:2019</td><td><span class="pill hand">Handarbeit</span></td><td>aus dem Vokabular, meist vom Ordner geerbt</td></tr>
             <tr><td class="mono">aufbewahrung</td><td class="mono">10jahre</td><td><span class="pill hand">Handarbeit</span></td><td>steuert die spätere Bereinigung</td></tr>
             <tr><td class="mono">status</td><td class="mono">geprueft</td><td><span class="pill hand">Handarbeit</span></td><td>Arbeitsstand dieser Zeile</td></tr>
@@ -1294,7 +1263,7 @@
             <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
             <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
             <tr><td><b>AllDup</b></td><td>Sammelrechner</td><td>Dublettensuche nach Inhalt, Auswahl-Assistent, Aktion „Verschieben“ — auf Windows die schnellste Wahl</td><td class="mono">4</td></tr>
-            <tr><td><b>Advanced Renamer</b></td><td>Sammelrechner</td><td>Bilder und Videos in Jahresordner verschieben — per EXIF-Aufnahmedatum, Dateinamen-Muster oder Dateidatum, mit Vorschau vor dem Ausführen</td><td class="mono">5</td></tr>
+            <tr><td><b>Advanced Renamer</b></td><td>Sammelrechner</td><td>Bilder anhand des EXIF-Aufnahmedatums in Jahresordner verschieben, mit Vorschau vor dem Ausführen</td><td class="mono">5</td></tr>
             <tr><td><b>dupeGuru</b></td><td>Sammelrechner</td><td>ergänzend für <em>ähnliche</em> Fotos, die AllDup nicht findet</td><td class="mono">5</td></tr>
             <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer</td><td class="mono">0, 6</td></tr>
             <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">8</td></tr>
@@ -1319,7 +1288,7 @@
             <tr><td><span class="pill risk">kritisch</span> <b>Platzhalter statt Dateien</b></td><td>„Nur online“-Dateien aus OneDrive, Dropbox oder iCloud werden als Hüllen von wenigen Bytes kopiert. Der Ordner sieht vollständig aus, ist aber leer.</td><td>Vor dem Kopieren „Immer auf diesem Gerät behalten“ setzen, Sync abwarten. Stichprobe: Dateigrösse im Sammelordner prüfen.</td></tr>
             <tr><td><span class="pill risk">kritisch</span> <b>Löschen statt verschieben</b></td><td>Ein Fehlklick in dupeGuru entfernt tausende Dateien endgültig.</td><td>Immer „Verschieben nach“ wählen. Die Aktion vor dem ersten grossen Lauf an fünf Testdateien üben.</td></tr>
             <tr><td><b>Zu lange Pfade</b></td><td>Windows bricht ab 260 Zeichen mitten im Kopieren ab, oft ohne klare Meldung.</td><td>Sammelpfad kurz halten: <code>D:\S\PC1</code>. Fehlerprotokoll von FreeFileSync nach jedem Lauf ansehen.</td></tr>
-            <tr><td><b>Outlook-Postfächer</b></td><td>Mails liegen in einer einzigen PST- oder OST-Datei, die schnell mehrere Gigabyte gross wird und damit weit über der Grenze liegt. OST-Dateien lassen sich ausserdem nur mit dem zugehörigen Konto öffnen.</td><td>In Outlook <em>Datei → Öffnen und Exportieren → Importieren/Exportieren</em>, ordnerweise in mehrere PST-Dateien exportieren. Was dann noch zu gross ist, kommt ins Übergrossen-Register.</td></tr>
+            <tr><td><b>Outlook-Postfächer</b></td><td>Mails liegen in einer einzigen PST- oder OST-Datei, die schnell mehrere Gigabyte gross wird und damit weit über der Grenze liegt. OST-Dateien lassen sich ausserdem nur mit dem zugehörigen Konto öffnen.</td><td>In Outlook <em>Datei → Öffnen und Exportieren → Importieren/Exportieren</em>, ordnerweise in mehrere PST-Dateien exportieren. Was dann noch zu gross ist, kommt ins Register.</td></tr>
             <tr><td><b>Gleicher Name, anderer Inhalt</b></td><td><code>Rechnung.pdf</code> gibt es dreimal, mit drei verschiedenen Inhalten. Ein Namensvergleich verwirft zwei davon.</td><td>Ausschliesslich Inhaltsvergleich. Die Quellordnerstruktur bleibt erhalten, damit Namensgleiche nicht kollidieren.</td></tr>
             <tr><td><b>Gleicher Inhalt, anderer Name</b></td><td>Dieselbe Datei liegt als <code>IMG_2231.jpg</code> und <code>Urlaub_Kreta.jpg</code> vor und bleibt doppelt.</td><td>Ebenfalls Inhaltsvergleich — dupeGuru findet beide, unabhängig vom Namen.</td></tr>
             <tr><td><b>Zeitstempel gehen verloren</b></td><td>Manche Kopierwege setzen das Änderungsdatum auf heute. Damit ist die zeitliche Einordnung des gesamten Bestands hin.</td><td>FreeFileSync erhält Zeitstempel. Nach dem ersten Lauf an drei Dateien im Sammelordner kontrollieren.</td></tr>
@@ -1372,12 +1341,12 @@
             <tr><td>2 · Filterregel</td><td class="num">2 Std.</td><td>keine</td></tr>
             <tr><td>3 · Sammeln</td><td class="num">3–5 Std.</td><td>hoch — Kopieren läuft allein</td></tr>
             <tr><td>4 · Dubletten</td><td class="num">2–4 Std.</td><td>hoch — Prüfsummen brauchen Zeit</td></tr>
-            <tr><td>5 · Aufnahmen nach Jahr</td><td class="num">4–6 Std.</td><td>mittel — Vorschau prüfen, dann laufen lassen</td></tr>
+            <tr><td>5 · Bilder nach Jahr</td><td class="num">3–5 Std.</td><td>mittel — Vorschau prüfen, dann laufen lassen</td></tr>
             <tr><td>6 · Upload</td><td class="num">2–3 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
             <tr><td>7 · Einsortieren</td><td class="num">4–8 Std.</td><td>keine</td></tr>
             <tr><td>8 · Index und Tags</td><td class="num">6–12 Std.</td><td>keine</td></tr>
             <tr><td>9 · Abgleich</td><td class="num">2 Std.</td><td>keine</td></tr>
-            <tr><td><b>Zusammen</b></td><td class="num"><b>31–51 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
+            <tr><td><b>Zusammen</b></td><td class="num"><b>30–49 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
           </tbody>
         </table>
       </div>
