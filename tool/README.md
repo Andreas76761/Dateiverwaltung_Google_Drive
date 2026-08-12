@@ -105,7 +105,28 @@ sonst lässt sich die Herkunft der Bilder später nicht mehr rekonstruieren.
 **Lange Pfade** über 260 Zeichen werden auf Windows korrekt behandelt, ebenso Netzlaufwerke.
 
 **Namenskollisionen** beim Einsortieren führen nie zum Überschreiben — es wird eine Nummer
-angehängt (`IMG_0001_2.jpg`).
+angehängt (`IMG_0001_2.jpg`). Das gilt auch für Kollisionen *innerhalb desselben Laufs*:
+`PC1/Bilder/2014/IMG_0064.jpg` und `PC2/Bilder/2014/IMG_0064.jpg` wollen beide nach
+`80_Bilder/2014/IMG_0064.jpg` — die zweite bekommt `IMG_0064_2.jpg`. Wieviele Dateien so
+umbenannt wurden, steht am Ende in der Statuszeile.
+
+## Am grossen Bestand erprobt
+
+Geprüft an 34.521 Dateien mit 2,8 GB über fünf Quellen, mit Dubletten über Rechnergrenzen,
+Umlauten, 164 Zeichen langen Pfaden, Videos, Übergrossen und Programmordnern:
+
+| Schritt | Menge | Dauer |
+|---|---|---|
+| Inventur über alle fünf Quellen | 34.521 Dateien | 0,5 s |
+| Regeln erproben | 88 % fahren mit | 0,05 s |
+| Sammeln | 30.273 Dateien, 1,8 GB | 9,2 s |
+| Sammeln wiederholt | alles vorhanden | 1,1 s |
+| Dubletten über Prüfsummen | 1.898 Gruppen | 2,4 s |
+| Bilder nach Jahr | 20.129 Bilder | 1,7 s |
+| Kategorien | 21 Ordner beurteilt | 0,1 s |
+| Index | 30.273 Zeilen | 0,3 s |
+
+Die Quelle war danach unverändert, Umlaute und lange Pfade heil.
 
 ## Selbst starten, ohne den Build abzuwarten
 

@@ -463,17 +463,34 @@ def year_of(entry, use_exif=True):
 #  Kopieren und Verschieben — nie loeschen
 # ============================================================
 
-def unique_target(folder, name):
-    """Haengt eine Nummer an, statt eine vorhandene Datei zu ueberschreiben."""
+def unique_target(folder, name, claimed=None):
+    """
+    Haengt eine Nummer an, statt eine vorhandene Datei zu ueberschreiben.
+
+    claimed sammelt die Ziele, die im laufenden Vorhaben schon vergeben
+    sind. Ohne diese Menge bekommen zwei gleichnamige Dateien aus
+    verschiedenen Quellen dasselbe Ziel: beim Planen existiert noch keine
+    von beiden, und die zweite faellt beim Ausfuehren still hinten runter.
+    """
+    def frei(path):
+        if claimed is not None and path.lower() in claimed:
+            return False
+        return not os.path.exists(long_path(path))
+
+    def nimm(path):
+        if claimed is not None:
+            claimed.add(path.lower())
+        return path
+
     target = os.path.join(folder, name)
-    if not os.path.exists(long_path(target)):
-        return target
+    if frei(target):
+        return nimm(target)
     stem, ext = os.path.splitext(name)
     n = 2
     while True:
         cand = os.path.join(folder, "{}_{}{}".format(stem, n, ext))
-        if not os.path.exists(long_path(cand)):
-            return cand
+        if frei(cand):
+            return nimm(cand)
         n += 1
 
 
@@ -1414,6 +1431,8 @@ class BilderTab(Section):
                     wanted.append(e)
             job.say("{} Bilder gefunden. Ermittle Aufnahmejahre …".format(fmt_count(len(wanted))))
             plan, rows = [], []
+            claimed = set()
+            umbenannt = 0
             for i, e in enumerate(wanted, 1):
                 if job.stopped:
                     break
@@ -1422,17 +1441,18 @@ class BilderTab(Section):
                     job.say("Jahr {} von {}".format(i, len(wanted)))
                 year, source = year_of(e)
                 folder = os.path.join(dst, str(year) if year else "_Jahr_unklar")
-                target = unique_target(folder, e.name) if not dry \
-                    else os.path.join(folder, e.name)
+                target = unique_target(folder, e.name, claimed)
+                if os.path.basename(target) != e.name:
+                    umbenannt += 1
                 plan.append((e.abspath, target, e.size))
                 rows.append((str(year) if year else "unklar", source, e))
             rep = transfer(plan, job, dry_run=dry, move=move, workers=self.app.workers())
-            job.done("img", (rep, rows, dry))
+            job.done("img", (rep, rows, dry, umbenannt))
 
         self.run(work, self.finish)
 
     def finish(self, _kind, payload):
-        rep, rows, dry = payload
+        rep, rows, dry, umbenannt = payload
         self.rows = rows
         self.dst = self.var_dst.get().strip()
         for r in self.tree.get_children():
@@ -1448,9 +1468,11 @@ class BilderTab(Section):
         unklar = per_year.get("unklar", 0)
         self.summary.configure(text="{} Bilder · {} Jahresordner · {} ohne verwertbares Datum"
                                .format(fmt_count(len(rows)), fmt_count(len(per_year)), fmt_count(unklar)))
-        self.say("{}: {} bereit, {} übersprungen, {} fehlgeschlagen."
+        self.say("{}: {} bereit, {} übersprungen, {} fehlgeschlagen{}."
                  .format("Probelauf" if dry else "Fertig", fmt_count(rep["ok"]),
-                         fmt_count(rep["skip"]), fmt_count(rep["fail"])))
+                         fmt_count(rep["skip"]), fmt_count(rep["fail"]),
+                         " · {} wegen Namensgleichheit nummeriert".format(fmt_count(umbenannt))
+                         if umbenannt else ""))
 
 
     def export(self):
