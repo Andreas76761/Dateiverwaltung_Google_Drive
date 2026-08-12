@@ -1,0 +1,1191 @@
+<title>Dateiumzug 2026</title>
+
+<style>
+  :root {
+    --bg:        #F1F4F3;
+    --surface:   #FBFCFC;
+    --surface-2: #E8EEEC;
+    --ink:       #131A19;
+    --ink-2:     #4C5A57;
+    --ink-3:     #6E7C79;
+    --line:      #D3DCDA;
+    --line-2:    #BDC9C6;
+    --accent:    #0D5C55;
+    --accent-2:  #0A413C;
+    --accent-sf: #DBEAE7;
+    --warn:      #8A5310;
+    --warn-sf:   #F4E6D2;
+    --risk:      #8E2F2A;
+    --risk-sf:   #F5DEDC;
+
+    --f-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, ui-serif, serif;
+    --f-body:    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --f-mono:    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+    --s1: .25rem; --s2: .5rem; --s3: .75rem; --s4: 1rem;
+    --s5: 1.5rem; --s6: 2rem; --s7: 3rem; --s8: 4.5rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #0F1413;
+      --surface:   #171F1D;
+      --surface-2: #1E2827;
+      --ink:       #E6EDEB;
+      --ink-2:     #A2B0AD;
+      --ink-3:     #7E8C89;
+      --line:      #2A3533;
+      --line-2:    #3A4644;
+      --accent:    #55C7B8;
+      --accent-2:  #8CDCD0;
+      --accent-sf: #123330;
+      --warn:      #E0A458;
+      --warn-sf:   #33260F;
+      --risk:      #E58278;
+      --risk-sf:   #38201E;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:        #0F1413;
+    --surface:   #171F1D;
+    --surface-2: #1E2827;
+    --ink:       #E6EDEB;
+    --ink-2:     #A2B0AD;
+    --ink-3:     #7E8C89;
+    --line:      #2A3533;
+    --line-2:    #3A4644;
+    --accent:    #55C7B8;
+    --accent-2:  #8CDCD0;
+    --accent-sf: #123330;
+    --warn:      #E0A458;
+    --warn-sf:   #33260F;
+    --risk:      #E58278;
+    --risk-sf:   #38201E;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0 var(--s5) var(--s8);
+  }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s7);
+  }
+
+  @media (min-width: 1060px) {
+    .page {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      align-items: start;
+      column-gap: var(--s7);
+    }
+    .masthead { grid-column: 1 / -1; }
+  }
+
+  /* ---------- Masthead ---------- */
+
+  .masthead {
+    padding: var(--s8) 0 var(--s6);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 var(--s4);
+  }
+
+  h1 {
+    font-family: var(--f-display);
+    font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -.015em;
+    font-weight: 700;
+    text-wrap: balance;
+    margin: 0 0 var(--s4);
+    max-width: 18ch;
+  }
+
+  .standfirst {
+    font-size: 1.125rem;
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin: 0 0 var(--s6);
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .fact {
+    background: var(--surface);
+    padding: var(--s3) var(--s4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+  }
+
+  .fact dt {
+    font-family: var(--f-mono);
+    font-size: .625rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .fact dd {
+    margin: 0;
+    font-size: .9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  /* ---------- TOC rail ---------- */
+
+  .rail { display: none; }
+
+  @media (min-width: 1060px) {
+    .rail {
+      display: block;
+      position: sticky;
+      top: var(--s5);
+      font-family: var(--f-mono);
+      font-size: .75rem;
+      line-height: 1.5;
+    }
+    .rail p {
+      font-size: .625rem;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin: 0 0 var(--s3);
+      padding-bottom: var(--s2);
+      border-bottom: 1px solid var(--line);
+    }
+    .rail ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s2);
+    }
+    .rail a {
+      color: var(--ink-2);
+      text-decoration: none;
+      display: grid;
+      grid-template-columns: 2.1rem 1fr;
+      gap: var(--s1);
+    }
+    .rail a span { color: var(--ink-3); }
+    .rail a:hover { color: var(--accent); }
+    .rail a:hover span { color: var(--accent); }
+  }
+
+  /* ---------- Sections ---------- */
+
+  main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s8);
+  }
+
+  section { scroll-margin-top: var(--s5); }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s3);
+    margin-bottom: var(--s5);
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  .sec-num {
+    font-family: var(--f-mono);
+    font-size: .75rem;
+    color: var(--accent);
+    letter-spacing: .06em;
+    flex: none;
+  }
+
+  h2 {
+    font-family: var(--f-display);
+    font-size: clamp(1.5rem, 3vw, 1.95rem);
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    font-weight: 700;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: var(--f-body);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    letter-spacing: -.005em;
+    margin: 0 0 var(--s3);
+  }
+
+  p, ul, ol { max-width: 68ch; }
+  p { margin: 0 0 var(--s4); }
+  main > section > p:last-child { margin-bottom: 0; }
+
+  ul, ol { margin: 0 0 var(--s4); padding-left: 1.15rem; }
+  li { margin-bottom: var(--s2); }
+  li::marker { color: var(--ink-3); }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  code {
+    font-family: var(--f-mono);
+    font-size: .84em;
+    background: var(--surface-2);
+    padding: .1em .35em;
+    border-radius: 2px;
+    word-break: break-word;
+  }
+
+  strong { font-weight: 650; }
+
+  .lede {
+    font-size: 1.0625rem;
+    color: var(--ink-2);
+    max-width: 66ch;
+  }
+
+  /* ---------- Rules ---------- */
+
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--s4);
+    list-style: none;
+    padding: 0;
+    max-width: none;
+  }
+
+  .rules li {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    padding: var(--s4);
+    margin: 0;
+  }
+
+  .rules h3 { margin-bottom: var(--s2); }
+  .rules p { font-size: .9375rem; color: var(--ink-2); margin: 0; }
+
+  /* ---------- Callouts ---------- */
+
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-sf);
+    padding: var(--s4) var(--s5);
+    margin: 0 0 var(--s5);
+    max-width: 68ch;
+  }
+  .note.warn { border-left-color: var(--warn); background: var(--warn-sf); }
+  .note p:last-child { margin-bottom: 0; }
+
+  .note-label {
+    font-family: var(--f-mono);
+    font-size: .625rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: var(--s2);
+  }
+  .note.warn .note-label { color: var(--warn); }
+
+  /* ---------- Variant compare ---------- */
+
+  .variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: var(--s4);
+  }
+
+  .variant {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: var(--s5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+  }
+
+  .variant.pick { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+  .variant-tag {
+    font-family: var(--f-mono);
+    font-size: .625rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .variant.pick .variant-tag { color: var(--accent); }
+
+  .variant h3 { margin: 0; }
+  .variant p { margin: 0; font-size: .9375rem; color: var(--ink-2); }
+  .variant ul { margin: 0; font-size: .9375rem; color: var(--ink-2); }
+  .variant li { margin-bottom: var(--s1); }
+
+  /* ---------- Phases ---------- */
+
+  .phases {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .phase {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--s3);
+    padding: var(--s5) 0;
+    border-bottom: 1px solid var(--line-2);
+  }
+
+  @media (min-width: 700px) {
+    .phase {
+      grid-template-columns: 7.5rem minmax(0, 1fr);
+      column-gap: var(--s5);
+    }
+  }
+
+  .phase-marker {
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+  }
+  .phase-marker em {
+    font-style: normal;
+    color: var(--ink-3);
+    letter-spacing: .06em;
+  }
+
+  .phase-body { min-width: 0; }
+  .phase-body h3 { font-size: 1.1875rem; margin-bottom: var(--s2); }
+  .phase-body > p { color: var(--ink-2); }
+  .phase-body ul { margin-bottom: var(--s4); }
+
+  .done {
+    font-size: .875rem;
+    background: var(--surface-2);
+    border-left: 2px solid var(--accent);
+    padding: var(--s2) var(--s4);
+    max-width: 68ch;
+  }
+  .done b {
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+  }
+
+  /* ---------- Tables ---------- */
+
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    margin-bottom: var(--s5);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .875rem;
+    min-width: 34rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  thead th {
+    font-family: var(--f-mono);
+    font-size: .625rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line-2);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  td.mono, th.mono, .num { font-family: var(--f-mono); font-size: .8125rem; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-size: .8125rem;
+    color: var(--ink-3);
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* ---------- Pills ---------- */
+
+  .pill {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .04em;
+    padding: .1rem .45rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.auto { color: var(--accent); }
+  .pill.hand { color: var(--warn); }
+  .pill.risk { color: var(--risk); }
+
+  /* ---------- Tree ---------- */
+
+  pre.tree {
+    font-family: var(--f-mono);
+    font-size: .8125rem;
+    line-height: 1.75;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: var(--s5);
+    overflow-x: auto;
+    margin: 0 0 var(--s5);
+  }
+  pre.tree b { color: var(--accent); font-weight: 600; }
+  pre.tree i { color: var(--ink-3); font-style: normal; }
+
+  /* ---------- Questions ---------- */
+
+  .questions {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: 72ch;
+    counter-reset: q;
+    border-top: 1px solid var(--line-2);
+  }
+  .questions li {
+    counter-increment: q;
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: var(--s3);
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--line-2);
+    margin: 0;
+  }
+  .questions li::before {
+    content: "F" counter(q);
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .1em;
+    color: var(--accent);
+    padding-top: .35rem;
+  }
+  .questions b { display: block; }
+  .questions span { color: var(--ink-2); font-size: .9375rem; }
+
+  footer {
+    border-top: 2px solid var(--ink);
+    padding-top: var(--s4);
+    font-family: var(--f-mono);
+    font-size: .6875rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s4);
+    justify-content: space-between;
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">Vorhaben · Startklar ab sofort</p>
+    <h1>Dateiumzug 2026</h1>
+    <p class="standfirst">
+      Vier Rechner, externe Platten, mehrere Clouds — alles gewachsen, nichts geordnet.
+      Dieser Plan führt sie in einen einzigen Ordner auf deinem Google Drive zusammen,
+      findet dort Doppelungen, und legt einen Index an, mit dem du Dateien wiederfindest,
+      ohne sie durchsuchen zu müssen. Kein Terminal nötig.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Zielordner</dt><dd>Andreas_2026_Dateiverwaltung</dd></div>
+      <div class="fact"><dt>Grösse pro Datei</dt><dd>höchstens 120 MB</dd></div>
+      <div class="fact"><dt>Speicher im Ziel</dt><dd>2 TB oder mehr</dd></div>
+      <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
+      <div class="fact"><dt>Duplikate</dt><dd>markieren, nie löschen</dd></div>
+      <div class="fact"><dt>Werkzeuge</dt><dd>Programme mit Oberfläche</dd></div>
+    </dl>
+  </header>
+
+  <nav class="rail" aria-label="Inhalt">
+    <p>Inhalt</p>
+    <ol>
+      <li><a href="#regeln"><span>§</span>Grundregeln</a></li>
+      <li><a href="#realitaet"><span>!</span>Realitätscheck</a></li>
+      <li><a href="#variante"><span>A/B</span>Zwei Wege</a></li>
+      <li><a href="#phasen"><span>0–8</span>Die Phasen</a></li>
+      <li><a href="#struktur"><span>/</span>Zielstruktur</a></li>
+      <li><a href="#index"><span>#</span>Index-Schema</a></li>
+      <li><a href="#tags"><span>@</span>Tag-Vokabular</a></li>
+      <li><a href="#werkzeuge"><span>⌾</span>Werkzeuge</a></li>
+      <li><a href="#risiken"><span>△</span>Fallstricke</a></li>
+      <li><a href="#zeit"><span>⏱</span>Zeit &amp; Menge</a></li>
+      <li><a href="#fragen"><span>?</span>Offene Fragen</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ================= GRUNDREGELN ================= -->
+    <section id="regeln">
+      <div class="sec-head"><span class="sec-num">§</span><h2>Vier Regeln, die über allem stehen</h2></div>
+      <p class="lede">
+        Wenn während der Arbeit eine Entscheidung ansteht und du unsicher bist,
+        entscheidet eine dieser vier Regeln. Sie sind bewusst streng.
+      </p>
+
+      <ul class="rules">
+        <li>
+          <h3>Es wird kopiert, nie verschoben</h3>
+          <p>Bis zum Schlussabgleich in Phase 8 bleibt jede Quelle unangetastet. Ein abgebrochener Umzug darf nie Daten kosten.</p>
+        </li>
+        <li>
+          <h3>Gelöscht wird erst nach Sichtung</h3>
+          <p>Duplikate wandern in <code>90_Quarantaene_Duplikate</code> und werden im Index markiert. Löschen ist ein eigener, späterer, bewusster Schritt.</p>
+        </li>
+        <li>
+          <h3>Gleichheit entscheidet der Inhalt</h3>
+          <p>Zwei Dateien sind nur dann dieselbe Datei, wenn ihre Prüfsumme übereinstimmt. Gleicher Name und gleiche Grösse reichen nicht.</p>
+        </li>
+        <li>
+          <h3>Getaggt werden Ordner, nicht Dateien</h3>
+          <p>Hunderttausende Dateien einzeln zu verschlagworten, schaffst du nicht. Der Index erfasst alles automatisch, gepflegt wird auf Ordnerebene.</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ================= REALITÄTSCHECK ================= -->
+    <section id="realitaet">
+      <div class="sec-head"><span class="sec-num">!</span><h2>Was du vorher wissen solltest</h2></div>
+      <p class="lede">
+        Vier Eigenheiten von Google Drive bestimmen den ganzen Plan. Wer sie nicht kennt,
+        baut den Umzug zweimal.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th>Eigenheit</th><th>Was das bedeutet</th><th>Konsequenz im Plan</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>Drive sucht keine Duplikate</b></td>
+              <td>Es gibt keine eingebaute Dublettensuche. Drive erlaubt sogar zwei Dateien mit identischem Namen im selben Ordner.</td>
+              <td>Die Dublettensuche läuft <b>lokal vor dem Upload</b>, wo die Werkzeuge stark sind.</td>
+            </tr>
+            <tr>
+              <td><b>Labels gibt es nur in Workspace</b></td>
+              <td>Die Drive-Funktion „Labels“ ist Geschäftskonten vorbehalten. Ein privates Google-Konto hat sie nicht.</td>
+              <td>Tags leben in einer Tabelle in <code>00_Index</code>, nicht in Drive selbst.</td>
+            </tr>
+            <tr>
+              <td><b>750 GB Upload pro Tag</b></td>
+              <td>Pro Konto und Tag. Wird das Limit erreicht, pausiert der Upload bis zum nächsten Tag.</td>
+              <td>Upload quellenweise in Blöcken, nicht alles auf einmal anstossen.</td>
+            </tr>
+            <tr>
+              <td><b>Viele kleine Dateien sind zäh</b></td>
+              <td>Nicht die Datenmenge bremst, sondern die Anzahl. 200.000 kleine Dateien dauern länger als 200 grosse mit gleichem Volumen.</td>
+              <td>Vor dem Upload aussortieren zahlt sich doppelt aus. Ordner mit über 500.000 Elementen meiden.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note warn">
+        <span class="note-label">Der teuerste Fehler</span>
+        <p>
+          Dropbox, OneDrive und iCloud zeigen Dateien an, die gar nicht auf der Platte liegen —
+          sie sind „nur online“ und nur ein Platzhalter von wenigen Bytes. Kopierst du diesen Ordner,
+          landen leere Hüllen in deinem Drive, und du merkst es erst Monate später.
+          <b>Vor jedem Kopiervorgang</b> den Ordner im Explorer oder Finder mit
+          „Immer auf diesem Gerät behalten“ herunterladen und warten, bis der Sync fertig ist.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= VARIANTEN ================= -->
+    <section id="variante">
+      <div class="sec-head"><span class="sec-num">A/B</span><h2>Erst eine Weiche stellen</h2></div>
+      <p class="lede">
+        Die Dublettensuche funktioniert nur dort gut, wo alle Dateien gleichzeitig greifbar sind.
+        Ob das lokal möglich ist, hängt daran, ob deine vier Rechner am selben Ort stehen.
+      </p>
+
+      <div class="variants">
+        <div class="variant pick">
+          <span class="variant-tag">Variante A · empfohlen</span>
+          <h3>Eine Sammelplatte für alles</h3>
+          <p>Eine externe Platte wandert zu jedem Rechner und nimmt dessen Auswahl auf. Danach liegt alles einmal an einem Ort.</p>
+          <ul>
+            <li>Eine einzige Dublettensuche über den gesamten Bestand — auch quellenübergreifend.</li>
+            <li>Nur eine Upload-Strecke, von einem Rechner aus, kontrollierbar.</li>
+            <li>Die Platte bleibt danach als Zweitkopie liegen.</li>
+            <li>Braucht: freie Kapazität mindestens in Höhe des Gesamtvolumens.</li>
+          </ul>
+        </div>
+        <div class="variant">
+          <span class="variant-tag">Variante B · verteilt</span>
+          <h3>Jeder Rechner lädt selbst hoch</h3>
+          <p>Sinnvoll, wenn die Rechner an verschiedenen Orten stehen und keine Platte herumreisen kann.</p>
+          <ul>
+            <li>Dubletten <i>innerhalb</i> einer Quelle findest du sofort, lokal.</li>
+            <li>Dubletten <i>zwischen</i> Quellen erst später, und nur mit heruntergeladenen Ordnern.</li>
+            <li>Vier parallele Uploads, mehr Buchhaltung, mehr Fehlerquellen.</li>
+            <li>Reihenfolge zählt: den grössten Rechner zuerst hochladen.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Empfehlung</span>
+        <p>
+          Nimm Variante A, sobald du die Rechner physisch erreichen kannst. Der Unterschied ist nicht
+          Bequemlichkeit, sondern Qualität: quellenübergreifende Dubletten sind bei einem so gewachsenen
+          Bestand der grösste Brocken — dieselben Fotos und Dokumente liegen typischerweise auf drei von vier Rechnern.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= PHASEN ================= -->
+    <section id="phasen">
+      <div class="sec-head"><span class="sec-num">0–8</span><h2>Der Ablauf in neun Phasen</h2></div>
+      <p class="lede">
+        Die Reihenfolge ist nicht beliebig: jede Phase liefert das Material, das die nächste braucht.
+        Wer bei Phase 3 anfängt, weil das Kopieren am produktivsten aussieht, lädt Müll hoch.
+      </p>
+
+      <div class="phases">
+
+        <article class="phase">
+          <div class="phase-marker">Phase 0<em>2–3 Std.</em></div>
+          <div class="phase-body">
+            <h3>Fundament und Sicherheitsnetz</h3>
+            <p>Bevor eine einzige Datei bewegt wird: festlegen, wohin, unter welchem Namen, und wie du später noch weisst, woher etwas kam.</p>
+            <ul>
+              <li>Zielkonto festlegen. Es gibt nur <b>ein</b> Zielkonto — alle anderen Google-Konten sind Quellen.</li>
+              <li><code>Andreas_2026_Dateiverwaltung</code> in „Meine Ablage“ anlegen, dazu das Ordnergerüst aus Abschnitt <a href="#struktur">Zielstruktur</a>.</li>
+              <li><b>Quellenliste</b> anlegen: jede Quelle bekommt ein kurzes Kürzel, das nie wieder geändert wird — <code>PC1</code> bis <code>PC4</code>, <code>EXT1</code> ff., <code>DBX</code>, <code>ODR</code>, <code>ICL</code>, <code>GD2</code>. Dazu Notiz: welches Gerät, welche Laufwerke, wer nutzt es.</li>
+              <li>Werkzeuge auf allen Rechnern installieren (siehe <a href="#werkzeuge">Werkzeuge</a>).</li>
+              <li>Google Drive für Desktop einrichten, Zielordner als gestreamten Ordner einbinden.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> das Ordnergerüst steht und die Quellenliste jede Platte und jeden Cloud-Account genau einmal nennt.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 1<em>1 Std. je Quelle</em></div>
+          <div class="phase-body">
+            <h3>Inventur, ohne etwas zu kopieren</h3>
+            <p>Erst messen. Du triffst sonst Entscheidungen über eine Datenmenge, die du nicht kennst — und die Schätzung liegt bei gewachsenen Beständen fast immer um den Faktor zwei daneben.</p>
+            <ul>
+              <li>Pro Rechner mit <b>WizTree</b> (Windows), <b>GrandPerspective</b> (Mac) oder <b>Filelight</b> (Linux) alle Laufwerke scannen.</li>
+              <li>Notieren: Gesamtvolumen, Anzahl Dateien, die zehn grössten Ordner, und wo die Nutzdaten wirklich liegen.</li>
+              <li>WizTree und TreeSize exportieren die Dateiliste als CSV — <b>diese Exporte aufheben</b>, sie sind die Rohdaten für den Index in Phase 7.</li>
+              <li>Vergessene Orte gezielt suchen: Downloads, Desktop, alte Benutzerprofile, <code>C:\Users\&lt;alt&gt;</code>, Mail-Archive, Scanner-Ausgabeordner, Handy-Backups.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> du für jede Quelle eine Zeile hast: Volumen, Dateianzahl, und die drei bis fünf Ordner, die tatsächlich mitkommen sollen.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 2<em>2 Std. einmalig</em></div>
+          <div class="phase-body">
+            <h3>Die Filterregel festlegen</h3>
+            <p>Einmal sauber definiert, gilt sie für alle vier Rechner identisch. Das ist der Grund, warum die Bestände später überhaupt vergleichbar sind.</p>
+            <ul>
+              <li><b>Aufnahme:</b> alle Dateien bis 120 MB aus den in Phase 1 bestimmten Nutzdaten-Ordnern.</li>
+              <li><b>Ausschluss über die Ordnerwahl</b> — das ist der wirksamste Filter: Programmordner, Systemordner und Benutzerprofil-Innereien werden gar nicht erst ausgewählt.</li>
+              <li><b>Ausschluss über Masken</b> für den Rest, direkt im Kopierwerkzeug eingetragen.</li>
+              <li>Dateien über 120 MB kommen auf eine eigene Liste „<b>Übergrossen-Register</b>“ (Pfad, Grösse, Quelle) — sie fahren nicht mit, aber du weisst, dass es sie gibt und wo sie liegen.</li>
+            </ul>
+
+            <div class="scroller">
+              <table>
+                <caption>Ausschlussliste — in FreeFileSync unter „Filter → Ausschliessen“ eintragen</caption>
+                <thead><tr><th>Gruppe</th><th>Ordner</th><th>Endungen</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>System &amp; Programme</td>
+                    <td class="mono">\Windows\ · \Program Files*\ · \ProgramData\ · \AppData\ · \$Recycle.Bin\ · /System/ · /Library/ · /Applications/ · /usr/ · /var/</td>
+                    <td class="mono">*.dll *.exe *.sys *.msi *.pkg *.deb *.rpm *.app</td>
+                  </tr>
+                  <tr>
+                    <td>Entwicklung</td>
+                    <td class="mono">\node_modules\ · \.git\ · \venv\ · \__pycache__\ · \build\ · \dist\ · \target\</td>
+                    <td class="mono">*.pyc *.o *.class</td>
+                  </tr>
+                  <tr>
+                    <td>Temporär &amp; Cache</td>
+                    <td class="mono">\Temp\ · \Cache*\ · \.Trash\ · /Library/Caches/</td>
+                    <td class="mono">*.tmp *.temp ~$* *.bak Thumbs.db .DS_Store desktop.ini *.crdownload *.part</td>
+                  </tr>
+                  <tr>
+                    <td>Abbilder &amp; Maschinen</td>
+                    <td class="mono">\Virtual Machines\ · \VirtualBox VMs\</td>
+                    <td class="mono">*.vmdk *.vdi *.vhd *.vhdx *.iso *.dmg *.img *.qcow2 *.sparsebundle</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class="done"><b>Fertig, wenn</b> die Filtereinstellung in FreeFileSync als Konfiguration gespeichert ist und auf jedem Rechner geladen werden kann.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 3<em>2–8 Std. je Rechner</em></div>
+          <div class="phase-body">
+            <h3>Sammeln je Quelle</h3>
+            <p>Jetzt wird kopiert — aber noch nicht in die Cloud, sondern in einen Sammelordner pro Quelle. Dazwischen liegt die Dublettenprüfung, und die willst du auf schneller lokaler Platte machen, nicht über die Leitung.</p>
+            <ul>
+              <li>Sammelordner mit <b>kurzem Pfad</b> anlegen: <code>D:\S\PC1</code> statt <code>D:\Umzug\Sammlung\Rechner Büro\</code>. Windows bricht bei langen Pfaden mitten im Kopieren ab.</li>
+              <li>In <b>FreeFileSync</b>: links den Quellordner, rechts den Sammelordner, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherten Filter aus Phase 2 laden, Maximalgrösse 120 MB eintragen.</li>
+              <li>Erst „Vergleichen“, das Ergebnis ansehen, dann „Synchronisieren“. Die Vorschau ist deine letzte Kontrolle vor dem Schreiben.</li>
+              <li>Die Ordnerstruktur der Quelle bleibt im Sammelordner erhalten — sie ist die beste vorhandene Information darüber, was eine Datei ist.</li>
+              <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist. Weitere Google-Konten stattdessen: Ordner im Quellkonto für das Zielkonto freigeben, im Zielkonto <b>Kopie erstellen</b> — so bleiben Docs und Sheets nativ und der Umweg über die Festplatte entfällt.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> für jede Quelle ein Sammelordner existiert und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 4<em>1–4 Std.</em></div>
+          <div class="phase-body">
+            <h3>Dubletten finden — vor dem Upload</h3>
+            <p>Der wichtigste Schritt, und der Grund für die ganze Sammelplatte. Was hier aussortiert wird, muss nie hochgeladen, nie bezahlt, nie später wiedergefunden werden.</p>
+            <ul>
+              <li>In <b>dupeGuru</b> alle Sammelordner als Quellen hinzufügen. Modus <b>Standard</b>, Vergleich auf <b>Inhalt</b> — nicht auf Namen. Das liest jede Datei einmal und dauert entsprechend.</li>
+              <li>Windows-Alternative bei sehr grossen Beständen: <b>AllDup</b> mit Byte-Vergleich, deutlich schneller.</li>
+              <li><b>Welche Kopie gilt als Original?</b> In dieser Reihenfolge: die im aussagekräftigsten Ordner, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen. Bei Gleichstand: die aus der Quelle mit der niedrigsten Nummer.</li>
+              <li>Als Aktion <b>„Verschieben nach“</b> wählen, Ziel <code>D:\S\_QUARANTAENE\</code> — <b>niemals „Löschen“</b>. dupeGuru bietet beides an; ein Fehlklick ist endgültig.</li>
+              <li>Ergebnisliste vor dem Verschieben als CSV exportieren. Diese Datei wird später zur Spalte <code>dup_gruppe</code> im Index.</li>
+              <li>Fotos: der Modus <b>Bilder</b> findet auch ähnliche Aufnahmen — dieselbe Datei in anderer Auflösung, Screenshots von Screenshots. Diese Treffer nur markieren, nicht verschieben; sie brauchen dein Auge.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> die Quarantäne gefüllt, die CSV exportiert und ein zweiter dupeGuru-Lauf über die Sammelordner keine exakten Treffer mehr liefert.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 5<em>1–5 Tage</em></div>
+          <div class="phase-body">
+            <h3>Upload nach Google Drive</h3>
+            <p>Weitgehend Wartezeit — aber Wartezeit, die schiefgehen kann, wenn sie unbeaufsichtigt in einem Rutsch läuft.</p>
+            <ul>
+              <li>Google Drive für Desktop öffnen, den gestreamten Zielordner im Explorer oder Finder ansteuern.</li>
+              <li><b>Quelle für Quelle</b> hochladen, nicht alles zusammen: eine Quelle anstossen, Abschluss prüfen, Dateianzahl vergleichen, dann die nächste. So bleibt ein Abbruch lokalisierbar.</li>
+              <li>Die Quarantäne kommt mit — nach <code>90_Quarantaene_Duplikate</code>, in Unterordnern je Quelle. Bei 2 TB Speicher kostet das nichts, und die Entscheidung „wirklich weg“ bleibt dir.</li>
+              <li>Rechner nicht in den Ruhezustand schicken. Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
+              <li>Nach jedem Block: in Drive den Ordner öffnen, „Details“ prüfen, Anzahl gegen den lokalen Sammelordner halten.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> Drive für Desktop „Alles aktuell“ meldet <b>und</b> die Dateianzahl je Quellordner mit dem lokalen Sammelordner übereinstimmt.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 6<em>4–8 Std.</em></div>
+          <div class="phase-body">
+            <h3>Einsortieren in Kategorien</h3>
+            <p>Bis hierher liegt in Drive eine getreue Kopie der alten Unordnung. Jetzt entsteht die neue Ordnung — und zwar oberhalb der alten, nicht statt ihrer.</p>
+            <ul>
+              <li>Unterhalb jeder Quelle die acht Kategorien anlegen (siehe <a href="#struktur">Zielstruktur</a>).</li>
+              <li>Verschoben werden <b>Ordner, keine Einzeldateien</b>. Ein Ordner „Steuer 2019“ wandert als Ganzes nach <code>Dokumente/</code>. Das erledigt in wenigen Stunden, was auf Dateiebene Wochen dauert.</li>
+              <li>Was sich nicht in einem Griff zuordnen lässt, kommt nach <code>99_Zu_Pruefen/</code> und wird nicht länger als zehn Sekunden betrachtet. Dieser Ordner darf gross sein — er ist der Grund, warum der Rest schnell geht.</li>
+              <li>Nach zwei Quellen innehalten: passen die acht Kategorien noch? Jetzt ist der Moment, sie zu ändern — später nicht mehr.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> jede Quelle ihre Kategorieordner hat und in keiner Quelle mehr lose Ordner ohne Kategorie liegen.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 7<em>6–12 Std.</em></div>
+          <div class="phase-body">
+            <h3>Index anlegen und taggen</h3>
+            <p>Der Index ist das eigentliche Ergebnis des Projekts. Er beantwortet Fragen, die Drive nicht beantworten kann: Woher stammt das? Gibt es das doppelt? Wie lange muss ich es aufbewahren?</p>
+            <ul>
+              <li>In <code>00_Index</code> ein Google Sheet <b>Dateiindex_2026</b> anlegen, Spalten nach dem <a href="#index">Index-Schema</a>.</li>
+              <li>Die CSV-Exporte aus Phase 1 und die Dubletten-CSV aus Phase 4 importieren — damit sind neun der sechzehn Spalten ohne Handarbeit gefüllt.</li>
+              <li>Ein zweites Blatt <b>Ordnerregister</b>: eine Zeile pro Ordner der zweiten und dritten Ebene, mit Tags, Aufbewahrung und Notiz. <b>Hier findet das Taggen statt</b>, nicht auf Dateiebene.</li>
+              <li>Ein drittes Blatt <b>Quellen</b> mit der Kürzelliste aus Phase 0, ergänzt um Volumen und Dateianzahl.</li>
+              <li>Nur Tags aus dem festgelegten <a href="#tags">Vokabular</a> verwenden. In Sheets als Dropdown einrichten — Freitext macht den Index binnen Wochen wertlos.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> das Ordnerregister für alle Ordner der zweiten Ebene Tags und eine Aufbewahrungsfrist trägt.</p>
+          </div>
+        </article>
+
+        <article class="phase">
+          <div class="phase-marker">Phase 8<em>2 Std. + 90 Tage</em></div>
+          <div class="phase-body">
+            <h3>Abgleich, Karenz, Dauerbetrieb</h3>
+            <p>Ein Umzug ist erst zu Ende, wenn nachgewiesen ist, dass nichts fehlt — und wenn geregelt ist, was mit neuen Dateien passiert.</p>
+            <ul>
+              <li><b>Kontrollzählung</b> je Quelle: Dateianzahl und Volumen in Drive gegen die Inventur aus Phase 1 abzüglich Ausschlüssen, Übergrossen und Quarantäne. Abweichungen über ein Prozent nachgehen.</li>
+              <li>Stichprobe: aus jeder Quelle fünf Dateien in Drive öffnen. Es geht um Lesbarkeit, nicht um Existenz — hier fallen Platzhalter-Hüllen auf.</li>
+              <li><b>90 Tage Karenz.</b> Quellen bleiben unverändert liegen, Platten werden nicht formatiert. Erst danach entscheidest du über die Originale.</li>
+              <li>Nach der Karenz die Quarantäne sichten — quellenweise, nicht auf einmal.</li>
+              <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur. Einmal im Halbjahr ein dupeGuru-Lauf und ein Blick in <code>99_Zu_Pruefen/</code>. Ein Termin im Kalender, sonst passiert es nicht.</li>
+            </ul>
+            <p class="done"><b>Fertig, wenn</b> die Kontrollzählung stimmt, die Stichprobe lesbar ist und ein wiederkehrender Termin steht.</p>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ================= STRUKTUR ================= -->
+    <section id="struktur">
+      <div class="sec-head"><span class="sec-num">/</span><h2>Zielstruktur</h2></div>
+      <p class="lede">
+        Erste Ebene: Herkunft. Zweite Ebene: Kategorie. Darunter bleibt die gewachsene
+        Ordnerstruktur der Quelle unverändert erhalten. Die Zehnerschritte in den Nummern lassen
+        Platz für Quellen, die später dazukommen.
+      </p>
+
+      <pre class="tree"><b>Andreas_2026_Dateiverwaltung/</b>
+├── <b>00_Index/</b>
+│   ├── Dateiindex_2026            <i>Sheet · alle Dateien, automatisch befüllt</i>
+│   ├── Ordnerregister_2026        <i>Sheet · Tags und Aufbewahrung, gepflegt</i>
+│   ├── Quellen_2026               <i>Sheet · Kürzel, Gerät, Volumen</i>
+│   └── Uebergrossen_Register      <i>Sheet · was &gt;120 MB ist und wo es liegt</i>
+│
+├── <b>10_PC1_&lt;Bezeichnung&gt;/</b>
+│   ├── 01_Dokumente/              <i>Texte, PDF, Tabellen, Verträge, Belege</i>
+│   ├── 02_Bilder/                 <i>Fotos, Scans, Grafiken</i>
+│   ├── 03_Video/
+│   ├── 04_Audio/
+│   ├── 05_Projekte/               <i>zusammengehörige Arbeitsstände</i>
+│   ├── 06_Code/
+│   ├── 07_Archive/                <i>ZIP, Mail-Archive, Backups von Programmen</i>
+│   └── 08_Sonstiges/
+│
+├── <b>20_PC2_&lt;Bezeichnung&gt;/</b>       <i>gleiche acht Kategorien</i>
+├── <b>30_PC3_&lt;Bezeichnung&gt;/</b>
+├── <b>40_PC4_&lt;Bezeichnung&gt;/</b>
+├── <b>50_EXT_Externe_Laufwerke/</b>
+│   ├── EXT1_&lt;Bezeichnung&gt;/
+│   └── EXT2_&lt;Bezeichnung&gt;/
+├── <b>60_CLOUD_Fremdclouds/</b>
+│   ├── DBX_Dropbox/
+│   ├── ODR_OneDrive/
+│   └── ICL_iCloud/
+├── <b>70_GD_Weitere_Google_Konten/</b>
+│   └── GD2_&lt;Konto&gt;/
+│
+├── <b>90_Quarantaene_Duplikate/</b>     <i>je Quelle · wird nach der Karenz gesichtet</i>
+└── <b>99_Zu_Pruefen/</b>                <i>Auffangbecken aus Phase 6</i></pre>
+
+      <div class="note">
+        <span class="note-label">Warum Quelle vor Kategorie</span>
+        <p>
+          Weil du bei einem gewachsenen Bestand die Herkunft brauchst, um eine Datei einzuordnen.
+          „Lag auf dem Büro-Rechner“ sagt oft mehr über den Inhalt als jeder Dateiname. Kategorie zuerst
+          würde diese Information zerstören — und wiederherstellen liesse sie sich nur über den Index.
+          Sobald der Index steht und gepflegt ist, kannst du in einer späteren Ausbaustufe
+          quer über alle Quellen kategorisieren.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= INDEX ================= -->
+    <section id="index">
+      <div class="sec-head"><span class="sec-num">#</span><h2>Index-Schema</h2></div>
+      <p class="lede">
+        Blatt <b>Dateiindex_2026</b>, eine Zeile je Datei. Neun Spalten füllen sich aus den
+        Werkzeug-Exporten, sieben entstehen im Betrieb. Handarbeit auf Dateiebene ist nur bei
+        wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <caption>Spalten in der empfohlenen Reihenfolge</caption>
+          <thead>
+            <tr><th>Spalte</th><th>Beispiel</th><th>Herkunft</th><th>Wofür</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">datei_id</td><td class="mono">000147</td><td><span class="pill auto">automatisch</span></td><td>Zeilennummer, stabiler Bezug aus anderen Blättern</td></tr>
+            <tr><td class="mono">quelle_id</td><td class="mono">PC1</td><td><span class="pill auto">automatisch</span></td><td>Kürzel aus Phase 0</td></tr>
+            <tr><td class="mono">original_pfad</td><td class="mono">C:\Users\a\Docs\Steuer2019\</td><td><span class="pill auto">automatisch</span></td><td>Wo es herkam — die wertvollste Spalte überhaupt</td></tr>
+            <tr><td class="mono">dateiname</td><td class="mono">Bescheid_2019.pdf</td><td><span class="pill auto">automatisch</span></td><td>ohne Pfad, für die Suche</td></tr>
+            <tr><td class="mono">endung</td><td class="mono">pdf</td><td><span class="pill auto">automatisch</span></td><td>Grundlage der Kategorie</td></tr>
+            <tr><td class="mono">groesse_mb</td><td class="num">2,41</td><td><span class="pill auto">automatisch</span></td><td>Kontrolle der 120-MB-Grenze</td></tr>
+            <tr><td class="mono">geaendert_am</td><td class="mono">2019-08-14</td><td><span class="pill auto">automatisch</span></td><td>Zeitliche Einordnung, Original-Entscheidung</td></tr>
+            <tr><td class="mono">pruefsumme</td><td class="mono">9f2a…c71b</td><td><span class="pill auto">automatisch</span></td><td>der einzige belastbare Gleichheitsbeweis</td></tr>
+            <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der dupeGuru-CSV; leer heisst: einmalig</td></tr>
+            <tr><td class="mono">dup_rolle</td><td class="mono">original | duplikat</td><td><span class="pill auto">automatisch</span></td><td>welche Kopie bleibt, welche in Quarantäne ging</td></tr>
+            <tr><td class="mono">kategorie</td><td class="mono">01_Dokumente</td><td><span class="pill auto">automatisch</span></td><td>aus der Endung abgeleitet, per Hand korrigierbar</td></tr>
+            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt</td></tr>
+            <tr><td class="mono">tags</td><td class="mono">thema:steuer jahr:2019</td><td><span class="pill hand">Handarbeit</span></td><td>aus dem Vokabular, meist vom Ordner geerbt</td></tr>
+            <tr><td class="mono">aufbewahrung</td><td class="mono">10jahre</td><td><span class="pill hand">Handarbeit</span></td><td>steuert die spätere Bereinigung</td></tr>
+            <tr><td class="mono">status</td><td class="mono">geprueft</td><td><span class="pill hand">Handarbeit</span></td><td>Arbeitsstand dieser Zeile</td></tr>
+            <tr><td class="mono">notiz</td><td class="mono">Original beim Steuerberater</td><td><span class="pill hand">Handarbeit</span></td><td>alles, was sonst verloren geht</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Blatt <span class="mono">Ordnerregister_2026</span></h3>
+      <p>
+        Das Arbeitsblatt, in dem du wirklich sitzt. Eine Zeile pro Ordner der zweiten und dritten Ebene —
+        bei vier Rechnern realistisch zwei- bis vierhundert Zeilen statt hunderttausender.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Spalte</th><th>Beispiel</th><th>Wofür</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">ordner_id</td><td class="mono">O-018</td><td>Bezug aus dem Dateiindex</td></tr>
+            <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td>eindeutiger Ort in Drive</td></tr>
+            <tr><td class="mono">anzahl_dateien</td><td class="num">312</td><td>Gewicht des Ordners</td></tr>
+            <tr><td class="mono">tags</td><td class="mono">thema:steuer typ:dokument jahr:2019</td><td>vererbt auf alle Dateien darin</td></tr>
+            <tr><td class="mono">aufbewahrung</td><td class="mono">10jahre</td><td>gilt für den gesamten Ordner</td></tr>
+            <tr><td class="mono">wichtigkeit</td><td class="mono">hoch | mittel | niedrig</td><td>bestimmt, was du je einzeln anfasst</td></tr>
+            <tr><td class="mono">geprueft_am</td><td class="mono">2026-09-03</td><td>Fortschritt sichtbar machen</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= TAGS ================= -->
+    <section id="tags">
+      <div class="sec-head"><span class="sec-num">@</span><h2>Tag-Vokabular</h2></div>
+      <p class="lede">
+        Tags werden als <code>facette:wert</code> geschrieben, mehrere durch Leerzeichen getrennt.
+        Nur Kleinbuchstaben, keine Umlaute, keine Leerzeichen im Wert. Die Facette macht die Suche
+        eindeutig: <code>thema:steuer</code> findet nichts von <code>status:</code>.
+        <b>Ausschliesslich diese Werte verwenden</b> — als Dropdown in Sheets hinterlegt.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Facette</th><th>Erlaubte Werte</th><th>Regel</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="mono">typ:</td>
+              <td class="mono">dokument · foto · video · audio · code · archiv · mail · sonstiges</td>
+              <td>genau einer, aus der Endung abgeleitet</td>
+            </tr>
+            <tr>
+              <td class="mono">thema:</td>
+              <td class="mono">finanzen · steuer · versicherung · immobilie · gesundheit · familie · reisen · arbeit · technik · behoerden · hobby</td>
+              <td>höchstens zwei — mehr heisst, der Ordner ist noch zu grob</td>
+            </tr>
+            <tr>
+              <td class="mono">jahr:</td>
+              <td class="mono">1995 … 2026 · unbekannt</td>
+              <td>Jahr des Inhalts, nicht der Kopie</td>
+            </tr>
+            <tr>
+              <td class="mono">quelle:</td>
+              <td class="mono">pc1 · pc2 · pc3 · pc4 · ext1 … · dbx · odr · icl · gd2</td>
+              <td>automatisch aus dem Pfad</td>
+            </tr>
+            <tr>
+              <td class="mono">status:</td>
+              <td class="mono">neu · geprueft · duplikat · unklar · entbehrlich</td>
+              <td>genau einer, dein Arbeitsstand</td>
+            </tr>
+            <tr>
+              <td class="mono">aufbewahrung:</td>
+              <td class="mono">dauerhaft · 10jahre · 3jahre · temporaer</td>
+              <td>genau einer — <code>dauerhaft</code> nur für Unersetzliches</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note warn">
+        <span class="note-label">Die häufigste Art, einen Index zu ruinieren</span>
+        <p>
+          Freitext-Tags. Nach drei Monaten stehen <code>steuer</code>, <code>Steuern</code>,
+          <code>finanzamt</code> und <code>steuer-2019</code> nebeneinander im Blatt, und keine Suche findet
+          mehr alles. Wenn ein Wert fehlt, füge ihn <b>oben in der Vokabelliste</b> hinzu — dann steht er
+          allen Zeilen zur Verfügung — statt ihn einmalig in eine Zeile zu tippen.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= WERKZEUGE ================= -->
+    <section id="werkzeuge">
+      <div class="sec-head"><span class="sec-num">⌾</span><h2>Werkzeugkasten</h2></div>
+      <p class="lede">
+        Alles mit grafischer Oberfläche, alles kostenlos. Vor Phase 1 auf allen vier Rechnern installieren —
+        Werkzeugsuche mittendrin kostet mehr Zeit als der Umzug selbst.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Werkzeug</th><th>Läuft auf</th><th>Wofür</th><th>Phase</th></tr></thead>
+          <tbody>
+            <tr><td><b>Google Drive für Desktop</b></td><td>Windows, macOS</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer</td><td class="mono">0, 5</td></tr>
+            <tr><td><b>FreeFileSync</b></td><td>alle drei</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter speicherbar</td><td class="mono">2, 3</td></tr>
+            <tr><td><b>WizTree</b></td><td>Windows</td><td>Inventur in Sekunden, CSV-Export der Dateiliste</td><td class="mono">1</td></tr>
+            <tr><td><b>TreeSize Free</b></td><td>Windows</td><td>Alternative zu WizTree, etwas langsamer</td><td class="mono">1</td></tr>
+            <tr><td><b>GrandPerspective</b></td><td>macOS</td><td>Inventur, was belegt wie viel Platz</td><td class="mono">1</td></tr>
+            <tr><td><b>Filelight</b> / <b>Baobab</b></td><td>Linux</td><td>Inventur</td><td class="mono">1</td></tr>
+            <tr><td><b>dupeGuru</b></td><td>alle drei</td><td>Dubletten nach Inhalt, Bildmodus für ähnliche Fotos, Aktion „Verschieben“</td><td class="mono">4</td></tr>
+            <tr><td><b>AllDup</b></td><td>Windows</td><td>schnellere Alternative bei sehr grossen Beständen</td><td class="mono">4</td></tr>
+            <tr><td><b>Everything</b></td><td>Windows</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
+            <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">7</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= RISIKEN ================= -->
+    <section id="risiken">
+      <div class="sec-head"><span class="sec-num">△</span><h2>Fallstricke</h2></div>
+      <p class="lede">
+        Neun Dinge, die bei Umzügen dieser Grössenordnung regelmässig schiefgehen. Jeweils mit dem Gegenmittel,
+        das <em>vor</em> dem Problem greift.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Fallstrick</th><th>Was passiert</th><th>Gegenmittel</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pill risk">kritisch</span> <b>Platzhalter statt Dateien</b></td><td>„Nur online“-Dateien aus OneDrive, Dropbox oder iCloud werden als Hüllen von wenigen Bytes kopiert. Der Ordner sieht vollständig aus, ist aber leer.</td><td>Vor dem Kopieren „Immer auf diesem Gerät behalten“ setzen, Sync abwarten. Stichprobe: Dateigrösse im Sammelordner prüfen.</td></tr>
+            <tr><td><span class="pill risk">kritisch</span> <b>Löschen statt verschieben</b></td><td>Ein Fehlklick in dupeGuru entfernt tausende Dateien endgültig.</td><td>Immer „Verschieben nach“ wählen. Die Aktion vor dem ersten grossen Lauf an fünf Testdateien üben.</td></tr>
+            <tr><td><b>Zu lange Pfade</b></td><td>Windows bricht ab 260 Zeichen mitten im Kopieren ab, oft ohne klare Meldung.</td><td>Sammelpfad kurz halten: <code>D:\S\PC1</code>. Fehlerprotokoll von FreeFileSync nach jedem Lauf ansehen.</td></tr>
+            <tr><td><b>Fotos- und Mail-Bibliotheken</b></td><td>Apple Fotos, Apple Mail und Outlook speichern in Paketen und Containern. Einzeln kopiert sind sie unbrauchbar.</td><td>Aus dem Programm heraus exportieren: Fotos als Originale, Mail als PST oder MBOX. Erst dann in den Sammelordner.</td></tr>
+            <tr><td><b>Gleicher Name, anderer Inhalt</b></td><td><code>Rechnung.pdf</code> gibt es dreimal, mit drei verschiedenen Inhalten. Ein Namensvergleich verwirft zwei davon.</td><td>Ausschliesslich Inhaltsvergleich. Die Quellordnerstruktur bleibt erhalten, damit Namensgleiche nicht kollidieren.</td></tr>
+            <tr><td><b>Gleicher Inhalt, anderer Name</b></td><td>Dieselbe Datei liegt als <code>IMG_2231.jpg</code> und <code>Urlaub_Kreta.jpg</code> vor und bleibt doppelt.</td><td>Ebenfalls Inhaltsvergleich — dupeGuru findet beide, unabhängig vom Namen.</td></tr>
+            <tr><td><b>Zeitstempel gehen verloren</b></td><td>Manche Kopierwege setzen das Änderungsdatum auf heute. Damit ist die zeitliche Einordnung des gesamten Bestands hin.</td><td>FreeFileSync erhält Zeitstempel. Nach dem ersten Lauf an drei Dateien im Sammelordner kontrollieren.</td></tr>
+            <tr><td><b>Verschlüsselte Archive</b></td><td>Passwortgeschützte ZIP- und Container-Dateien wandern mit, lassen sich aber später nicht mehr öffnen.</td><td>Beim Sichten mit <code>status:unklar</code> markieren, Passwörter jetzt suchen, solange die alten Rechner noch laufen.</td></tr>
+            <tr><td><b>Umlaute und Sonderzeichen</b></td><td>Dateinamen aus alten Windows-Beständen kommen auf macOS oder in Drive verstümmelt an.</td><td>Fehlerprotokoll prüfen. Betroffene Ordner in <code>99_Zu_Pruefen/</code> und einzeln nacharbeiten.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= ZEIT ================= -->
+    <section id="zeit">
+      <div class="sec-head"><span class="sec-num">⏱</span><h2>Zeit und Menge</h2></div>
+
+      <h3>Wie lange der Upload dauert</h3>
+      <p>
+        Massgeblich ist die <b>Upload</b>-Geschwindigkeit deines Anschlusses, nicht die Download-Rate,
+        mit der Tarife beworben werden — bei DSL liegt sie oft zehnmal niedriger. Die Werte gelten
+        je 100 GB und enthalten einen Aufschlag von 30 Prozent für den Mehraufwand bei vielen kleinen Dateien.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <caption>Richtwerte je 100 GB, inklusive Aufschlag</caption>
+          <thead><tr><th>Upload</th><th class="num">100 GB</th><th class="num">300 GB</th><th class="num">600 GB</th><th>Vorgehen</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">10 Mbit/s</td><td class="num">≈ 30 Std.</td><td class="num">≈ 4 Tage</td><td class="num">≈ 7 Tage</td><td>nachts laufen lassen, quellenweise</td></tr>
+            <tr><td class="mono">25 Mbit/s</td><td class="num">≈ 12 Std.</td><td class="num">≈ 36 Std.</td><td class="num">≈ 3 Tage</td><td>eine Quelle pro Nacht</td></tr>
+            <tr><td class="mono">50 Mbit/s</td><td class="num">≈ 6 Std.</td><td class="num">≈ 18 Std.</td><td class="num">≈ 36 Std.</td><td>ein Wochenende reicht</td></tr>
+            <tr><td class="mono">100 Mbit/s</td><td class="num">≈ 3 Std.</td><td class="num">≈ 9 Std.</td><td class="num">≈ 18 Std.</td><td>an einem Tag machbar</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Wo deine Zeit tatsächlich hingeht</h3>
+      <p>
+        Die reine Anwesenheitszeit — Warten auf Kopiervorgänge und Uploads ist nicht mitgezählt.
+        Über vier bis sechs Wochen nebenher gut zu schaffen.
+      </p>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Phase</th><th class="num">Aufwand</th><th>Anteil Wartezeit</th></tr></thead>
+          <tbody>
+            <tr><td>0 · Fundament</td><td class="num">2–3 Std.</td><td>keine</td></tr>
+            <tr><td>1 · Inventur</td><td class="num">4–6 Std.</td><td>gering</td></tr>
+            <tr><td>2 · Filterregel</td><td class="num">2 Std.</td><td>keine</td></tr>
+            <tr><td>3 · Sammeln</td><td class="num">3–5 Std.</td><td>hoch — Kopieren läuft allein</td></tr>
+            <tr><td>4 · Dubletten</td><td class="num">2–4 Std.</td><td>hoch — Prüfsummen brauchen Zeit</td></tr>
+            <tr><td>5 · Upload</td><td class="num">2–3 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
+            <tr><td>6 · Einsortieren</td><td class="num">4–8 Std.</td><td>keine</td></tr>
+            <tr><td>7 · Index und Tags</td><td class="num">6–12 Std.</td><td>keine</td></tr>
+            <tr><td>8 · Abgleich</td><td class="num">2 Std.</td><td>keine</td></tr>
+            <tr><td><b>Zusammen</b></td><td class="num"><b>27–44 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= FRAGEN ================= -->
+    <section id="fragen">
+      <div class="sec-head"><span class="sec-num">?</span><h2>Was ich noch von dir brauche</h2></div>
+      <p class="lede">
+        Der Plan steht und ist so ausführbar. Diese sieben Antworten machen ihn präzise —
+        die ersten drei entscheiden über die Weiche zwischen Variante A und B.
+      </p>
+
+      <ol class="questions">
+        <li><div><b>Stehen die vier Rechner am selben Ort?</b><span>Entscheidet Variante A gegen B — und damit, ob quellenübergreifende Dubletten überhaupt sauber gefunden werden.</span></div></li>
+        <li><div><b>Gibt es eine externe Platte mit genug freiem Platz?</b><span>Variante A braucht mindestens das Gesamtvolumen aller Quellen. Die Zahl kennst du nach Phase 1.</span></div></li>
+        <li><div><b>Wie schnell ist dein Upload?</b><span>Auf <code>speedtest.net</code> messen, den <em>Upload</em>-Wert notieren. Bestimmt, ob Phase 5 ein Wochenende oder eine Woche dauert.</span></div></li>
+        <li><div><b>Welche Betriebssysteme laufen auf den vier Rechnern?</b><span>Damit ich Ausschlussliste und Werkzeugauswahl je Gerät konkret statt allgemein machen kann.</span></div></li>
+        <li><div><b>Ist das Zielkonto ein privates Google-Konto oder Workspace?</b><span>Nur Workspace hat Drive-Labels. Dann liessen sich Tags direkt an den Dateien führen statt in der Tabelle.</span></div></li>
+        <li><div><b>Sollen Fotos separat nach Google Fotos?</b><span>Dort gibt es Gesichts- und Ortssuche, aber getrennten Speicher und eigene Regeln. Beides zugleich ergibt doppelte Buchhaltung.</span></div></li>
+        <li><div><b>Was ist der eine Bestand, dessen Verlust am meisten wehtäte?</b><span>Der kommt zuerst dran und bekommt eine zweite, unabhängige Kopie — bevor irgendetwas anderes beginnt.</span></div></li>
+      </ol>
+    </section>
+
+    <footer>
+      <span>Dateiumzug 2026 · Vorgehensplan</span>
+      <span>Andreas_2026_Dateiverwaltung</span>
+    </footer>
+
+  </main>
+</div>
