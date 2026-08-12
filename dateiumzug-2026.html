@@ -560,6 +560,7 @@
       <div class="fact"><dt>Grösse pro Datei</dt><dd>höchstens 120 MB</dd></div>
       <div class="fact"><dt>Speicher im Ziel</dt><dd>2 TB oder mehr</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
+      <div class="fact"><dt>Weg</dt><dd>Variante A · eine Sammelplatte</dd></div>
       <div class="fact"><dt>Duplikate</dt><dd>markieren, nie löschen</dd></div>
       <div class="fact"><dt>Werkzeuge</dt><dd>Programme mit Oberfläche</dd></div>
     </dl>
@@ -570,7 +571,7 @@
     <ol>
       <li><a href="#regeln"><span>§</span>Grundregeln</a></li>
       <li><a href="#realitaet"><span>!</span>Realitätscheck</a></li>
-      <li><a href="#variante"><span>A/B</span>Zwei Wege</a></li>
+      <li><a href="#variante"><span>A</span>Der Weg</a></li>
       <li><a href="#phasen"><span>0–8</span>Die Phasen</a></li>
       <li><a href="#struktur"><span>/</span>Zielstruktur</a></li>
       <li><a href="#index"><span>#</span>Index-Schema</a></li>
@@ -662,47 +663,80 @@
       </div>
     </section>
 
-    <!-- ================= VARIANTEN ================= -->
+    <!-- ================= VARIANTE A ================= -->
     <section id="variante">
-      <div class="sec-head"><span class="sec-num">A/B</span><h2>Erst eine Weiche stellen</h2></div>
+      <div class="sec-head"><span class="sec-num">A</span><h2>Der Weg steht fest: eine Sammelplatte</h2></div>
       <p class="lede">
-        Die Dublettensuche funktioniert nur dort gut, wo alle Dateien gleichzeitig greifbar sind.
-        Ob das lokal möglich ist, hängt daran, ob deine vier Rechner am selben Ort stehen.
+        Alle vier Rechner stehen bei dir zuhause — damit ist Variante A gesetzt. Alles landet zuerst
+        auf <b>einer</b> externen Platte, wird dort in einem einzigen Durchgang entdoppelt, und geht
+        von <b>einem</b> Rechner aus nach oben. Das ist nicht nur bequemer, es ist der einzige Weg,
+        auf dem quellenübergreifende Dubletten sauber gefunden werden — und die sind bei vier
+        Rechnern der grösste Brocken: dieselben Fotos und Dokumente liegen typischerweise auf dreien davon.
+      </p>
+
+      <h3>Zwei Wege, wie die Daten auf die Platte kommen</h3>
+      <p>
+        Die Entscheidung darüber ist neu, weil sie erst durch „alles zuhause“ entsteht.
+        Beide führen zum selben Ergebnis, sie unterscheiden sich in Tempo und Handgriffen.
       </p>
 
       <div class="variants">
         <div class="variant pick">
-          <span class="variant-tag">Variante A · empfohlen</span>
-          <h3>Eine Sammelplatte für alles</h3>
-          <p>Eine externe Platte wandert zu jedem Rechner und nimmt dessen Auswahl auf. Danach liegt alles einmal an einem Ort.</p>
+          <span class="variant-tag">A1 · über das Netzwerk — meist besser</span>
+          <h3>Platte bleibt am Sammelrechner</h3>
+          <p>Ein Rechner wird zum Sammelrechner, die Platte hängt dauerhaft dort. Die anderen drei geben ihre Ordner im Heimnetz frei, FreeFileSync liest sie direkt von dort.</p>
           <ul>
-            <li>Eine einzige Dublettensuche über den gesamten Bestand — auch quellenübergreifend.</li>
-            <li>Nur eine Upload-Strecke, von einem Rechner aus, kontrollierbar.</li>
-            <li>Die Platte bleibt danach als Zweitkopie liegen.</li>
-            <li>Braucht: freie Kapazität mindestens in Höhe des Gesamtvolumens.</li>
+            <li>Keine Frage nach dem Dateisystem der Platte — sie wird nur an einem Rechner benutzt.</li>
+            <li>Kein Umstecken, keine unterbrochenen Läufe, du kannst nebenher weiterarbeiten.</li>
+            <li>Braucht: <b>Gigabit-LAN per Kabel</b>. Über WLAN wird das zur Geduldsprobe.</li>
+            <li>Richtwert Kabel: rund 200 GB pro Stunde. Über WLAN oft nur ein Fünftel davon.</li>
           </ul>
         </div>
         <div class="variant">
-          <span class="variant-tag">Variante B · verteilt</span>
-          <h3>Jeder Rechner lädt selbst hoch</h3>
-          <p>Sinnvoll, wenn die Rechner an verschiedenen Orten stehen und keine Platte herumreisen kann.</p>
+          <span class="variant-tag">A2 · die Platte wandert</span>
+          <h3>Platte geht zu jedem Rechner</h3>
+          <p>Die Platte wird nacheinander an jeden der vier Rechner gesteckt und nimmt dessen Auswahl direkt per USB auf.</p>
           <ul>
-            <li>Dubletten <i>innerhalb</i> einer Quelle findest du sofort, lokal.</li>
-            <li>Dubletten <i>zwischen</i> Quellen erst später, und nur mit heruntergeladenen Ordnern.</li>
-            <li>Vier parallele Uploads, mehr Buchhaltung, mehr Fehlerquellen.</li>
-            <li>Reihenfolge zählt: den grössten Rechner zuerst hochladen.</li>
+            <li>Schneller pro Rechner — USB schlägt jedes Heimnetz.</li>
+            <li>Richtig, wenn nur WLAN vorhanden ist oder ein Rechner grosse Datenmengen hat.</li>
+            <li><b>Aber:</b> die Platte muss von allen vier Systemen beschreibbar sein (siehe unten).</li>
+            <li>Vier Termine statt einem Lauf, jeder mit Anstecken, Warten, sicherem Auswerfen.</li>
           </ul>
         </div>
       </div>
 
-      <div class="note">
-        <span class="note-label">Empfehlung</span>
+      <div class="note warn">
+        <span class="note-label">Nur bei A2 · Dateisystem der Platte</span>
         <p>
-          Nimm Variante A, sobald du die Rechner physisch erreichen kannst. Der Unterschied ist nicht
-          Bequemlichkeit, sondern Qualität: quellenübergreifende Dubletten sind bei einem so gewachsenen
-          Bestand der grösste Brocken — dieselben Fotos und Dokumente liegen typischerweise auf drei von vier Rechnern.
+          Eine Platte, die zwischen Windows, macOS und Linux wandert, muss überall <em>beschreibbar</em> sein —
+          und genau daran scheitert es meistens. <b>NTFS</b> beschreibt macOS ohne Zusatztreiber nicht.
+          <b>APFS</b> und <b>HFS+</b> liest Windows gar nicht. Übrig bleibt <b>exFAT</b>: überall beschreibbar,
+          aber ohne Journal — ein abgezogenes Kabel oder ein Absturz mitten im Schreiben kann das
+          Inhaltsverzeichnis beschädigen, und bei Hunderttausenden Dateien ist das kein Randfall.
+        </p>
+        <p>
+          Wenn A2 unvermeidbar ist: exFAT nehmen, die Platte <b>immer</b> sicher auswerfen, nach jedem
+          Rechner einen Dateisystem-Check laufen lassen, und die Platte nie als einzige Kopie betrachten —
+          bis Phase 8 liegen die Originale ja noch auf den Rechnern. <b>Sind drei der vier Rechner
+          Windows und nur einer nicht, ist A1 für diesen einen die deutlich ruhigere Lösung</b>: den Rest per USB,
+          den Ausreisser über das Netz.
         </p>
       </div>
+
+      <h3>Die Reihenfolge</h3>
+      <p>
+        Nicht beliebig — sie legt fest, welche Kopie einer doppelten Datei später als Original gilt.
+        In dupeGuru steuerst du das in Phase 4 sauber über den Ordnerzustand <b>Referenz</b>:
+        Dateien in einem Referenzordner werden nie als Duplikat markiert. Die Reihenfolge hier
+        bestimmt, welcher Ordner diesen Zustand bekommt.
+      </p>
+      <ol>
+        <li><b>Der Rechner mit dem wichtigsten Bestand zuerst.</b> Der aktuell genutzte, meist gepflegteste — seine Ordnernamen prägen später die ganze Ablage.</li>
+        <li><b>Dann die übrigen Rechner</b>, absteigend nach Datenmenge.</li>
+        <li><b>Dann die externen Laufwerke.</b> Sie enthalten oft alte Vollsicherungen, deren Inhalte danach fast vollständig als Dubletten wegfallen — das ist der grosse Schnitt.</li>
+        <li><b>Zuletzt die Clouds.</b> Dropbox, OneDrive und iCloud sind meist Teilmengen des schon Vorhandenen.</li>
+        <li><b>Weitere Google-Konten laufen daran vorbei</b> — die gehen per Freigabe direkt nach Drive, ohne Umweg über die Platte.</li>
+      </ol>
     </section>
 
     <!-- ================= PHASEN ================= -->
@@ -724,10 +758,12 @@
               <li>Zielkonto festlegen. Es gibt nur <b>ein</b> Zielkonto — alle anderen Google-Konten sind Quellen.</li>
               <li><code>Andreas_2026_Dateiverwaltung</code> in „Meine Ablage“ anlegen, dazu das Ordnergerüst aus Abschnitt <a href="#struktur">Zielstruktur</a>.</li>
               <li><b>Quellenliste</b> anlegen: jede Quelle bekommt ein kurzes Kürzel, das nie wieder geändert wird — <code>PC1</code> bis <code>PC4</code>, <code>EXT1</code> ff., <code>DBX</code>, <code>ODR</code>, <code>ICL</code>, <code>GD2</code>. Dazu Notiz: welches Gerät, welche Laufwerke, wer nutzt es.</li>
-              <li>Werkzeuge auf allen Rechnern installieren (siehe <a href="#werkzeuge">Werkzeuge</a>).</li>
-              <li>Google Drive für Desktop einrichten, Zielordner als gestreamten Ordner einbinden.</li>
+              <li><b>Sammelrechner bestimmen.</b> Der mit dem meisten Platz, der stabilsten Netzanbindung und dem geringsten Bedarf, zwischendurch neu zu starten. Von ihm aus laufen später Dublettensuche und Upload — er ist für ein bis zwei Wochen die Zentrale.</li>
+              <li><b>Sammelplatte anschliessen und prüfen:</b> freier Platz mindestens in Höhe des Gesamtvolumens aus Phase 1, plus 20 Prozent Reserve für die Quarantäne.</li>
+              <li>Werkzeuge auf allen Rechnern installieren (siehe <a href="#werkzeuge">Werkzeuge</a>). Bei Weg A1 reicht FreeFileSync auf dem Sammelrechner — die anderen drei brauchen nur die Ordnerfreigabe und ihr Inventur-Werkzeug.</li>
+              <li>Google Drive für Desktop <b>nur auf dem Sammelrechner</b> einrichten, Zielordner als gestreamten Ordner einbinden.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> das Ordnergerüst steht und die Quellenliste jede Platte und jeden Cloud-Account genau einmal nennt.</p>
+            <p class="done"><b>Fertig, wenn</b> das Ordnergerüst steht, die Quellenliste jede Platte und jeden Cloud-Account genau einmal nennt, und der Sammelrechner die Ordner der anderen drei erreichen kann.</p>
           </div>
         </article>
 
@@ -794,16 +830,17 @@
         <article class="phase">
           <div class="phase-marker">Phase 3<em>2–8 Std. je Rechner</em></div>
           <div class="phase-body">
-            <h3>Sammeln je Quelle</h3>
-            <p>Jetzt wird kopiert — aber noch nicht in die Cloud, sondern in einen Sammelordner pro Quelle. Dazwischen liegt die Dublettenprüfung, und die willst du auf schneller lokaler Platte machen, nicht über die Leitung.</p>
+            <h3>Sammeln auf der Platte</h3>
+            <p>Jetzt wird kopiert — aber noch nicht in die Cloud, sondern auf die Sammelplatte, ein Ordner je Quelle. Dazwischen liegt die Dublettenprüfung, und die willst du auf schneller lokaler Platte machen, nicht über die Leitung.</p>
             <ul>
-              <li>Sammelordner mit <b>kurzem Pfad</b> anlegen: <code>D:\S\PC1</code> statt <code>D:\Umzug\Sammlung\Rechner Büro\</code>. Windows bricht bei langen Pfaden mitten im Kopieren ab.</li>
-              <li>In <b>FreeFileSync</b>: links den Quellordner, rechts den Sammelordner, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherten Filter aus Phase 2 laden, Maximalgrösse 120 MB eintragen.</li>
+              <li>Auf der Sammelplatte je Quelle einen Ordner mit <b>kurzem Pfad</b> anlegen: <code>D:\S\PC1</code> statt <code>D:\Umzug\Sammlung\Rechner Büro\</code>. Windows bricht bei langen Pfaden mitten im Kopieren ab.</li>
+              <li>In <b>FreeFileSync</b>: links den Quellordner — bei Weg A1 die Netzwerkfreigabe des jeweiligen Rechners, bei A2 der lokale Pfad —, rechts der Ordner auf der Sammelplatte, Variante <b>Aktualisieren</b> (nur kopieren, nichts löschen), gespeicherten Filter aus Phase 2 laden, Maximalgrösse 120 MB eintragen.</li>
+              <li>Reihenfolge einhalten: wichtigster Rechner zuerst, externe Laufwerke nach den Rechnern, Clouds zuletzt.</li>
               <li>Erst „Vergleichen“, das Ergebnis ansehen, dann „Synchronisieren“. Die Vorschau ist deine letzte Kontrolle vor dem Schreiben.</li>
               <li>Die Ordnerstruktur der Quelle bleibt im Sammelordner erhalten — sie ist die beste vorhandene Information darüber, was eine Datei ist.</li>
               <li>Cloud-Quellen laufen genauso, sobald ihr Sync-Ordner vollständig heruntergeladen ist. Weitere Google-Konten stattdessen: Ordner im Quellkonto für das Zielkonto freigeben, im Zielkonto <b>Kopie erstellen</b> — so bleiben Docs und Sheets nativ und der Umweg über die Festplatte entfällt.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> für jede Quelle ein Sammelordner existiert und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
+            <p class="done"><b>Fertig, wenn</b> die Sammelplatte für jede Quelle einen Ordner trägt und FreeFileSync beim zweiten Durchlauf null zu kopierende Dateien meldet.</p>
           </div>
         </article>
 
@@ -813,9 +850,10 @@
             <h3>Dubletten finden — vor dem Upload</h3>
             <p>Der wichtigste Schritt, und der Grund für die ganze Sammelplatte. Was hier aussortiert wird, muss nie hochgeladen, nie bezahlt, nie später wiedergefunden werden.</p>
             <ul>
-              <li>In <b>dupeGuru</b> alle Sammelordner als Quellen hinzufügen. Modus <b>Standard</b>, Vergleich auf <b>Inhalt</b> — nicht auf Namen. Das liest jede Datei einmal und dauert entsprechend.</li>
+              <li>In <b>dupeGuru</b> alle Quellordner der Sammelplatte auf einmal hinzufügen. Modus <b>Standard</b>, Vergleich auf <b>Inhalt</b> — nicht auf Namen. Das liest jede Datei einmal und dauert entsprechend. Ein Lauf über den <em>gesamten</em> Bestand ist der ganze Sinn von Variante A.</li>
+              <li><b>Ordner des wichtigsten Rechners auf <i>Referenz</i> setzen</b> (Rechtsklick in der Ordnerliste). Damit ist entschieden, dass dessen Dateien nie in die Quarantäne wandern — dort stehen die gepflegtesten Ordnernamen.</li>
               <li>Windows-Alternative bei sehr grossen Beständen: <b>AllDup</b> mit Byte-Vergleich, deutlich schneller.</li>
-              <li><b>Welche Kopie gilt als Original?</b> In dieser Reihenfolge: die im aussagekräftigsten Ordner, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen. Bei Gleichstand: die aus der Quelle mit der niedrigsten Nummer.</li>
+              <li><b>Welche Kopie gilt sonst als Original?</b> In dieser Reihenfolge: die im aussagekräftigsten Ordner, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen. Bei Gleichstand: die aus der Quelle mit der niedrigsten Nummer.</li>
               <li>Als Aktion <b>„Verschieben nach“</b> wählen, Ziel <code>D:\S\_QUARANTAENE\</code> — <b>niemals „Löschen“</b>. dupeGuru bietet beides an; ein Fehlklick ist endgültig.</li>
               <li>Ergebnisliste vor dem Verschieben als CSV exportieren. Diese Datei wird später zur Spalte <code>dup_gruppe</code> im Index.</li>
               <li>Fotos: der Modus <b>Bilder</b> findet auch ähnliche Aufnahmen — dieselbe Datei in anderer Auflösung, Screenshots von Screenshots. Diese Treffer nur markieren, nicht verschieben; sie brauchen dein Auge.</li>
@@ -830,7 +868,7 @@
             <h3>Upload nach Google Drive</h3>
             <p>Weitgehend Wartezeit — aber Wartezeit, die schiefgehen kann, wenn sie unbeaufsichtigt in einem Rutsch läuft.</p>
             <ul>
-              <li>Google Drive für Desktop öffnen, den gestreamten Zielordner im Explorer oder Finder ansteuern.</li>
+              <li>Alles läuft <b>vom Sammelrechner</b> aus: Google Drive für Desktop öffnen, den gestreamten Zielordner im Explorer oder Finder ansteuern, von der Sammelplatte hineinkopieren. Die anderen drei Rechner sind ab hier nicht mehr beteiligt.</li>
               <li><b>Quelle für Quelle</b> hochladen, nicht alles zusammen: eine Quelle anstossen, Abschluss prüfen, Dateianzahl vergleichen, dann die nächste. So bleibt ein Abbruch lokalisierbar.</li>
               <li>Die Quarantäne kommt mit — nach <code>90_Quarantaene_Duplikate</code>, in Unterordnern je Quelle. Bei 2 TB Speicher kostet das nichts, und die Entscheidung „wirklich weg“ bleibt dir.</li>
               <li>Rechner nicht in den Ruhezustand schicken. Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
@@ -1065,8 +1103,9 @@
     <section id="werkzeuge">
       <div class="sec-head"><span class="sec-num">⌾</span><h2>Werkzeugkasten</h2></div>
       <p class="lede">
-        Alles mit grafischer Oberfläche, alles kostenlos. Vor Phase 1 auf allen vier Rechnern installieren —
-        Werkzeugsuche mittendrin kostet mehr Zeit als der Umzug selbst.
+        Alles mit grafischer Oberfläche, alles kostenlos. Auf den Sammelrechner kommt alles,
+        auf die anderen drei nur das Inventur-Werkzeug — bei Weg A2 zusätzlich FreeFileSync.
+        Vor Phase 1 installieren: Werkzeugsuche mittendrin kostet mehr Zeit als der Umzug selbst.
       </p>
 
       <div class="scroller">
@@ -1167,18 +1206,18 @@
     <section id="fragen">
       <div class="sec-head"><span class="sec-num">?</span><h2>Was ich noch von dir brauche</h2></div>
       <p class="lede">
-        Der Plan steht und ist so ausführbar. Diese sieben Antworten machen ihn präzise —
-        die ersten drei entscheiden über die Weiche zwischen Variante A und B.
+        Der Weg ist entschieden, der Plan ist so ausführbar. Diese sieben Antworten machen ihn präzise —
+        die ersten drei entscheiden zwischen A1 und A2 und darüber, wie die Sammelplatte formatiert sein muss.
       </p>
 
       <ol class="questions">
-        <li><div><b>Stehen die vier Rechner am selben Ort?</b><span>Entscheidet Variante A gegen B — und damit, ob quellenübergreifende Dubletten überhaupt sauber gefunden werden.</span></div></li>
-        <li><div><b>Gibt es eine externe Platte mit genug freiem Platz?</b><span>Variante A braucht mindestens das Gesamtvolumen aller Quellen. Die Zahl kennst du nach Phase 1.</span></div></li>
+        <li><div><b>Gibt es Gigabit-LAN per Kabel bis zu allen vier Rechnern — oder nur WLAN?</b><span>Entscheidet A1 gegen A2. Mit Kabel bleibt die Platte am Sammelrechner stehen und du sparst dir das ganze Dateisystem-Thema. Nur WLAN heisst: die Platte wandert.</span></div></li>
+        <li><div><b>Welche Betriebssysteme laufen auf den vier Rechnern?</b><span>Bei A2 bestimmt das, ob NTFS reicht oder es exFAT sein muss. Ausserdem werden Ausschlussliste und Werkzeugauswahl damit konkret statt allgemein.</span></div></li>
+        <li><div><b>Welche externe Platte ist als Sammelplatte vorgesehen — Grösse, freier Platz, Dateisystem?</b><span>Nötig ist das Gesamtvolumen aus Phase 1 plus 20 Prozent für die Quarantäne. Ein Umformatieren löscht die Platte, das will vorher geklärt sein.</span></div></li>
+        <li><div><b>Welcher Rechner hat den wichtigsten, gepflegtesten Bestand?</b><span>Er wird in Phase 4 zum Referenzordner und geht als Erster auf die Platte — seine Ordnernamen prägen die spätere Ablage.</span></div></li>
         <li><div><b>Wie schnell ist dein Upload?</b><span>Auf <code>speedtest.net</code> messen, den <em>Upload</em>-Wert notieren. Bestimmt, ob Phase 5 ein Wochenende oder eine Woche dauert.</span></div></li>
-        <li><div><b>Welche Betriebssysteme laufen auf den vier Rechnern?</b><span>Damit ich Ausschlussliste und Werkzeugauswahl je Gerät konkret statt allgemein machen kann.</span></div></li>
         <li><div><b>Ist das Zielkonto ein privates Google-Konto oder Workspace?</b><span>Nur Workspace hat Drive-Labels. Dann liessen sich Tags direkt an den Dateien führen statt in der Tabelle.</span></div></li>
         <li><div><b>Sollen Fotos separat nach Google Fotos?</b><span>Dort gibt es Gesichts- und Ortssuche, aber getrennten Speicher und eigene Regeln. Beides zugleich ergibt doppelte Buchhaltung.</span></div></li>
-        <li><div><b>Was ist der eine Bestand, dessen Verlust am meisten wehtäte?</b><span>Der kommt zuerst dran und bekommt eine zweite, unabhängige Kopie — bevor irgendetwas anderes beginnt.</span></div></li>
       </ol>
     </section>
 
