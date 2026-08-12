@@ -5,10 +5,15 @@ keine Internetverbindung, keine Installation von Zusatzsoftware.
 
 ## Das Programm holen
 
-1. Im Repository oben auf **Actions** klicken.
-2. Den obersten Lauf **„Windows-Programm bauen"** öffnen.
-3. Unten unter **Artifacts** auf `Dateiumzug2026-windows` klicken — es lädt eine ZIP-Datei.
-4. ZIP entpacken, `Dateiumzug2026.exe` doppelklicken.
+**Direkter Link, immer die neueste Fassung:**
+
+<https://github.com/Andreas76761/Dateiverwaltung_Google_Drive/releases/download/werkzeug-neueste/Dateiumzug2026.exe>
+
+Anklicken, speichern, doppelklicken. Kein Entpacken, keine Anmeldung. Der Link bleibt
+über alle künftigen Bauten derselbe — es liegt dort immer die aktuelle Fassung.
+
+Alternativ über **Actions → Windows-Programm bauen → Artifacts**; dort kommt sie als ZIP
+und nur für angemeldete Nutzer.
 
 Beim ersten Start meldet Windows möglicherweise „Der Computer wurde geschützt".
 Das erscheint bei jedem Programm ohne gekaufte Signatur. Auf **Weitere Informationen**
