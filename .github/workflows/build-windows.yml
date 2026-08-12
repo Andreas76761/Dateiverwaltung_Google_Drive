@@ -1,0 +1,43 @@
+name: Windows-Programm bauen
+
+on:
+  push:
+    paths:
+      - "tool/**"
+      - ".github/workflows/build-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: PyInstaller installieren
+        run: pip install --upgrade pyinstaller
+
+      - name: Programm uebersetzen
+        run: >
+          pyinstaller --noconfirm --onefile --windowed
+          --name Dateiumzug2026
+          tool/dateiumzug.py
+
+      - name: Kurzer Startcheck
+        run: |
+          if (-not (Test-Path dist/Dateiumzug2026.exe)) { throw "Datei wurde nicht erzeugt" }
+          $size = (Get-Item dist/Dateiumzug2026.exe).Length / 1MB
+          Write-Host ("Erzeugt: {0:N1} MB" -f $size)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dateiumzug2026-windows
+          path: dist/Dateiumzug2026.exe
+          retention-days: 90
