@@ -16,6 +16,7 @@ Nur Standardbibliothek, damit die gebaute Datei klein und startklar ist.
 
 import csv
 import hashlib
+import json
 import os
 import queue
 import re
@@ -23,14 +24,50 @@ import shutil
 import struct
 import sys
 import threading
+import time
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Dateiumzug 2026"
-APP_VERSION = "1.0"
+APP_VERSION = "1.1"
+
+COPY_BUFFER = 1024 * 1024        # 1 MB je Leseschritt
+DEFAULT_WORKERS = 4              # gleichzeitige Kopiervorgaenge
+CHUNK = 512                      # Haeppchen, damit Abbrechen zuegig greift
+
+
+# ============================================================
+#  Einstellungen — bleiben zwischen zwei Starts erhalten
+# ============================================================
+
+def settings_file():
+    base = os.environ.get("APPDATA") or os.path.expanduser("~")
+    return os.path.join(base, "Dateiumzug2026", "einstellungen.json")
+
+
+def load_settings():
+    try:
+        with open(settings_file(), "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def save_settings(data):
+    try:
+        path = settings_file()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except OSError:
+        pass
+
+
+SETTINGS = load_settings()
 
 
 # ============================================================
@@ -64,6 +101,18 @@ JUNK_EXTS = set(
     "part log dmp vmdk vdi vhd vhdx img qcow2 wim esd regtrans-ms blf o".split()
 )
 JUNK_NAMES = {"thumbs.db", "desktop.ini"}
+
+DEFAULT_JUNK_DIRS = list(JUNK_DIRS)
+DEFAULT_JUNK_EXTS = set(JUNK_EXTS)
+DEFAULT_JUNK_NAMES = set(JUNK_NAMES)
+
+# Register 2 darf diese drei Listen ersetzen; gespeicherte Fassungen gewinnen.
+if isinstance(SETTINGS.get("junk_dirs"), list):
+    JUNK_DIRS = list(SETTINGS["junk_dirs"])
+if isinstance(SETTINGS.get("junk_exts"), list):
+    JUNK_EXTS = set(SETTINGS["junk_exts"])
+if isinstance(SETTINGS.get("junk_names"), list):
+    JUNK_NAMES = set(SETTINGS["junk_names"])
 JUNK_PREFIXES = ("ntuser.dat", "~$")
 
 VIDEO_EXTS = set(CATS["video"].split())
@@ -171,6 +220,9 @@ class Job:
     def progress(self, done, total):
         self.q.put(("progress", (done, total)))
 
+    def stats(self, done, total, bytes_done, bytes_total, rate):
+        self.q.put(("stats", (done, total, bytes_done, bytes_total, rate)))
+
     def done(self, kind, payload):
         self.q.put(("done", (kind, payload)))
 
@@ -182,27 +234,41 @@ class Job:
 #  Einlesen
 # ============================================================
 
-def scan_folder(root, job, note_every=2000):
-    """Liest einen Ordner samt Unterordnern. Gibt eine Liste von Entry zurueck."""
+def scan_folder(root, job, note_every=5000):
+    """
+    Liest einen Ordner samt Unterordnern.
+
+    Verwendet os.scandir: Windows liefert Groesse und Datum schon beim
+    Auflisten mit, eine gesonderte Abfrage je Datei entfaellt. Das ist
+    rund fuenfmal schneller als der Weg ueber os.walk mit os.stat.
+    """
     root = os.path.abspath(root)
+    prefix = len(long_path(root).rstrip(os.sep)) + 1
     entries = []
-    walk_root = long_path(root)
-    for dirpath, dirnames, filenames in os.walk(walk_root, onerror=lambda e: None):
+    stack = [long_path(root)]
+    while stack:
         if job.stopped:
             break
-        dirnames.sort()
-        for fn in filenames:
-            if job.stopped:
-                break
-            full = os.path.join(dirpath, fn)
-            try:
-                st = os.stat(full)
-            except OSError:
-                continue
-            rel = os.path.relpath(short_path(full), root)
-            entries.append(Entry(fn, rel, full, st.st_size, st.st_mtime))
-            if len(entries) % note_every == 0:
-                job.say("Gelesen: {:,} Dateien".format(len(entries)).replace(",", "."))
+        current = stack.pop()
+        try:
+            it = os.scandir(current)
+        except OSError:
+            continue
+        with it:
+            for e in it:
+                if job.stopped:
+                    break
+                try:
+                    if e.is_dir(follow_symlinks=False):
+                        stack.append(e.path)
+                        continue
+                    st = e.stat(follow_symlinks=False)
+                except OSError:
+                    continue
+                entries.append(Entry(e.name, e.path[prefix:], e.path,
+                                     st.st_size, st.st_mtime))
+                if len(entries) % note_every == 0:
+                    job.say("Gelesen: {} Dateien".format(fmt_count(len(entries))))
     return entries
 
 
@@ -411,39 +477,112 @@ def unique_target(folder, name):
         n += 1
 
 
-def transfer(items, job, dry_run=True, move=False):
+def _copy_exclusive(src, dst, size):
     """
-    items: Liste von (quell_pfad, ziel_pfad)
+    Legt das Ziel im Modus 'x' an: es entsteht nur, wenn es noch nicht
+    existiert. Damit fallen Nachfragen und Anlegen in einem Schritt
+    zusammen statt in zwei.
+    """
+    try:
+        fdst = open(long_path(dst), "xb", buffering=0)
+    except FileExistsError:
+        return ("skip", 0)
+    written = 0
+    try:
+        with open(long_path(src), "rb", buffering=0) as fsrc:
+            while True:
+                block = fsrc.read(COPY_BUFFER)
+                if not block:
+                    break
+                fdst.write(block)
+                written += len(block)
+    finally:
+        fdst.close()
+    try:
+        shutil.copystat(long_path(src), long_path(dst))
+    except OSError:
+        pass
+    return ("ok", written or size)
+
+
+def transfer(items, job, dry_run=True, move=False, workers=DEFAULT_WORKERS):
+    """
+    items: Liste von (quelle, ziel) oder (quelle, ziel, groesse)
+
     Kopiert oder verschiebt. Loescht nie. Gibt einen Bericht zurueck.
+
+    Die Zielordner entstehen einmal vorab statt bei jeder Datei erneut,
+    und die Dateien laufen ueber mehrere Faeden gleichzeitig — beim
+    Kopieren wartet ein Faden ohnehin die meiste Zeit auf die Platte.
     """
     report = {"ok": 0, "skip": 0, "fail": 0, "bytes": 0, "errors": []}
     total = len(items)
-    for i, (src, dst) in enumerate(items, 1):
+    if not total:
+        return report
+    total_bytes = sum((it[2] if len(it) > 2 else 0) for it in items)
+
+    if not dry_run:
+        job.say("Lege Zielordner an …")
+        for d in sorted({os.path.dirname(i[1]) for i in items}):
+            try:
+                os.makedirs(long_path(d), exist_ok=True)
+            except OSError:
+                pass
+
+    started = time.monotonic()
+    seen = {"n": 0, "bytes": 0}
+
+    def one(item):
         if job.stopped:
-            break
-        if i % 20 == 0 or i == total:
-            job.progress(i, total)
-            job.say("{} {} von {}".format("Pruefe" if dry_run else
-                                          ("Verschiebe" if move else "Kopiere"), i, total))
+            return None
+        src, dst = item[0], item[1]
+        size = item[2] if len(item) > 2 else 0
         try:
-            if os.path.exists(long_path(dst)):
-                report["skip"] += 1
-                continue
             if dry_run:
-                report["ok"] += 1
-                report["bytes"] += os.path.getsize(long_path(src))
-                continue
-            os.makedirs(long_path(os.path.dirname(dst)), exist_ok=True)
+                return ("skip", 0) if os.path.exists(long_path(dst)) else ("ok", size)
             if move:
-                shutil.move(long_path(src), long_path(dst))
-            else:
-                shutil.copy2(long_path(src), long_path(dst))
-            report["ok"] += 1
-            report["bytes"] += os.path.getsize(long_path(dst))
+                if os.path.exists(long_path(dst)):
+                    return ("skip", 0)
+                try:
+                    os.replace(long_path(src), long_path(dst))
+                except OSError:
+                    shutil.move(long_path(src), long_path(dst))
+                return ("ok", size)
+            return _copy_exclusive(src, dst, size)
+        except FileExistsError:
+            return ("skip", 0)
         except Exception as exc:
-            report["fail"] += 1
-            if len(report["errors"]) < 200:
-                report["errors"].append("{} -> {}: {}".format(short_path(src), short_path(dst), exc))
+            return ("fail", 0, "{} -> {}: {}".format(short_path(src), short_path(dst), exc))
+
+    def account(res):
+        if res is None:
+            return
+        kind = res[0]
+        report[kind] += 1
+        if kind == "ok":
+            report["bytes"] += res[1]
+            seen["bytes"] += res[1]
+        elif kind == "fail" and len(res) > 2 and len(report["errors"]) < 200:
+            report["errors"].append(res[2])
+        seen["n"] += 1
+        if seen["n"] % 25 == 0 or seen["n"] == total:
+            elapsed = max(time.monotonic() - started, 0.001)
+            job.stats(seen["n"], total, seen["bytes"], total_bytes,
+                      seen["bytes"] / elapsed)
+
+    workers = max(1, int(workers or 1))
+    if workers == 1 or dry_run:
+        for item in items:
+            if job.stopped:
+                break
+            account(one(item))
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for start in range(0, total, CHUNK):
+                if job.stopped:
+                    break
+                for res in pool.map(one, items[start:start + CHUNK]):
+                    account(res)
     return report
 
 
@@ -465,6 +604,15 @@ def fmt_size(b):
 
 def fmt_count(n):
     return "{:,}".format(n).replace(",", ".")
+
+
+def fmt_time(seconds):
+    seconds = int(max(seconds, 0))
+    if seconds < 90:
+        return "{} s".format(seconds)
+    if seconds < 5400:
+        return "{} min".format(round(seconds / 60))
+    return "{:.1f} h".format(seconds / 3600).replace(".", ",")
 
 
 # ============================================================
@@ -493,8 +641,34 @@ class Section(ttk.Frame):
         foot.pack(fill="x", pady=(10, 0))
         self.bar = ttk.Progressbar(foot, mode="determinate")
         self.bar.pack(fill="x")
-        self.status = ttk.Label(foot, text="Bereit.", style="Status.TLabel")
-        self.status.pack(anchor="w", pady=(4, 0))
+        line = ttk.Frame(foot)
+        line.pack(fill="x", pady=(4, 0))
+        self.status = ttk.Label(line, text="Bereit.", style="Status.TLabel")
+        self.status.pack(side="left")
+        self.detail = ttk.Label(line, text="", style="Detail.TLabel")
+        self.detail.pack(side="right")
+
+        self._go = []          # Knoepfe, die einen Vorgang starten
+        self._stop = []        # Abbrechen-Knoepfe
+
+    # -- Knoepfe waehrend eines Vorgangs sperren ---------------------
+
+    def wire(self, go=(), stop=()):
+        self._go = list(go)
+        self._stop = list(stop)
+        self._set_running(False)
+
+    def _set_running(self, running):
+        for b in self._go:
+            try:
+                b.configure(state="disabled" if running else "normal")
+            except tk.TclError:
+                pass
+        for b in self._stop:
+            try:
+                b.configure(state="normal" if running else "disabled")
+            except tk.TclError:
+                pass
 
     # -- Arbeitsfaden ------------------------------------------------
 
@@ -505,6 +679,8 @@ class Section(ttk.Frame):
         self.job = Job(self.q)
         self._on_done = on_done
         self.bar.configure(value=0, maximum=100)
+        self.detail.configure(text="")
+        self._set_running(True)
 
         def wrapper():
             try:
@@ -530,11 +706,20 @@ class Section(ttk.Frame):
                 elif kind == "progress":
                     done, total = payload
                     self.bar.configure(maximum=max(total, 1), value=done)
+                    self.detail.configure(text="{} von {}".format(
+                        fmt_count(done), fmt_count(total)))
+                elif kind == "stats":
+                    done, total, bd, bt, rate = payload
+                    self.bar.configure(maximum=max(total, 1), value=done)
+                    self.detail.configure(text=self._detail(done, total, bd, bt, rate))
                 elif kind == "failed":
                     self.say("Fehler — der Vorgang wurde abgebrochen.")
+                    self._set_running(False)
                     messagebox.showerror(APP_NAME, payload)
                     alive = False
                 elif kind == "done":
+                    self._set_running(False)
+                    self.bar.configure(value=self.bar["maximum"])
                     self._on_done(*payload)
                     alive = False
         except queue.Empty:
@@ -544,12 +729,27 @@ class Section(ttk.Frame):
         elif alive and self.job and self.job.stopped:
             self.after(100, self._pump)
 
+    @staticmethod
+    def _detail(done, total, bytes_done, bytes_total, rate):
+        parts = ["{} / {}".format(fmt_count(done), fmt_count(total))]
+        if bytes_total:
+            parts.append("{} / {}".format(fmt_size(bytes_done), fmt_size(bytes_total)))
+        if rate > 0:
+            parts.append("{}/s".format(fmt_size(int(rate))))
+            rest = bytes_total - bytes_done
+            if rest > 0 and bytes_total:
+                parts.append("noch {}".format(fmt_time(rest / rate)))
+        return "   ·   ".join(parts)
+
     def say(self, text):
         self.status.configure(text=text)
 
 
-def pick_folder(title):
-    p = filedialog.askdirectory(title=title, mustexist=True)
+def pick_folder(title, start=None):
+    kwargs = {"title": title, "mustexist": True}
+    if start and os.path.isdir(start):
+        kwargs["initialdir"] = start
+    p = filedialog.askdirectory(**kwargs)
     return p or None
 
 
@@ -589,14 +789,18 @@ class InventurTab(Section):
         top = ttk.Frame(self.body)
         top.pack(fill="x")
         ttk.Label(top, text="Quelle").pack(side="left")
-        self.var_path = tk.StringVar()
+        self.var_path = tk.StringVar(value=app.recall("inventur"))
         ttk.Entry(top, textvariable=self.var_path).pack(side="left", fill="x", expand=True, padx=8)
         ttk.Label(top, text="Kürzel").pack(side="left")
         self.var_id = tk.StringVar(value="PC1")
         ttk.Entry(top, textvariable=self.var_id, width=8).pack(side="left", padx=(6, 8))
-        ttk.Button(top, text="Ordner …", command=self.choose).pack(side="left")
-        ttk.Button(top, text="Einlesen", style="Go.TButton", command=self.start).pack(side="left", padx=6)
-        ttk.Button(top, text="Abbrechen", command=self.stop).pack(side="left")
+        b_pick = ttk.Button(top, text="Ordner …", command=self.choose)
+        b_pick.pack(side="left")
+        b_go = ttk.Button(top, text="Einlesen", style="Go.TButton", command=self.start)
+        b_go.pack(side="left", padx=6)
+        b_stop = ttk.Button(top, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left")
+        self.wire(go=(b_pick, b_go), stop=(b_stop,))
 
         frame, self.tree = make_tree(
             self.body, ("Art", "Anzahl", "Grösse", "davon ≤ Grenze", "über Grenze"),
@@ -612,9 +816,10 @@ class InventurTab(Section):
         self.summary.pack(side="right")
 
     def choose(self):
-        p = pick_folder("Quellordner wählen")
+        p = pick_folder("Quellordner wählen", self.app.recall("inventur"))
         if p:
             self.var_path.set(p)
+            self.app.remember("inventur", p)
 
     def start(self):
         root = self.var_path.get().strip()
@@ -710,7 +915,148 @@ class InventurTab(Section):
 
 
 # ============================================================
-#  Register 2 — Sammeln
+#  Register 2 — Regeln
+# ============================================================
+
+class RegelnTab(Section):
+    def __init__(self, master, app):
+        super().__init__(
+            master, app, "Phase 2 · Regeln",
+            "Was mitfährt und was nicht. Einmal festgelegt, gilt es für alle übrigen "
+            "Register. Die Regeln bleiben gespeichert und stehen beim nächsten Start "
+            "wieder da.")
+
+        top = ttk.LabelFrame(self.body, text="Grenzen", padding=8)
+        top.pack(fill="x")
+        ttk.Label(top, text="Dateien höchstens").grid(row=0, column=0, sticky="w")
+        ttk.Entry(top, textvariable=app.var_limit, width=7).grid(row=0, column=1, padx=6)
+        ttk.Label(top, text="MB").grid(row=0, column=2, sticky="w")
+        ttk.Checkbutton(top, text="Video nicht übernehmen",
+                        variable=app.var_skip_video).grid(row=0, column=3, padx=(24, 0))
+        ttk.Label(top, text="Gleichzeitige Kopiervorgänge").grid(row=0, column=4, padx=(24, 6))
+        ttk.Spinbox(top, from_=1, to=16, width=4,
+                    textvariable=app.var_workers).grid(row=0, column=5)
+        ttk.Label(top, style="Hint.TLabel",
+                  text="4 ist ein guter Wert. Bei einer einzelnen älteren USB-Platte "
+                       "kann 1 oder 2 schneller sein — mehr Köpfe, mehr Suchen.").grid(
+            row=1, column=0, columnspan=6, sticky="w", pady=(6, 0))
+
+        lists = ttk.Frame(self.body)
+        lists.pack(fill="both", expand=True, pady=10)
+        self.boxes = {}
+        specs = [
+            ("dirs", "Ordner überspringen", "Ein Eintrag je Zeile. Trifft zu, wenn der "
+                                            "Pfad ihn enthält."),
+            ("exts", "Endungen überspringen", "Ohne Punkt, ein Eintrag je Zeile."),
+            ("names", "Dateinamen überspringen", "Vollständiger Name, ein Eintrag je Zeile."),
+        ]
+        for i, (key, title, hint) in enumerate(specs):
+            frame = ttk.LabelFrame(lists, text=title, padding=6)
+            frame.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 8, 0))
+            # Der Hinweis wird zuerst gepackt: sonst nimmt er sich den Platz
+            # neben der Liste statt darunter.
+            ttk.Label(frame, text=hint, style="Hint.TLabel", wraplength=250).pack(
+                side="bottom", anchor="w", fill="x", pady=(6, 0))
+            box = tk.Text(frame, width=26, height=14, font=("Consolas", 9),
+                          wrap="none", relief="solid", borderwidth=1)
+            sb = ttk.Scrollbar(frame, orient="vertical", command=box.yview)
+            box.configure(yscrollcommand=sb.set)
+            box.pack(side="left", fill="both", expand=True)
+            sb.pack(side="right", fill="y")
+            lists.columnconfigure(i, weight=1)
+            self.boxes[key] = box
+        lists.rowconfigure(0, weight=1)
+
+        row = ttk.Frame(self.body)
+        row.pack(fill="x")
+        b_save = ttk.Button(row, text="Regeln übernehmen", style="Go.TButton",
+                            command=self.apply)
+        b_save.pack(side="left")
+        b_reset = ttk.Button(row, text="Auslieferungszustand", command=self.reset)
+        b_reset.pack(side="left", padx=6)
+        b_test = ttk.Button(row, text="An einem Ordner erproben …", command=self.probe)
+        b_test.pack(side="left")
+        b_stop = ttk.Button(row, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left", padx=6)
+        self.wire(go=(b_save, b_reset, b_test), stop=(b_stop,))
+
+        self.summary = ttk.Label(self.body, text="", style="Sum.TLabel")
+        self.summary.pack(anchor="w", pady=(8, 0))
+
+        self.fill(JUNK_DIRS, sorted(JUNK_EXTS), sorted(JUNK_NAMES))
+
+    # -- Inhalt ------------------------------------------------------
+
+    def fill(self, dirs, exts, names):
+        for key, values in (("dirs", dirs), ("exts", exts), ("names", names)):
+            box = self.boxes[key]
+            box.delete("1.0", "end")
+            box.insert("1.0", "\n".join(values))
+
+    def read(self, key):
+        raw = self.boxes[key].get("1.0", "end").splitlines()
+        return [line.strip() for line in raw if line.strip()]
+
+    def apply(self):
+        global JUNK_DIRS, JUNK_EXTS, JUNK_NAMES
+        JUNK_DIRS = [d.lower() for d in self.read("dirs")]
+        JUNK_EXTS = {e.lstrip("*.").lower() for e in self.read("exts")}
+        JUNK_NAMES = {n.lower() for n in self.read("names")}
+        self.app.persist()
+        self.say("Übernommen und gespeichert. Gilt ab sofort für alle Register.")
+        self.summary.configure(text="{} Ordnermuster · {} Endungen · {} Dateinamen".format(
+            len(JUNK_DIRS), len(JUNK_EXTS), len(JUNK_NAMES)))
+
+    def reset(self):
+        if not messagebox.askyesno(APP_NAME, "Die drei Listen auf den Auslieferungszustand "
+                                             "zurücksetzen?"):
+            return
+        self.fill(DEFAULT_JUNK_DIRS, sorted(DEFAULT_JUNK_EXTS), sorted(DEFAULT_JUNK_NAMES))
+        self.apply()
+
+    # -- Erprobung ---------------------------------------------------
+
+    def probe(self):
+        self.apply()
+        folder = pick_folder("Ordner zum Erproben wählen")
+        if not folder:
+            return
+
+        def work(job):
+            job.say("Lese …")
+            entries = scan_folder(folder, job)
+            limit = self.app.limit_bytes()
+            skip_video = self.app.var_skip_video.get()
+            res = {"mit": 0, "mit_bytes": 0, "junk": 0, "video": 0, "gross": 0,
+                   "gesamt": len(entries), "gesamt_bytes": 0}
+            for e in entries:
+                res["gesamt_bytes"] += e.size
+                if is_junk(e):
+                    res["junk"] += 1
+                elif skip_video and e.ext in VIDEO_EXTS:
+                    res["video"] += 1
+                elif e.size > limit:
+                    res["gross"] += 1
+                else:
+                    res["mit"] += 1
+                    res["mit_bytes"] += e.size
+            job.done("probe", res)
+
+        self.run(work, self.probe_done)
+
+    def probe_done(self, _kind, res):
+        anteil = (100.0 * res["mit"] / res["gesamt"]) if res["gesamt"] else 0
+        self.summary.configure(
+            text="Von {} Dateien ({}) fahren {} mit — {} Prozent, {}.".format(
+                fmt_count(res["gesamt"]), fmt_size(res["gesamt_bytes"]),
+                fmt_count(res["mit"]), round(anteil), fmt_size(res["mit_bytes"])))
+        self.say("Zurückgehalten: {} durch die Listen · {} Video · {} über der Grenze."
+                 .format(fmt_count(res["junk"]), fmt_count(res["video"]),
+                         fmt_count(res["gross"])))
+
+
+# ============================================================
+#  Register 3 — Sammeln
 # ============================================================
 
 class SammelnTab(Section):
@@ -735,10 +1081,14 @@ class SammelnTab(Section):
 
         opts = ttk.Frame(self.body)
         opts.pack(fill="x", pady=(10, 0))
-        ttk.Button(opts, text="Probelauf", command=lambda: self.start(True)).pack(side="left")
-        ttk.Button(opts, text="Wirklich kopieren", style="Go.TButton",
-                   command=lambda: self.start(False)).pack(side="left", padx=6)
-        ttk.Button(opts, text="Abbrechen", command=self.stop).pack(side="left")
+        b_dry = ttk.Button(opts, text="Probelauf", command=lambda: self.start(True))
+        b_dry.pack(side="left")
+        b_go = ttk.Button(opts, text="Wirklich kopieren", style="Go.TButton",
+                          command=lambda: self.start(False))
+        b_go.pack(side="left", padx=6)
+        b_stop = ttk.Button(opts, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left")
+        self.wire(go=(b_dry, b_go), stop=(b_stop,))
 
         frame, self.tree = make_tree(self.body, ("Datei", "Ordner", "MB", "Geändert"),
                                      (260, 380, 90, 110), height=13)
@@ -747,9 +1097,10 @@ class SammelnTab(Section):
         self.summary.pack(anchor="w")
 
     def _pick(self, var, title):
-        p = pick_folder(title)
+        p = pick_folder(title, var.get() or self.app.recall("sammeln"))
         if p:
             var.set(p)
+            self.app.remember("sammeln", p)
 
     def _plan(self, job):
         src = self.var_src.get().strip()
@@ -766,7 +1117,7 @@ class SammelnTab(Section):
             if e.size > limit:
                 continue
             chosen.append(e)
-            items.append((e.abspath, os.path.join(dst, e.rel)))
+            items.append((e.abspath, os.path.join(dst, e.rel), e.size))
         return items, chosen
 
     def start(self, dry):
@@ -794,7 +1145,7 @@ class SammelnTab(Section):
                 job.done("copy", (None, chosen, True))
                 return
             job.say("{} Dateien vorgemerkt.".format(fmt_count(len(items))))
-            rep = transfer(items, job, dry_run=dry, move=False)
+            rep = transfer(items, job, dry_run=dry, move=False, workers=self.app.workers())
             job.done("copy", (rep, chosen, dry))
 
         self.run(work, self.finish)
@@ -856,11 +1207,16 @@ class DublettenTab(Section):
 
         row = ttk.Frame(self.body)
         row.pack(fill="x", pady=(10, 0))
-        ttk.Button(row, text="Suchen", style="Go.TButton", command=self.start).pack(side="left")
-        ttk.Button(row, text="Abbrechen", command=self.stop).pack(side="left", padx=6)
-        ttk.Button(row, text="Liste sichern", command=self.export).pack(side="left")
-        ttk.Button(row, text="Duplikate in Quarantäne verschieben",
-                   command=self.quarantine).pack(side="left", padx=6)
+        b_go = ttk.Button(row, text="Suchen", style="Go.TButton", command=self.start)
+        b_go.pack(side="left")
+        b_stop = ttk.Button(row, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left", padx=6)
+        b_exp = ttk.Button(row, text="Liste sichern", command=self.export)
+        b_exp.pack(side="left")
+        b_quar = ttk.Button(row, text="Duplikate in Quarantäne verschieben",
+                            command=self.quarantine)
+        b_quar.pack(side="left", padx=6)
+        self.wire(go=(b_go, b_exp, b_quar), stop=(b_stop,))
 
         frame, self.tree = make_tree(self.body, ("Rolle", "Datei", "Ordner", "MB", "Gruppe"),
                                      (90, 260, 360, 80, 90), height=13)
@@ -870,9 +1226,10 @@ class DublettenTab(Section):
         self.groups = []
 
     def _pick(self, var, title):
-        p = pick_folder(title)
+        p = pick_folder(title, var.get() or self.app.recall("dubletten"))
         if p:
             var.set(p)
+            self.app.remember("dubletten", p)
 
     def start(self):
         root = self.var_root.get().strip()
@@ -945,7 +1302,7 @@ class DublettenTab(Section):
         items = []
         for grp in self.groups:
             for e in grp[1:]:
-                items.append((e.abspath, os.path.join(quar, e.rel)))
+                items.append((e.abspath, os.path.join(quar, e.rel), e.size))
         if not items:
             messagebox.showinfo(APP_NAME, "Es gibt nichts zu verschieben.")
             return
@@ -962,7 +1319,8 @@ class DublettenTab(Section):
                     "Das funktioniert, aber ein erneuter Suchlauf findet die Dateien wieder.\n\n"
                     "Trotzdem fortfahren?"):
                 return
-        self.run(lambda job: job.done("quar", transfer(items, job, dry_run=False, move=True)),
+        self.run(lambda job: job.done("quar", transfer(items, job, dry_run=False, move=True,
+                                           workers=self.app.workers())),
                  self.after_move)
 
     def after_move(self, _kind, rep):
@@ -1007,11 +1365,16 @@ class BilderTab(Section):
 
         row = ttk.Frame(self.body)
         row.pack(fill="x", pady=(8, 0))
-        ttk.Button(row, text="Probelauf", command=lambda: self.start(True)).pack(side="left")
-        ttk.Button(row, text="Ausführen", style="Go.TButton",
-                   command=lambda: self.start(False)).pack(side="left", padx=6)
-        ttk.Button(row, text="Abbrechen", command=self.stop).pack(side="left")
-        ttk.Button(row, text="Liste sichern", command=self.export).pack(side="left", padx=6)
+        b_dry = ttk.Button(row, text="Probelauf", command=lambda: self.start(True))
+        b_dry.pack(side="left")
+        b_go = ttk.Button(row, text="Ausführen", style="Go.TButton",
+                          command=lambda: self.start(False))
+        b_go.pack(side="left", padx=6)
+        b_stop = ttk.Button(row, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left")
+        b_exp = ttk.Button(row, text="Liste sichern", command=self.export)
+        b_exp.pack(side="left", padx=6)
+        self.wire(go=(b_dry, b_go, b_exp), stop=(b_stop,))
 
         frame, self.tree = make_tree(self.body, ("Jahr", "Quelle", "Datei", "Ordner", "MB"),
                                      (80, 90, 260, 340, 80), height=12)
@@ -1020,9 +1383,10 @@ class BilderTab(Section):
         self.summary.pack(anchor="w")
 
     def _pick(self, var, title):
-        p = pick_folder(title)
+        p = pick_folder(title, var.get() or self.app.recall("bilder"))
         if p:
             var.set(p)
+            self.app.remember("bilder", p)
 
     def start(self, dry):
         src, dst = self.var_src.get().strip(), self.var_dst.get().strip()
@@ -1060,9 +1424,9 @@ class BilderTab(Section):
                 folder = os.path.join(dst, str(year) if year else "_Jahr_unklar")
                 target = unique_target(folder, e.name) if not dry \
                     else os.path.join(folder, e.name)
-                plan.append((e.abspath, target))
+                plan.append((e.abspath, target, e.size))
                 rows.append((str(year) if year else "unklar", source, e))
-            rep = transfer(plan, job, dry_run=dry, move=move)
+            rep = transfer(plan, job, dry_run=dry, move=move, workers=self.app.workers())
             job.done("img", (rep, rows, dry))
 
         self.run(work, self.finish)
@@ -1137,7 +1501,7 @@ class Pane(ttk.Frame):
         self.stats.pack(anchor="w")
 
     def load(self):
-        p = pick_folder("Ordner wählen")
+        p = pick_folder("Ordner wählen", self.root or None)
         if not p:
             return
         job = Job(queue.Queue())
@@ -1337,8 +1701,9 @@ class ExplorerTab(Section):
                 APP_NAME, "{} Dateien kopieren?\n\nNach: {}\n\nEs wird nur kopiert."
                 .format(fmt_count(len(picked)), t.root)):
             return
-        items = [(e.abspath, os.path.join(t.root, e.rel)) for e in picked]
-        self.run(lambda job: job.done("cp", transfer(items, job, dry_run=False, move=False)),
+        items = [(e.abspath, os.path.join(t.root, e.rel), e.size) for e in picked]
+        self.run(lambda job: job.done("cp", transfer(items, job, dry_run=False, move=False,
+                                         workers=self.app.workers())),
                  lambda k, rep: self.say(
                      "Kopiert: {} · übersprungen: {} · fehlgeschlagen: {}. Nichts gelöscht."
                      .format(fmt_count(rep["ok"]), fmt_count(rep["skip"]), fmt_count(rep["fail"]))))
@@ -1444,11 +1809,16 @@ class KategorienTab(Section):
         self.var_depth = tk.StringVar(value="2")
         ttk.Combobox(row, textvariable=self.var_depth, width=4, state="readonly",
                      values=["1", "2", "3"]).pack(side="left", padx=(4, 12))
-        ttk.Button(row, text="Vorschläge berechnen",
-                   style="Go.TButton", command=self.start).pack(side="left")
-        ttk.Button(row, text="Abbrechen", command=self.stop).pack(side="left", padx=6)
-        ttk.Button(row, text="Ordnerregister sichern", command=self.export).pack(side="left")
-        ttk.Button(row, text="Jetzt verschieben", command=self.apply).pack(side="left", padx=6)
+        b_go = ttk.Button(row, text="Vorschläge berechnen",
+                          style="Go.TButton", command=self.start)
+        b_go.pack(side="left")
+        b_stop = ttk.Button(row, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left", padx=6)
+        b_exp = ttk.Button(row, text="Ordnerregister sichern", command=self.export)
+        b_exp.pack(side="left")
+        b_mv = ttk.Button(row, text="Jetzt verschieben", command=self.apply)
+        b_mv.pack(side="left", padx=6)
+        self.wire(go=(b_go, b_exp, b_mv), stop=(b_stop,))
 
         frame, self.tree = make_tree(self.body, ("Ordner", "Dateien", "Grösse", "Art", "Ziel"),
                                      (420, 90, 110, 110, 150), height=14)
@@ -1461,9 +1831,10 @@ class KategorienTab(Section):
         self.entries = []
 
     def _pick(self, var):
-        p = pick_folder("Ordner wählen")
+        p = pick_folder("Ordner wählen", var.get() or self.app.recall("kategorien"))
         if p:
             var.set(p)
+            self.app.remember("kategorien", p)
 
     def start(self):
         root = self.var_root.get().strip()
@@ -1625,9 +1996,13 @@ class IndexTab(Section):
 
         row = ttk.Frame(self.body)
         row.pack(fill="x", pady=(10, 0))
-        ttk.Button(row, text="Index bauen", style="Go.TButton", command=self.start).pack(side="left")
-        ttk.Button(row, text="Abbrechen", command=self.stop).pack(side="left", padx=6)
-        ttk.Button(row, text="Index sichern", command=self.export).pack(side="left")
+        b_go = ttk.Button(row, text="Index bauen", style="Go.TButton", command=self.start)
+        b_go.pack(side="left")
+        b_stop = ttk.Button(row, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left", padx=6)
+        b_exp = ttk.Button(row, text="Index sichern", command=self.export)
+        b_exp.pack(side="left")
+        self.wire(go=(b_go, b_exp), stop=(b_stop,))
 
         frame, self.tree = make_tree(
             self.body, ("datei_id", "quelle_id", "dateiname", "kategorie", "MB", "dup_rolle"),
@@ -1744,7 +2119,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("{} — Werkzeug".format(APP_NAME))
-        self.geometry("1180x820")
+        self.geometry("1240x840")
         self.minsize(1040, 760)
 
         self.source_id = ""
@@ -1760,15 +2135,20 @@ class App(tk.Tk):
                   style="Hint.TLabel").pack(side="left", padx=12)
 
         ttk.Label(bar, text="Grenze MB").pack(side="left", padx=(24, 4))
-        self.var_limit = tk.StringVar(value=str(int(DEFAULT_MAX_MB)))
+        self.var_limit = tk.StringVar(value=str(SETTINGS.get("limit_mb", int(DEFAULT_MAX_MB))))
         ttk.Entry(bar, textvariable=self.var_limit, width=6).pack(side="left")
-        self.var_skip_video = tk.BooleanVar(value=True)
+        self.var_skip_video = tk.BooleanVar(value=bool(SETTINGS.get("skip_video", True)))
         ttk.Checkbutton(bar, text="Video nicht übernehmen",
                         variable=self.var_skip_video).pack(side="left", padx=12)
+        ttk.Label(bar, text="Fäden").pack(side="left", padx=(12, 4))
+        self.var_workers = tk.StringVar(value=str(SETTINGS.get("workers", DEFAULT_WORKERS)))
+        ttk.Spinbox(bar, from_=1, to=16, width=3,
+                    textvariable=self.var_workers).pack(side="left")
 
         nb = ttk.Notebook(self)
         nb.pack(fill="both", expand=True, padx=10, pady=10)
         self.tab_inv = InventurTab(nb, self)
+        self.tab_reg = RegelnTab(nb, self)
         self.tab_sam = SammelnTab(nb, self)
         self.tab_dup = DublettenTab(nb, self)
         self.tab_img = BilderTab(nb, self)
@@ -1776,6 +2156,7 @@ class App(tk.Tk):
         self.tab_idx = IndexTab(nb, self)
         self.tab_exp = ExplorerTab(nb, self)
         nb.add(self.tab_inv, text="  1 · Inventur  ")
+        nb.add(self.tab_reg, text="  2 · Regeln  ")
         nb.add(self.tab_sam, text="  3 · Sammeln  ")
         nb.add(self.tab_dup, text="  4 · Dubletten  ")
         nb.add(self.tab_img, text="  5 · Bilder  ")
@@ -1785,6 +2166,8 @@ class App(tk.Tk):
 
         foot = ttk.Frame(self, padding=(14, 0, 14, 10))
         foot.pack(fill="x")
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+
         ttk.Label(foot, style="Hint.TLabel",
                   text="Dieses Programm löscht nichts. Es kopiert, oder es verschiebt in die "
                        "Quarantäne beziehungsweise in Jahresordner — und fragt vorher.").pack(anchor="w")
@@ -1801,6 +2184,7 @@ class App(tk.Tk):
         st.configure("Lead.TLabel", font=("Segoe UI", 9), foreground=muted)
         st.configure("Hint.TLabel", font=("Segoe UI", 8), foreground=muted)
         st.configure("Status.TLabel", font=("Consolas", 9), foreground=accent)
+        st.configure("Detail.TLabel", font=("Consolas", 9), foreground=muted)
         st.configure("Sum.TLabel", font=("Segoe UI Semibold", 9), foreground=ink)
         st.configure("PaneId.TLabel", font=("Segoe UI Semibold", 9), foreground=accent)
         st.configure("Go.TButton", font=("Segoe UI Semibold", 9))
@@ -1818,11 +2202,40 @@ class App(tk.Tk):
     def limit_bytes(self):
         return self.limit_mb() * 1048576
 
+    def workers(self):
+        try:
+            return max(1, min(16, int(self.var_workers.get())))
+        except ValueError:
+            return DEFAULT_WORKERS
+
     def set_source(self, sid, path, entries):
         self.source_id, self.source_path, self._entries = sid, path, entries
 
     def current_entries(self):
         return self._entries
+
+    # -- Einstellungen ----------------------------------------------
+
+    def remember(self, key, value):
+        """Merkt sich einen zuletzt benutzten Pfad."""
+        if value:
+            SETTINGS.setdefault("pfade", {})[key] = value
+
+    def recall(self, key):
+        return SETTINGS.get("pfade", {}).get(key, "")
+
+    def persist(self):
+        SETTINGS["limit_mb"] = self.limit_mb()
+        SETTINGS["skip_video"] = bool(self.var_skip_video.get())
+        SETTINGS["workers"] = self.workers()
+        SETTINGS["junk_dirs"] = list(JUNK_DIRS)
+        SETTINGS["junk_exts"] = sorted(JUNK_EXTS)
+        SETTINGS["junk_names"] = sorted(JUNK_NAMES)
+        save_settings(SETTINGS)
+
+    def on_close(self):
+        self.persist()
+        self.destroy()
 
 
 def main():

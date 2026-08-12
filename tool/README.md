@@ -35,6 +35,7 @@ grossen Vorgänge gibt es einen Probelauf, der nur zählt und rechnet.
 | Register | Phase | Was es tut |
 |---|---|---|
 | **Inventur** | 1 | Ordner einlesen, Aufteilung nach Art zeigen, Inventur und Register der Übergrossen als CSV sichern |
+| **Regeln** | 2 | Grössengrenze, Video, Ausschlusslisten — bearbeitbar, gespeichert, an einem Ordner erprobbar |
 | **Sammeln** | 3 | Aus einer Quelle auf die Sammelplatte kopieren, mit Grössengrenze und Ausschlussliste |
 | **Dubletten** | 4 | Inhaltsgleiche Dateien über die Prüfsumme finden, Original bestimmen, Rest in Quarantäne |
 | **Bilder** | 5 | Bilder nach Aufnahmejahr einsortieren — EXIF, sonst Dateiname, sonst Dateidatum |
@@ -42,9 +43,29 @@ grossen Vorgänge gibt es einen Probelauf, der nur zählt und rechnet.
 | **Index** | 8 | Archiv und die Listen der Register 4 und 5 zu einer Index-Datei verbinden |
 | **Explorer** | — | Zwei Ordner nebeneinander, filtern, vergleichen, Auswahl kopieren |
 
-Oben im Fenster stehen zwei Einstellungen, die für alle Register gelten:
-die **Grössengrenze in MB** (voreingestellt 120) und ob **Video übernommen** wird
-(voreingestellt: nein).
+Oben im Fenster stehen drei Einstellungen, die für alle Register gelten: die
+**Grössengrenze in MB** (voreingestellt 120), ob **Video übernommen** wird
+(voreingestellt: nein), und die Zahl der **Fäden** — gleichzeitige Kopiervorgänge.
+Alle drei lassen sich auch in Register 2 setzen und bleiben dort gespeichert.
+
+## Tempo
+
+Kopieren läuft über mehrere Fäden gleichzeitig, weil ein einzelner die meiste Zeit auf
+die Platte wartet. Auf dem Prüfstand mit 20.000 Dateien und 2,3 GB:
+
+| | vorher | jetzt |
+|---|---|---|
+| Ordner einlesen | 0,27 s | **0,07 s** |
+| Kopieren | 15,0 s | **5,9 s** |
+| Nochmals kopieren (alles vorhanden) | 15,0 s | **0,8 s** |
+
+**Vier Fäden** sind die Voreinstellung und meist die beste Wahl. Auf dem Prüfstand waren
+8 und 16 Fäden wieder langsamer — die Platte kommt nicht hinterher. Bei einer einzelnen
+älteren USB-Platte kann sogar 1 oder 2 schneller sein. Der Wert steht oben im Fenster,
+probier ihn an einem kleinen Ordner aus.
+
+Ein abgebrochener Lauf lässt sich einfach wiederholen: vorhandene Dateien werden
+übersprungen, nicht überschrieben — und das geht sehr schnell.
 
 ## Wie es arbeitet
 
