@@ -112,21 +112,29 @@ umbenannt wurden, steht am Ende in der Statuszeile.
 
 ## Am grossen Bestand erprobt
 
-Geprüft an 34.521 Dateien mit 2,8 GB über fünf Quellen, mit Dubletten über Rechnergrenzen,
-Umlauten, 164 Zeichen langen Pfaden, Videos, Übergrossen und Programmordnern:
+Jedes Register wurde an einem Bestand geprüft, bei dem für jede Datei vorher feststand,
+was herauskommen muss — Dubletten in bekannten Gruppen, Bilder mit hinterlegtem
+Aufnahmejahr, Ordner mit bekannter Kategorie, Fallen mit gleichem Namen und gleicher
+Grösse bei verschiedenem Inhalt.
 
-| Schritt | Menge | Dauer |
+| Register | Prüfung | Ergebnis |
 |---|---|---|
-| Inventur über alle fünf Quellen | 34.521 Dateien | 0,5 s |
-| Regeln erproben | 88 % fahren mit | 0,05 s |
-| Sammeln | 30.273 Dateien, 1,8 GB | 9,2 s |
-| Sammeln wiederholt | alles vorhanden | 1,1 s |
-| Dubletten über Prüfsummen | 1.898 Gruppen | 2,4 s |
-| Bilder nach Jahr | 20.129 Bilder | 1,7 s |
-| Kategorien | 21 Ordner beurteilt | 0,1 s |
-| Index | 30.273 Zeilen | 0,3 s |
+| 1 · Inventur | 12.542 Dateien, Aufteilung und CSV | Ausschlüsse, Übergrosse und Spalte `faehrt_mit` exakt |
+| 2 · Regeln | Grenze, Videoschalter, Listen ändern | jede Datei genau einmal einsortiert; Regeländerung greift sofort |
+| 3 · Sammeln | 11.227 Dateien kopiert | Probelauf = Ausführung, Quelle unverändert, 40 Stichproben byteweise gleich |
+| 4 · Dubletten | 2.000 bekannte Gruppen, 6.800 Fallen | 2.000 von 2.000 getroffen, 0 übersehen, 0 Falle zugeschnappt |
+| 5 · Bilder | 3.620 Bilder mit bekanntem Jahr | alle richtig; EXIF schlägt widersprechenden Dateinamen |
+| 7 · Kategorien | 5 Ordner mit bekannter Kategorie | alle 5 richtig, Volumen schlägt Anzahl |
+| 8 · Index | 27.785 Zeilen, 800 Fallen | jede Dubletten-Angabe an der richtigen Datei |
+| Explorer | 8 Filterproben, 4 Vergleichsarten | jede Zahl mit unabhängiger Nachzählung deckungsgleich |
 
-Die Quelle war danach unverändert, Umlaute und lange Pfade heil.
+Tempo an 34.521 Dateien mit 2,8 GB über fünf Quellen: Inventur 0,5 s · Sammeln 9,2 s ·
+Wiederholung 1,1 s · Dubletten 2,4 s · Bilder 1,7 s · Index 0,3 s.
+
+Umlaute und 164 Zeichen lange Pfade blieben heil, die Quelle war nach jedem Lauf unverändert.
+
+Diese Prüfungen laufen gegen die Programmlogik, nicht gegen die Fenster. Dass sich alle
+Register aufbauen und bedienen lassen, ist getrennt geprüft.
 
 ## Selbst starten, ohne den Build abzuwarten
 
