@@ -560,8 +560,9 @@
       <div class="fact"><dt>Grösse pro Datei</dt><dd>höchstens 120 MB</dd></div>
       <div class="fact"><dt>Speicher im Ziel</dt><dd>2 TB oder mehr</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
-      <div class="fact"><dt>Rechner</dt><dd>4 × Windows, per WLAN</dd></div>
-      <div class="fact"><dt>Weg</dt><dd>Sammelplatte in NTFS, wandernd</dd></div>
+      <div class="fact"><dt>Rechner</dt><dd>4 × Windows, im WLAN</dd></div>
+      <div class="fact"><dt>Einsammeln</dt><dd>NTFS-Platte, wandert per USB</dd></div>
+      <div class="fact"><dt>Upload</dt><dd>Sammelrechner am LAN-Kabel</dd></div>
       <div class="fact"><dt>Duplikate</dt><dd>markieren, nie löschen</dd></div>
       <div class="fact"><dt>Werkzeuge</dt><dd>Programme mit Oberfläche</dd></div>
     </dl>
@@ -699,25 +700,25 @@
         </p>
       </div>
 
-      <div class="note warn">
-        <span class="note-label">Wo das WLAN dich wirklich trifft</span>
+      <div class="note">
+        <span class="note-label">Das Kabel greift genau an einer Stelle</span>
         <p>
-          Nicht beim Einsammeln — dort läuft alles über USB. Sondern in <b>Phase 5</b>, wenn
-          Hunderte Gigabyte vom Sammelrechner zu Google Drive gehen. Das sind Tage Dauerübertragung
-          über Funk, und jeder Abbruch kostet Kontrolle.
+          Beim Einsammeln nicht — dort läuft alles über USB, das WLAN ist unbeteiligt. Und es macht
+          auch den Weg über Netzwerkfreigaben nicht wieder attraktiv: die anderen drei Rechner hängen
+          weiter im Funknetz, ihr Weg zum Sammelrechner führt also so oder so über WLAN. Die Platte wandert.
         </p>
         <p>
-          <b>Zieh für diese eine Phase ein LAN-Kabel</b> vom Sammelrechner zum Router, auch
-          provisorisch quer durch den Flur. Das ist der einzige Handgriff in diesem ganzen Plan,
-          der Tage spart. Geht das gar nicht: den Sammelrechner in Sichtweite des Routers stellen,
-          5-GHz-Netz verwenden, Energiesparmodus und automatischen Neustart abschalten, und
-          quellenweise in kleineren Blöcken hochladen, damit ein Abbruch nur einen Block betrifft.
+          Wo das Kabel zählt, ist <b>Phase 5</b> — Tage Dauerübertragung vom Sammelrechner zu Google Drive.
+          Da du es legen kannst, gelten die Zeiten in der <a href="#zeit">Uploadtabelle</a> unverkürzt,
+          statt sich über Funk zu verdoppeln, und der Upload läuft nachts unbeaufsichtigt durch.
+          <b>Damit ist der Sammelrechner der, den du mit dem Kabel erreichst</b> — dieses Kriterium
+          geht in Phase 0 allen anderen vor.
         </p>
       </div>
 
       <h3>Der Ablauf mit der Platte</h3>
       <ul>
-        <li>Ein Rechner wird <b>Sammelrechner</b> — der mit dem meisten Platz und der besten Verbindung zum Router. Bei ihm bleibt die Platte am Ende stehen, von ihm läuft der Upload.</li>
+        <li>Ein Rechner wird <b>Sammelrechner</b> — der, an den das LAN-Kabel reicht; bei mehreren der mit dem meisten Platz. Bei ihm bleibt die Platte am Ende stehen, von ihm läuft der Upload.</li>
         <li>Die Platte geht nacheinander an die anderen drei, nimmt deren Auswahl auf, kommt zurück.</li>
         <li>Jedes Mal <b>sicher auswerfen</b>, bevor der Stecker gezogen wird. NTFS verzeiht viel, aber nicht alles.</li>
         <li>Nach jedem Rechner in der Datenträgerverwaltung kurz eine Fehlerprüfung laufen lassen — dauert Minuten und erspart böse Überraschungen in Phase 4.</li>
@@ -759,7 +760,8 @@
               <li>Zielkonto festlegen. Es gibt nur <b>ein</b> Zielkonto — alle anderen Google-Konten sind Quellen.</li>
               <li><code>Andreas_2026_Dateiverwaltung</code> in „Meine Ablage“ anlegen, dazu das Ordnergerüst aus Abschnitt <a href="#struktur">Zielstruktur</a>.</li>
               <li><b>Quellenliste</b> anlegen: jede Quelle bekommt ein kurzes Kürzel, das nie wieder geändert wird — <code>PC1</code> bis <code>PC4</code>, <code>EXT1</code> ff., <code>DBX</code>, <code>ODR</code>, <code>ICL</code>, <code>GD2</code>. Dazu Notiz: welches Gerät, welche Laufwerke, wer nutzt es.</li>
-              <li><b>Sammelrechner bestimmen.</b> Der mit dem meisten Platz und der besten Verbindung zum Router — er trägt in Phase 5 den tagelangen Upload. Von ihm aus laufen Dublettensuche und Übertragung; er ist für ein bis zwei Wochen die Zentrale.</li>
+              <li><b>Sammelrechner bestimmen.</b> Erstes Kriterium: das LAN-Kabel muss ihn erreichen. Zweites: freier Platz. Von ihm aus laufen Dublettensuche und Upload; er ist für ein bis zwei Wochen die Zentrale.</li>
+              <li><b>Kabel jetzt schon legen und testen</b>, nicht erst in Phase 5. Auf <code>speedtest.net</code> den Upload-Wert mit Kabel messen und notieren — daraus ergibt sich, wie lange Phase 5 dauert und wie du sie einteilst.</li>
               <li><b>Sammelplatte prüfen:</b> Dateisystem <b>NTFS</b> (im Explorer unter Eigenschaften ablesbar), freier Platz mindestens in Höhe des Gesamtvolumens aus Phase 1 plus 20 Prozent Reserve für die Quarantäne.</li>
               <li>Werkzeuge installieren (siehe <a href="#werkzeuge">Werkzeuge</a>): WizTree, Everything und FreeFileSync auf allen vier Rechnern, AllDup und Drive für Desktop nur auf dem Sammelrechner.</li>
               <li>Google Drive für Desktop <b>nur auf dem Sammelrechner</b> einrichten, Zielordner als gestreamten Ordner einbinden.</li>
@@ -877,7 +879,9 @@
               <li>Alles läuft <b>vom Sammelrechner</b> aus: Google Drive für Desktop öffnen, den gestreamten Zielordner im Explorer ansteuern, von der Sammelplatte hineinkopieren. Die anderen drei Rechner sind ab hier nicht mehr beteiligt.</li>
               <li><b>Quelle für Quelle</b> hochladen, nicht alles zusammen: eine Quelle anstossen, Abschluss prüfen, Dateianzahl vergleichen, dann die nächste. So bleibt ein Abbruch lokalisierbar.</li>
               <li>Die Quarantäne kommt mit — nach <code>90_Quarantaene_Duplikate</code>, in Unterordnern je Quelle. Bei 2 TB Speicher kostet das nichts, und die Entscheidung „wirklich weg“ bleibt dir.</li>
-              <li>Rechner nicht in den Ruhezustand schicken. Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
+              <li><b>Kabel vor dem Start prüfen</b> und das WLAN am Sammelrechner für die Dauer der Phase abschalten — sonst wechselt Windows mitten in der Nacht zurück auf Funk und der Durchsatz bricht ein, ohne dass etwas abbricht.</li>
+              <li>Damit der Upload nachts durchläuft: im Energiesparplan <b>Energiesparmodus und Ruhezustand auf „Nie“</b>, und in den Windows-Update-Einstellungen die <b>Nutzungszeit</b> so setzen, dass kein automatischer Neustart in die Nacht fällt. Der Bildschirm darf ausgehen, der Rechner nicht.</li>
+              <li>Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
               <li>Nach jedem Block: in Drive den Ordner öffnen, „Details“ prüfen, Anzahl gegen den lokalen Sammelordner halten.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> Drive für Desktop „Alles aktuell“ meldet <b>und</b> die Dateianzahl je Quellordner mit dem lokalen Sammelordner übereinstimmt.</p>
@@ -1152,7 +1156,7 @@
             <tr><td><b>Zeitstempel gehen verloren</b></td><td>Manche Kopierwege setzen das Änderungsdatum auf heute. Damit ist die zeitliche Einordnung des gesamten Bestands hin.</td><td>FreeFileSync erhält Zeitstempel. Nach dem ersten Lauf an drei Dateien im Sammelordner kontrollieren.</td></tr>
             <tr><td><b>Verschlüsselte Archive</b></td><td>Passwortgeschützte ZIP- und Container-Dateien wandern mit, lassen sich aber später nicht mehr öffnen.</td><td>Beim Sichten mit <code>status:unklar</code> markieren, Passwörter jetzt suchen, solange die alten Rechner noch laufen.</td></tr>
             <tr><td><b>Umlaute und Sonderzeichen</b></td><td>Dateinamen aus alten Beständen — noch in der Zeichenkodierung von Windows XP geschrieben — kommen in Drive verstümmelt an.</td><td>Fehlerprotokoll prüfen. Betroffene Ordner nach <code>99_Zu_Pruefen/</code> und einzeln nacharbeiten.</td></tr>
-            <tr><td><b>WLAN bricht mitten im Upload ab</b></td><td>Drive für Desktop nimmt die Übertragung zwar wieder auf, aber ein Rechner, der nachts in den Energiesparmodus geht, überträgt gar nichts.</td><td>LAN-Kabel für Phase 5. Energiesparmodus und automatischen Neustart nach Updates abschalten, quellenweise in Blöcken hochladen.</td></tr>
+            <tr><td><b>Der Upload schläft ein</b></td><td>Drive für Desktop nimmt eine unterbrochene Übertragung zwar wieder auf — aber ein Rechner im Energiesparmodus oder nach automatischem Update-Neustart überträgt tagelang gar nichts, ohne Fehlermeldung.</td><td>Energiesparmodus und Ruhezustand auf „Nie“, Nutzungszeit für Windows Update setzen, WLAN am Sammelrechner abschalten, damit er am Kabel bleibt. Jeden Morgen kurz den Fortschritt ansehen.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1166,9 +1170,9 @@
       <p>
         Massgeblich ist die <b>Upload</b>-Geschwindigkeit deines Anschlusses, nicht die Download-Rate,
         mit der Tarife beworben werden — bei DSL liegt sie oft zehnmal niedriger. Die Werte gelten
-        je 100 GB und enthalten einen Aufschlag von 30 Prozent für den Mehraufwand bei vielen kleinen Dateien.
-        <b>Sie setzen eine Kabelverbindung voraus.</b> Über WLAN kommt die Hälfte davon an, wenn der
-        Rechner nicht in Router-Nähe steht — dann verdoppeln sich alle Zeiten in der Tabelle.
+        je 100 GB, enthalten einen Aufschlag von 30 Prozent für den Mehraufwand bei vielen kleinen Dateien
+        und setzen eine Kabelverbindung voraus — <b>die bei dir gegeben ist, sie gelten also unverkürzt.</b>
+        Miss deinen Upload-Wert mit gestecktem Kabel, dann weisst du, welche Zeile deine ist.
       </p>
 
       <div class="scroller">
@@ -1213,16 +1217,15 @@
     <section id="fragen">
       <div class="sec-head"><span class="sec-num">?</span><h2>Was ich noch von dir brauche</h2></div>
       <p class="lede">
-        Vier Windows-Rechner, WLAN, wandernde NTFS-Platte — damit ist der Weg vollständig festgelegt
-        und der Plan sofort ausführbar. Diese sechs Antworten schärfen ihn weiter;
-        die erste ist die einzige, die noch etwas am Ablauf ändern kann.
+        Vier Windows-Rechner, wandernde NTFS-Platte, Upload am Kabel — <b>der Ablauf steht damit
+        vollständig</b> und du kannst mit Phase 0 anfangen. Keine dieser fünf Antworten ändert noch
+        etwas an der Reihenfolge; sie füllen nur Werte ein, die sich unterwegs sowieso ergeben.
       </p>
 
       <ol class="questions">
-        <li><div><b>Lässt sich für Phase 5 ein LAN-Kabel zum Sammelrechner legen?</b><span>Und sei es provisorisch für ein paar Tage. Halbiert die Uploadzeit und macht sie berechenbar. Wenn nein, plane ich Phase 5 in kleineren Blöcken.</span></div></li>
-        <li><div><b>Welche externe Platte ist als Sammelplatte vorgesehen — Grösse, freier Platz, schon NTFS?</b><span>Nötig ist das Gesamtvolumen aus Phase 1 plus 20 Prozent für die Quarantäne. Falls sie heute exFAT ist: Umformatieren löscht sie vollständig, das will vorher geklärt sein.</span></div></li>
+        <li><div><b>Welche externe Platte wird die Sammelplatte — Grösse, freier Platz, schon NTFS?</b><span>Nötig ist das Gesamtvolumen aus Phase 1 plus 20 Prozent für die Quarantäne. Falls sie heute exFAT ist: Umformatieren löscht sie vollständig, das will vorher geklärt sein.</span></div></li>
         <li><div><b>Welcher Rechner hat den wichtigsten, gepflegtesten Bestand?</b><span>Er geht als Erster auf die Platte und steht in AllDup ganz oben — seine Ordnernamen prägen die spätere Ablage, seine Dateien landen nie in der Quarantäne.</span></div></li>
-        <li><div><b>Wie schnell ist dein Upload?</b><span>Auf <code>speedtest.net</code> messen, den <em>Upload</em>-Wert notieren. Bestimmt, ob Phase 5 ein Wochenende oder zwei Wochen dauert.</span></div></li>
+        <li><div><b>Wie schnell ist dein Upload mit gestecktem Kabel?</b><span>Auf <code>speedtest.net</code> messen, den <em>Upload</em>-Wert notieren. Sagt dir, welche Zeile der Uploadtabelle deine ist — Wochenende oder Woche.</span></div></li>
         <li><div><b>Ist das Zielkonto ein privates Google-Konto oder Workspace?</b><span>Nur Workspace hat Drive-Labels. Dann liessen sich Tags direkt an den Dateien führen statt in der Tabelle.</span></div></li>
         <li><div><b>Sollen Fotos separat nach Google Fotos?</b><span>Dort gibt es Gesichts- und Ortssuche, aber getrennten Speicher und eigene Regeln. Beides zugleich ergibt doppelte Buchhaltung.</span></div></li>
       </ol>
