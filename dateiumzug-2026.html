@@ -562,7 +562,7 @@
       <div class="fact"><dt>Speicher</dt><dd>2 TB, geteilt mit Gmail und Fotos</dd></div>
       <div class="fact"><dt>Ordnung</dt><dd>Quelle, dann Kategorie</dd></div>
       <div class="fact"><dt>Video</dt><dd>nicht dabei, nur erfasst</dd></div>
-      <div class="fact"><dt>Bilder</dt><dd>zentral, nach Jahr</dd></div>
+      <div class="fact"><dt>Bilder</dt><dd>zentral nach Jahr, plus Google Fotos</dd></div>
       <div class="fact"><dt>Rechner</dt><dd>4 × Windows, im WLAN</dd></div>
       <div class="fact"><dt>Einsammeln</dt><dd>NTFS-Platte, wandert per USB</dd></div>
       <div class="fact"><dt>Upload</dt><dd>Sammelrechner am LAN-Kabel</dd></div>
@@ -644,8 +644,8 @@
             </tr>
             <tr>
               <td><b>Ein Speicher für drei Dienste</b></td>
-              <td>Die 2 TB teilen sich <b>Drive, Gmail und Google Fotos</b>. Ein volles Postfach oder eine grosse Fotomediathek verkleinern den Platz für den Umzug.</td>
-              <td>Vor Phase 6 unter <code>one.google.com/storage</code> die tatsächliche Aufteilung ansehen und die freie Menge gegen das Volumen aus Phase 1 halten.</td>
+              <td>Die 2 TB teilen sich <b>Drive, Gmail und Google Fotos</b>. Weil deine Fotos künftig in Drive <em>und</em> in Fotos liegen, zählt jedes Bild zweimal — die beiden Dienste kennen einander nicht.</td>
+              <td>Vor Phase 6 unter <code>one.google.com/storage</code> die Aufteilung ansehen. Die zweite Fotokopie in <b>Speicherplatzsparend</b> hochladen: das drückt den Aufschlag von 100 auf etwa 10 bis 30 Prozent.</td>
             </tr>
             <tr>
               <td><b>Kein Administrator im Rücken</b></td>
@@ -793,7 +793,7 @@
               <li><b>Sammelrechner bestimmen.</b> Erstes Kriterium: das LAN-Kabel muss ihn erreichen. Zweites: freier Platz. Von ihm aus laufen Dublettensuche und Upload; er ist für ein bis zwei Wochen die Zentrale.</li>
               <li><b>Kabel jetzt schon legen und testen</b>, nicht erst in Phase 6. Auf <code>speedtest.net</code> den Upload-Wert mit Kabel messen und notieren — daraus ergibt sich, wie lange Phase 6 dauert und wie du sie einteilst.</li>
               <li><b>Sammelplatte prüfen:</b> Dateisystem <b>NTFS</b> (im Explorer unter Eigenschaften ablesbar), freier Platz mindestens in Höhe des Gesamtvolumens aus Phase 1 plus 20 Prozent Reserve für die Quarantäne.</li>
-              <li><b>Freien Drive-Speicher ablesen</b> unter <code>one.google.com/storage</code>. Die 2 TB teilen sich Drive, Gmail und Fotos — massgeblich ist, was davon übrig ist. Zahl in die Quellenliste eintragen, sie ist die Obergrenze für Phase 6.</li>
+              <li><b>Freien Drive-Speicher ablesen</b> unter <code>one.google.com/storage</code>. Die 2 TB teilen sich Drive, Gmail und Fotos — massgeblich ist, was davon übrig ist. Zahl in die Quellenliste eintragen, sie ist die Obergrenze für Phase 6. <b>Bilder brauchen darin Platz für anderthalb Kopien</b>: das Original in Drive plus die komprimierte in Google Fotos.</li>
               <li>Werkzeuge installieren (siehe <a href="#werkzeuge">Werkzeuge</a>): WizTree, Everything und FreeFileSync auf allen vier Rechnern, AllDup und Drive für Desktop nur auf dem Sammelrechner.</li>
               <li>Google Drive für Desktop <b>nur auf dem Sammelrechner</b> einrichten, Zielordner als gestreamten Ordner einbinden.</li>
             </ul>
@@ -946,6 +946,7 @@
               <li><b>Vorschau lesen, bevor du ausführst.</b> Advanced Renamer zeigt für jede Datei alten und neuen Pfad. Das ist deine einzige Kontrolle — nach dem Lauf sind zehntausende Dateien woanders.</li>
               <li><b>Kollisionsregel auf Nummer anhängen stellen</b>, nicht auf Überschreiben. <code>IMG_0001.jpg</code> gibt es aus vier Quellen garantiert mehrfach, und exakt gleiche wurden in Phase 4 schon aussortiert — was jetzt kollidiert, ist <em>verschieden</em> und muss beides bleiben.</li>
               <li>Jahre, die nicht stimmen können — 1970, 1980, alles vor 1995 oder in der Zukunft — nach <code>_Jahr_unklar\</code>. Grosszügig sein: dieser Ordner ist billiger als ein falsch einsortiertes Jahrzehnt.</li>
+              <li>Dieser Ordner wird in Phase 6 <b>zweimal</b> gebraucht: einmal für Drive, einmal als Quelle für Google Fotos. Was hier fehlt, fehlt an beiden Stellen.</li>
               <li><b>Jetzt der Ähnlichkeitslauf:</b> <b>dupeGuru</b> im Modus <b>Bilder</b> über <code>_BILDER\</code>. Er findet dieselbe Aufnahme in anderer Auflösung, neu komprimierte Kopien, Screenshots von Screenshots. Treffer als Liste exportieren und im Index auf <code>status:unklar</code> setzen — <b>nicht verschieben</b>, die brauchen dein Auge.</li>
             </ul>
 
@@ -979,8 +980,8 @@
         <article class="phase">
           <div class="phase-marker">Phase 6<em>1–5 Tage</em></div>
           <div class="phase-body">
-            <h3>Upload nach Google Drive</h3>
-            <p>Weitgehend Wartezeit — aber Wartezeit, die schiefgehen kann, wenn sie unbeaufsichtigt in einem Rutsch läuft.</p>
+            <h3>Upload — nach Drive, dann nach Google Fotos</h3>
+            <p>Weitgehend Wartezeit — aber Wartezeit, die schiefgehen kann, wenn sie unbeaufsichtigt in einem Rutsch läuft. Zwei getrennte Übertragungen: erst der gesamte Bestand nach Drive, danach die Bilder ein zweites Mal nach Google Fotos.</p>
             <ul>
               <li>Alles läuft <b>vom Sammelrechner</b> aus: Google Drive für Desktop öffnen, den gestreamten Zielordner im Explorer ansteuern, von der Sammelplatte hineinkopieren. Die anderen drei Rechner sind ab hier nicht mehr beteiligt.</li>
               <li><b>Quelle für Quelle</b> hochladen, nicht alles zusammen: eine Quelle anstossen, Abschluss prüfen, Dateianzahl vergleichen, dann die nächste. So bleibt ein Abbruch lokalisierbar.</li>
@@ -990,7 +991,47 @@
               <li>Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
               <li>Nach jedem Block: in Drive den Ordner öffnen, „Details“ prüfen, Anzahl gegen den lokalen Sammelordner halten.</li>
             </ul>
-            <p class="done"><b>Fertig, wenn</b> Drive für Desktop „Alles aktuell“ meldet <b>und</b> die Dateianzahl je Quellordner mit dem lokalen Sammelordner übereinstimmt.</p>
+            <h3 style="margin-top:var(--s5)">Und dann die Bilder nach Google Fotos</h3>
+            <p>
+              Erst wenn Drive vollständig durch ist. Google Fotos ist ein <b>eigener Dienst</b> —
+              seit 2021 gibt es keine Verbindung zu Drive mehr: was in Drive liegt, ist nicht in Fotos,
+              und was du in Fotos löschst, bleibt in Drive. Zwei Kopien, zwei Ablagen, kein Abgleich
+              zwischen ihnen.
+            </p>
+            <ul>
+              <li>In <b>Google Drive für Desktop</b> unter <em>Einstellungen → Mein Computer</em> den Ordner <code>D:\S\_BILDER\</code> hinzufügen und dort <b>„In Google Fotos sichern“</b> aktivieren. Die Drive-Synchronisierung für diesen Ordner <em>nicht</em> zusätzlich einschalten — sonst liegt derselbe Bestand ein drittes Mal im Konto.</li>
+              <li><b>Uploadqualität auf „Speicherplatzsparend“ stellen.</b> Das ist der entscheidende Griff: Fotos werden auf rund 16 Megapixel gerechnet, was für Ansehen, Suchen und Teilen völlig reicht. Deine Originale liegen ja unangetastet in <code>80_Bilder/</code>. Statt doppeltem Speicherbedarf zahlst du so nur zehn bis dreissig Prozent Aufschlag.</li>
+              <li>Google Fotos ordnet <b>selbst nach Aufnahmedatum</b> — die Jahresordner aus Phase 5 spielen dort keine Rolle. Was in <code>_Jahr_unklar\</code> lag, landet entsprechend an unklaren Stellen; das lässt sich in Fotos später je Bild korrigieren.</li>
+              <li>Fotos erkennt <b>identische Uploads</b> und legt sie nicht doppelt an. Ein abgebrochener und wiederholter Lauf schadet also nicht.</li>
+              <li>Nach dem Lauf die Zahl in Fotos gegen die Anzahl Bilddateien in <code>_BILDER\</code> halten. Eine Differenz ist normal — die Formate unten erklären sie.</li>
+            </ul>
+
+            <div class="scroller">
+              <table>
+                <caption>Was Google Fotos annimmt — und was nur in Drive existiert</caption>
+                <thead><tr><th>Formate</th><th>In Google Fotos</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">*.jpg *.jpeg *.png *.heic *.heif *.webp *.gif *.tif *.tiff</td><td>werden übernommen</td></tr>
+                  <tr><td class="mono">*.psd *.psb *.xcf *.ai *.svg *.eps</td><td>werden <b>nicht</b> angenommen — bleiben allein in <code>80_Bilder/</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="note">
+              <span class="note-label">Wer ist das Original</span>
+              <p>
+                <b><code>80_Bilder/</code> in Drive ist das Archiv</b> — vollständig, in Originalauflösung,
+                im Index verzeichnet. <b>Google Fotos ist die Oberfläche</b> zum Suchen und Ansehen:
+                Gesichter, Orte, Rückblicke, die App auf dem Telefon. Genau dafür machst du die zweite Kopie.
+              </p>
+              <p>
+                Halte das auseinander, sonst wird es später teuer: Aufräumen in Fotos ändert nichts
+                am Archiv, und Aufräumen im Archiv ändert nichts an Fotos. Was weg soll, muss an
+                beiden Stellen weg — <b>immer zuerst im Index vermerken</b>, dann in Drive, dann in Fotos.
+              </p>
+            </div>
+
+            <p class="done"><b>Fertig, wenn</b> Drive für Desktop „Alles aktuell“ meldet, die Dateianzahl je Quellordner mit dem lokalen Sammelordner übereinstimmt, und Google Fotos die Bilder aus <code>_BILDER\</code> vollzählig zeigt.</p>
           </div>
         </article>
 
@@ -1040,7 +1081,7 @@
               <li><b>Wenn Video bleiben soll:</b> jetzt ist der Moment für eine eigene, getrennte Sicherung. Die Sammelplatte hat den Platz, dieselben Werkzeuge tun es, und mit dem Register weisst du genau, wo überall Material liegt. Als eigenes kleines Vorhaben, nicht als Anhängsel dieses Umzugs.</li>
               <li><b>Die Sammelplatte wird nicht gelöscht.</b> Sie ist ab jetzt die Zweitkopie: einmal noch vollständig mit dem Drive-Stand abgleichen, dann beschriften, abziehen und weglegen. Eine Kopie, die im selben Konto liegt, ist keine — und hinter einem privaten Konto steht niemand, der es wieder aufsperrt.</li>
               <li><b>Konto absichern</b>, jetzt wo alles daran hängt: zweistufige Bestätigung an, Wiederherstellungsadresse und -nummer prüfen, Backup-Codes ausdrucken und zu den Papieren legen.</li>
-              <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur. Einmal im Halbjahr ein AllDup-Lauf, ein Blick in <code>99_Zu_Pruefen/</code> und ein Abgleich der Sammelplatte. Ein Termin im Kalender, sonst passiert es nicht.</li>
+              <li><b>Dauerbetrieb:</b> Neue Dateien gehen direkt in die Struktur; neue Bilder nach <code>80_Bilder/&lt;Jahr&gt;/</code>, von wo Drive für Desktop sie automatisch auch nach Fotos sichert. Einmal im Halbjahr ein AllDup-Lauf, ein Blick in <code>99_Zu_Pruefen/</code> und ein Abgleich der Sammelplatte. Ein Termin im Kalender, sonst passiert es nicht.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> die Kontrollzählung stimmt, die Stichprobe lesbar ist, die Sammelplatte als Zweitkopie weggelegt ist und ein wiederkehrender Termin steht.</p>
           </div>
@@ -1136,6 +1177,8 @@
         wenigen Zeilen vorgesehen — dem, was wirklich wichtig ist. Für Bilder ist dieser Index
         besonders wichtig: sie liegen in <code>80_Bilder/</code> von ihrer Herkunft getrennt,
         und <code>quelle_id</code> ist dann die einzige Stelle, an der noch steht, woher sie kamen.
+        Der Index beschreibt dabei <b>das Archiv in Drive</b>, nicht die Zweitkopie in Google Fotos —
+        die ist eine Ansicht, kein eigener Bestand, und wird nicht getrennt verzeichnet.
       </p>
 
       <div class="scroller">
@@ -1265,7 +1308,7 @@
             <tr><td><b>AllDup</b></td><td>Sammelrechner</td><td>Dublettensuche nach Inhalt, Auswahl-Assistent, Aktion „Verschieben“ — auf Windows die schnellste Wahl</td><td class="mono">4</td></tr>
             <tr><td><b>Advanced Renamer</b></td><td>Sammelrechner</td><td>Bilder anhand des EXIF-Aufnahmedatums in Jahresordner verschieben, mit Vorschau vor dem Ausführen</td><td class="mono">5</td></tr>
             <tr><td><b>dupeGuru</b></td><td>Sammelrechner</td><td>ergänzend für <em>ähnliche</em> Fotos, die AllDup nicht findet</td><td class="mono">5</td></tr>
-            <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer</td><td class="mono">0, 6</td></tr>
+            <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer, und die Sicherung des Bilderordners nach Google Fotos</td><td class="mono">0, 6</td></tr>
             <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">8</td></tr>
             <tr><td><b>TreeSize Free</b></td><td>optional</td><td>Alternative zu WizTree, langsamer, dafür bessere Auswertungen</td><td class="mono">1</td></tr>
           </tbody>
@@ -1342,11 +1385,11 @@
             <tr><td>3 · Sammeln</td><td class="num">3–5 Std.</td><td>hoch — Kopieren läuft allein</td></tr>
             <tr><td>4 · Dubletten</td><td class="num">2–4 Std.</td><td>hoch — Prüfsummen brauchen Zeit</td></tr>
             <tr><td>5 · Bilder nach Jahr</td><td class="num">3–5 Std.</td><td>mittel — Vorschau prüfen, dann laufen lassen</td></tr>
-            <tr><td>6 · Upload</td><td class="num">2–3 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
+            <tr><td>6 · Upload Drive und Fotos</td><td class="num">3–4 Std.</td><td>sehr hoch — nur Kontrolle</td></tr>
             <tr><td>7 · Einsortieren</td><td class="num">4–8 Std.</td><td>keine</td></tr>
             <tr><td>8 · Index und Tags</td><td class="num">6–12 Std.</td><td>keine</td></tr>
             <tr><td>9 · Abgleich</td><td class="num">2 Std.</td><td>keine</td></tr>
-            <tr><td><b>Zusammen</b></td><td class="num"><b>30–49 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
+            <tr><td><b>Zusammen</b></td><td class="num"><b>31–50 Std.</b></td><td>plus 1–5 Tage Übertragung</td></tr>
           </tbody>
         </table>
       </div>
@@ -1358,7 +1401,7 @@
       <p class="lede">
         Vier Windows-Rechner, wandernde NTFS-Platte, Upload am Kabel, privates Google-Konto —
         <b>der Plan ist damit vollständig festgelegt</b> und du kannst mit Phase 0 anfangen.
-        Diese vier Punkte ändern nichts mehr an der Reihenfolge; sie füllen Werte ein,
+        Diese drei Punkte ändern nichts mehr an der Reihenfolge; sie füllen Werte ein,
         die sich in Phase 0 und 1 ohnehin ergeben.
       </p>
 
@@ -1366,7 +1409,6 @@
         <li><div><b>Welche externe Platte wird die Sammelplatte — Grösse, freier Platz, schon NTFS?</b><span>Nötig ist das Gesamtvolumen aus Phase 1 plus 20 Prozent für die Quarantäne. Falls sie heute exFAT ist: Umformatieren löscht sie vollständig, das will vorher geklärt sein. Sie bleibt danach dauerhaft als Zweitkopie liegen — also keine, die du bald anders brauchst.</span></div></li>
         <li><div><b>Welcher Rechner hat den wichtigsten, gepflegtesten Bestand?</b><span>Er geht als Erster auf die Platte und steht in AllDup ganz oben — seine Ordnernamen prägen die spätere Ablage, seine Dateien landen nie in der Quarantäne.</span></div></li>
         <li><div><b>Wie viel von den 2 TB sind wirklich frei?</b><span>Unter <code>one.google.com/storage</code> nachsehen: Drive, Gmail und Fotos teilen sich den Speicher. Die freie Menge gehört neben das Volumen aus Phase 1 in die Quellenliste.</span></div></li>
-        <li><div><b>Sollen Fotos separat nach Google Fotos?</b><span>Dort gibt es Gesichts- und Ortssuche — aber der Speicher ist derselbe, und dieselben Bilder in Drive <em>und</em> in Fotos zählen doppelt. Entweder, oder.</span></div></li>
       </ol>
     </section>
 
