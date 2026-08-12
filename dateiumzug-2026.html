@@ -1527,15 +1527,18 @@
     <section id="werkzeuge">
       <div class="sec-head"><span class="sec-num">⌾</span><h2>Werkzeugkasten</h2></div>
       <p class="lede">
-        Alles mit grafischer Oberfläche, alles kostenlos, alles für Windows. Die ersten drei
-        kommen auf alle vier Rechner, der Rest nur auf den Sammelrechner. Vor Phase 1 installieren:
-        Werkzeugsuche mittendrin kostet mehr Zeit als der Umzug selbst.
+        Alles mit grafischer Oberfläche, alles kostenlos, alles für Windows. Das erste ist
+        eigens für diesen Ablauf gebaut und deckt vier Phasen allein ab — die darunter sind
+        die bewährten Einzelwerkzeuge, falls du lieber damit arbeitest oder ein Ergebnis
+        gegenprüfen willst. Vor Phase 1 bereitlegen: Werkzeugsuche mittendrin kostet mehr
+        Zeit als der Umzug selbst.
       </p>
 
       <div class="scroller">
         <table>
           <thead><tr><th>Werkzeug</th><th>Installieren auf</th><th>Wofür</th><th>Phase</th></tr></thead>
           <tbody>
+            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten und Bilder in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5</td></tr>
             <tr><td><b>WizTree</b></td><td>alle vier</td><td>Inventur in Sekunden, CSV-Export der kompletten Dateiliste — Rohdaten für den Index</td><td class="mono">1</td></tr>
             <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
             <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
@@ -1667,6 +1670,24 @@
       <p>
         <b>Gelöscht wird hier nichts.</b> Das Werkzeug kennt keine Löschfunktion — es liest, filtert,
         vergleicht und kopiert.
+      </p>
+    </div>
+
+    <div class="note" style="margin-bottom:var(--s2)">
+      <span class="note-label">Es gibt das auch als richtiges Programm</span>
+      <p>
+        Der Explorer hier ist an die Grenzen eines Browsers gebunden. Für den Ernstfall liegt im
+        Repository unter <code>tool/</code> ein Windows-Programm, das dieselbe Arbeit ohne diese
+        Grenzen tut — und dazu Inventur, Dublettensuche über Prüfsummen und die
+        Bildereinsortierung nach Jahr. Eine Datei, Doppelklick, nichts zu installieren.
+        Die Anleitung steht in <code>tool/README.md</code>; die fertige Datei liegt im
+        Repository unter <b>Actions</b> beim Lauf „Windows-Programm bauen“.
+      </p>
+      <p>
+        <b>Was das Programm besser kann:</b> Hunderttausende Dateien statt einiger tausend,
+        echte Prüfsummen, Aufnahmejahre direkt aus den EXIF-Daten, lange Windows-Pfade,
+        Probeläufe vor jedem Schreibvorgang — und es läuft weiter, wenn du das Fenster wegklickst.
+        Der Explorer hier bleibt für den schnellen Blick zwischendurch.
       </p>
     </div>
 
