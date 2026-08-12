@@ -1445,7 +1445,8 @@ class BilderTab(Section):
                 if os.path.basename(target) != e.name:
                     umbenannt += 1
                 plan.append((e.abspath, target, e.size))
-                rows.append((str(year) if year else "unklar", source, e))
+                rows.append((str(year) if year else "unklar", source, e,
+                             os.path.basename(target)))
             rep = transfer(plan, job, dry_run=dry, move=move, workers=self.app.workers())
             job.done("img", (rep, rows, dry, umbenannt))
 
@@ -1458,10 +1459,10 @@ class BilderTab(Section):
         for r in self.tree.get_children():
             self.tree.delete(r)
         per_year = {}
-        for year, source, e in rows:
+        for year, source, e, ziel in rows:
             per_year[year] = per_year.get(year, 0) + 1
-        for i, (year, source, e) in enumerate(rows[:MAX_ROWS]):
-            self.tree.insert("", "end", values=(year, source, e.name, e.reldir,
+        for year, source, e, ziel in rows[:MAX_ROWS]:
+            self.tree.insert("", "end", values=(year, source, ziel, e.reldir,
                                                 "{:.2f}".format(e.size_mb).replace(".", ",")))
         if len(rows) > MAX_ROWS:
             self.tree.insert("", "end", values=("…", "", "weitere ausgeblendet", "", ""))
@@ -1487,11 +1488,11 @@ class BilderTab(Section):
             return
         with open(path, "w", newline="", encoding="utf-8-sig") as f:
             w = csv.writer(f, delimiter=";")
-            w.writerow(["quelle_id", "herkunft_pfad", "dateiname", "groesse_mb",
-                        "jahr", "jahr_quelle", "ziel_ordner"])
-            for jahr, quelle, e in rows:
+            w.writerow(["quelle_id", "herkunft_pfad", "dateiname", "ziel_name",
+                        "groesse_mb", "jahr", "jahr_quelle", "ziel_ordner"])
+            for jahr, quelle, e, ziel in rows:
                 erste = e.rel.replace("\\", "/").split("/")[0]
-                w.writerow([erste, e.reldir, e.name,
+                w.writerow([erste, e.reldir, e.name, ziel,
                             "{:.2f}".format(e.size_mb).replace(".", ","),
                             jahr, quelle, jahr])
         self.say("Gesichert: " + path + " — diese Datei liest Register 8 ein.")
@@ -2051,19 +2052,41 @@ class IndexTab(Section):
             job.say("Lese Archiv …")
             entries = [e for e in scan_folder(root, job) if not is_junk(e)]
 
-            dup_by_key, dup_hits = {}, 0
+            # Verknuepft wird ueber Pfad UND Name — das ist je Zeile
+            # eindeutig. Name und Groesse allein reichen nicht: eine
+            # Sicherungskopie traegt denselben Namen wie ihr Original, und
+            # eine unbeteiligte Datei kann zufaellig beides teilen. Dann
+            # bekaeme sie eine Dubletten-Angabe, die ihr nicht gehoert.
+            AMBIG = object()
+
+            def merke(tabelle, schluessel, zeile):
+                if schluessel in tabelle and tabelle[schluessel] is not zeile:
+                    tabelle[schluessel] = AMBIG      # mehrdeutig, also unbrauchbar
+                else:
+                    tabelle[schluessel] = zeile
+
+            def hole(tabelle, schluessel):
+                z = tabelle.get(schluessel)
+                return None if z is AMBIG else z
+
+            dup_by_path, dup_hits = {}, 0
             if dup_csv and os.path.isfile(dup_csv):
                 job.say("Lese Dublettenliste …")
                 for r in read_csv_rows(dup_csv):
-                    k = (r.get("dateiname", "").lower(),
-                         (r.get("groesse_mb") or "").replace(",", "."))
-                    dup_by_key[k] = r
+                    pfad = (r.get("original_pfad") or "").replace("\\", "/").lower()
+                    dup_by_path[(pfad, r.get("dateiname", "").lower())] = r
 
-            img_by_name = {}
+            # Bilder liegen im Archiv in Jahresordnern, ihr Herkunftspfad
+            # steht nur in dieser Liste. Der Schluessel enthaelt darum auch
+            # den Jahresordner: eine Datei ausserhalb davon kann gar nicht
+            # zufaellig darauf passen.
+            img_by_ziel = {}
             if img_csv and os.path.isfile(img_csv):
                 job.say("Lese Bilderliste …")
                 for r in read_csv_rows(img_csv):
-                    img_by_name[r.get("dateiname", "").lower()] = r
+                    mb = (r.get("groesse_mb") or "").replace(",", ".")
+                    ziel = (r.get("ziel_name") or r.get("dateiname") or "").lower()
+                    merke(img_by_ziel, ((r.get("jahr") or "").lower(), ziel, mb), r)
 
             job.say("Baue Index …")
             out = []
@@ -2075,8 +2098,17 @@ class IndexTab(Section):
                 parts = e.rel.replace("\\", "/").split("/")
                 quelle = parts[0] if len(parts) > 1 else ""
                 mb = "{:.2f}".format(e.size_mb)
-                d = dup_by_key.get((e.name.lower(), mb))
-                img = img_by_name.get(e.name.lower())
+                name = e.name.lower()
+                pfad = e.reldir.replace("\\", "/").lower()
+                jahr = pfad.rsplit("/", 1)[-1]
+                img = hole(img_by_ziel, (jahr, name, mb))
+                if img:
+                    # ueber die verzeichnete Herkunft zurueck zur Dublettenzeile
+                    d = dup_by_path.get(
+                        ((img.get("herkunft_pfad") or "").replace("\\", "/").lower(),
+                         (img.get("dateiname") or "").lower()))
+                else:
+                    d = dup_by_path.get((pfad, name))
                 if d:
                     dup_hits += 1
                 out.append({
