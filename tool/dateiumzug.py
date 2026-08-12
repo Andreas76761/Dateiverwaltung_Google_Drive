@@ -1011,6 +1011,7 @@ class BilderTab(Section):
         ttk.Button(row, text="Ausführen", style="Go.TButton",
                    command=lambda: self.start(False)).pack(side="left", padx=6)
         ttk.Button(row, text="Abbrechen", command=self.stop).pack(side="left")
+        ttk.Button(row, text="Liste sichern", command=self.export).pack(side="left", padx=6)
 
         frame, self.tree = make_tree(self.body, ("Jahr", "Quelle", "Datei", "Ordner", "MB"),
                                      (80, 90, 260, 340, 80), height=12)
@@ -1068,6 +1069,8 @@ class BilderTab(Section):
 
     def finish(self, _kind, payload):
         rep, rows, dry = payload
+        self.rows = rows
+        self.dst = self.var_dst.get().strip()
         for r in self.tree.get_children():
             self.tree.delete(r)
         per_year = {}
@@ -1084,6 +1087,28 @@ class BilderTab(Section):
         self.say("{}: {} bereit, {} übersprungen, {} fehlgeschlagen."
                  .format("Probelauf" if dry else "Fertig", fmt_count(rep["ok"]),
                          fmt_count(rep["skip"]), fmt_count(rep["fail"])))
+
+
+    def export(self):
+        rows = getattr(self, "rows", None)
+        if not rows:
+            messagebox.showinfo(APP_NAME, "Erst einen Probelauf oder Durchlauf machen.")
+            return
+        path = filedialog.asksaveasfilename(
+            title="Bilderliste sichern", defaultextension=".csv",
+            initialfile="bilder.csv", filetypes=[("CSV", "*.csv")])
+        if not path:
+            return
+        with open(path, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.writer(f, delimiter=";")
+            w.writerow(["quelle_id", "herkunft_pfad", "dateiname", "groesse_mb",
+                        "jahr", "jahr_quelle", "ziel_ordner"])
+            for jahr, quelle, e in rows:
+                erste = e.rel.replace("\\", "/").split("/")[0]
+                w.writerow([erste, e.reldir, e.name,
+                            "{:.2f}".format(e.size_mb).replace(".", ","),
+                            jahr, quelle, jahr])
+        self.say("Gesichert: " + path + " — diese Datei liest Register 8 ein.")
 
 
 # ============================================================
@@ -1332,6 +1357,377 @@ class ExplorerTab(Section):
 
 
 # ============================================================
+#  Register 6 — Kategorien
+# ============================================================
+
+KATEGORIEN = ["01_Dokumente", "02_Bilder_RAW", "03_Audio", "04_Projekte",
+              "05_Code", "06_Archive", "07_Sonstiges"]
+
+CAT2ORDNER = {
+    "dokument": "01_Dokumente",
+    "audio": "03_Audio",
+    "code": "05_Code",
+    "archiv": "06_Archive",
+    "sonstiges": "07_Sonstiges",
+}
+
+
+def folder_survey(entries, depth=2):
+    """
+    Fasst die Dateien zu Ordnern der gewuenschten Tiefe zusammen und
+    schlaegt je Ordner eine Kategorie vor — die Art, die dort das meiste
+    Volumen ausmacht. Volumen statt Anzahl, weil hundert Vorschaubilder
+    neben zehn Vertraegen sonst die Zuordnung kippen.
+    """
+    buckets = {}
+    for e in entries:
+        parts = e.rel.replace("\\", "/").split("/")
+        if len(parts) <= depth:
+            key = "/".join(parts[:-1]) or "."
+        else:
+            key = "/".join(parts[:depth])
+        b = buckets.setdefault(key, {"n": 0, "bytes": 0, "cats": {}})
+        b["n"] += 1
+        b["bytes"] += e.size
+        cat = e.cat
+        if cat == "bild":
+            cat = "bild_raw" if e.ext in RAW_STAY_EXTS else "bild"
+        b["cats"][cat] = b["cats"].get(cat, 0) + e.size
+
+    rows = []
+    for key in sorted(buckets):
+        b = buckets[key]
+        best = max(b["cats"].items(), key=lambda kv: kv[1])[0] if b["cats"] else "sonstiges"
+        if best == "bild_raw":
+            ziel = "02_Bilder_RAW"
+        elif best in ("bild", "video"):
+            ziel = "07_Sonstiges"
+        else:
+            ziel = CAT2ORDNER.get(best, "07_Sonstiges")
+        rows.append({"pfad": key, "n": b["n"], "bytes": b["bytes"],
+                     "art": best, "ziel": ziel})
+    return rows
+
+
+class KategorienTab(Section):
+    def __init__(self, master, app):
+        super().__init__(
+            master, app, "Phase 7 · Kategorien",
+            "Ordner statt Einzeldateien einsortieren. Das Programm schlägt je Ordner eine "
+            "Kategorie vor — nach dem Volumen, nicht nach der Anzahl. Doppelklick auf eine "
+            "Zeile ändert den Vorschlag, dann wird in einem Zug verschoben.")
+
+        g = ttk.Frame(self.body)
+        g.pack(fill="x")
+        self.var_root = tk.StringVar()
+        ttk.Label(g, text="Quelle", width=8).grid(row=0, column=0, sticky="w", pady=3)
+        ttk.Entry(g, textvariable=self.var_root).grid(row=0, column=1, sticky="ew", padx=8, pady=3)
+        ttk.Button(g, text="…", width=4,
+                   command=lambda: self._pick(self.var_root)).grid(row=0, column=2, pady=3)
+        ttk.Label(g, text="Der Ordner einer Quelle, z. B.  G:\\Meine Ablage\\"
+                          "Andreas_2026_Dateiverwaltung\\10_PC1",
+                  style="Hint.TLabel").grid(row=1, column=1, sticky="w", padx=8)
+        g.columnconfigure(1, weight=1)
+
+        row = ttk.Frame(self.body)
+        row.pack(fill="x", pady=(10, 0))
+        ttk.Label(row, text="Ebene").pack(side="left")
+        self.var_depth = tk.StringVar(value="2")
+        ttk.Combobox(row, textvariable=self.var_depth, width=4, state="readonly",
+                     values=["1", "2", "3"]).pack(side="left", padx=(4, 12))
+        ttk.Button(row, text="Vorschläge berechnen",
+                   style="Go.TButton", command=self.start).pack(side="left")
+        ttk.Button(row, text="Abbrechen", command=self.stop).pack(side="left", padx=6)
+        ttk.Button(row, text="Ordnerregister sichern", command=self.export).pack(side="left")
+        ttk.Button(row, text="Jetzt verschieben", command=self.apply).pack(side="left", padx=6)
+
+        frame, self.tree = make_tree(self.body, ("Ordner", "Dateien", "Grösse", "Art", "Ziel"),
+                                     (420, 90, 110, 110, 150), height=14)
+        frame.pack(fill="both", expand=True, pady=10)
+        self.tree.bind("<Double-1>", self.edit_row)
+
+        self.summary = ttk.Label(self.body, text="", style="Sum.TLabel")
+        self.summary.pack(anchor="w")
+        self.rows = []
+        self.entries = []
+
+    def _pick(self, var):
+        p = pick_folder("Ordner wählen")
+        if p:
+            var.set(p)
+
+    def start(self):
+        root = self.var_root.get().strip()
+        if not os.path.isdir(root):
+            messagebox.showwarning(APP_NAME, "Bitte einen vorhandenen Ordner wählen.")
+            return
+        depth = int(self.var_depth.get())
+
+        def work(job):
+            job.say("Lese …")
+            entries = [e for e in scan_folder(root, job) if not is_junk(e)]
+            job.say("Fasse zu Ordnern zusammen …")
+            job.done("kat", (entries, folder_survey(entries, depth)))
+
+        self.run(work, self.finish)
+
+    def finish(self, _kind, payload):
+        self.entries, self.rows = payload
+        self.refresh_tree()
+        offen = sum(1 for r in self.rows if r["ziel"] == "07_Sonstiges")
+        self.summary.configure(
+            text="{} Ordner · {} landen in 07_Sonstiges und wollen angesehen werden"
+            .format(fmt_count(len(self.rows)), fmt_count(offen)))
+        self.say("Doppelklick auf eine Zeile ändert das Ziel. Erst dann verschieben.")
+
+    def refresh_tree(self):
+        for r in self.tree.get_children():
+            self.tree.delete(r)
+        for i, r in enumerate(self.rows):
+            self.tree.insert("", "end", iid=str(i),
+                             values=(r["pfad"], fmt_count(r["n"]), fmt_size(r["bytes"]),
+                                     r["art"], r["ziel"]))
+
+    def edit_row(self, _ev):
+        sel = self.tree.selection()
+        if not sel:
+            return
+        idx = int(sel[0])
+        cur = self.rows[idx]["ziel"]
+        nxt = KATEGORIEN[(KATEGORIEN.index(cur) + 1) % len(KATEGORIEN)] \
+            if cur in KATEGORIEN else KATEGORIEN[0]
+        self.rows[idx]["ziel"] = nxt
+        self.tree.item(sel[0], values=(self.rows[idx]["pfad"], fmt_count(self.rows[idx]["n"]),
+                                       fmt_size(self.rows[idx]["bytes"]),
+                                       self.rows[idx]["art"], nxt))
+
+    def apply(self):
+        if not self.rows:
+            messagebox.showinfo(APP_NAME, "Erst Vorschläge berechnen.")
+            return
+        root = os.path.abspath(self.var_root.get().strip())
+        items = []
+        for r in self.rows:
+            if r["pfad"] in (".", "") or r["pfad"] in KATEGORIEN:
+                continue
+            if r["pfad"].split("/")[0] in KATEGORIEN:
+                continue
+            src = os.path.join(root, r["pfad"].replace("/", os.sep))
+            dst = os.path.join(root, r["ziel"], os.path.basename(r["pfad"]))
+            if os.path.isdir(long_path(src)):
+                items.append((src, dst))
+        if not items:
+            messagebox.showinfo(APP_NAME, "Es gibt nichts zu verschieben — "
+                                          "vermutlich ist schon alles einsortiert.")
+            return
+        if not messagebox.askyesno(
+                APP_NAME,
+                "{} Ordner in ihre Kategorien verschieben?\n\nInnerhalb von:\n{}\n\n"
+                "Die Ordner bleiben vollständig erhalten, sie liegen danach eine Ebene "
+                "tiefer. Gelöscht wird nichts.".format(fmt_count(len(items)), root)):
+            return
+
+        def work(job):
+            rep = {"ok": 0, "skip": 0, "fail": 0, "bytes": 0, "errors": []}
+            for i, (src, dst) in enumerate(items, 1):
+                if job.stopped:
+                    break
+                job.progress(i, len(items))
+                job.say("Verschiebe {} von {}".format(i, len(items)))
+                try:
+                    if os.path.exists(long_path(dst)):
+                        rep["skip"] += 1
+                        continue
+                    os.makedirs(long_path(os.path.dirname(dst)), exist_ok=True)
+                    shutil.move(long_path(src), long_path(dst))
+                    rep["ok"] += 1
+                except Exception as exc:
+                    rep["fail"] += 1
+                    if len(rep["errors"]) < 200:
+                        rep["errors"].append("{}: {}".format(short_path(src), exc))
+            job.done("mv", rep)
+
+        self.run(work, lambda k, rep: self.say(
+            "Verschoben: {} · übersprungen: {} · fehlgeschlagen: {}. Nichts gelöscht."
+            .format(fmt_count(rep["ok"]), fmt_count(rep["skip"]), fmt_count(rep["fail"]))))
+
+    def export(self):
+        if not self.rows:
+            messagebox.showinfo(APP_NAME, "Erst Vorschläge berechnen.")
+            return
+        path = filedialog.asksaveasfilename(
+            title="Ordnerregister sichern", defaultextension=".csv",
+            initialfile="ordnerregister.csv", filetypes=[("CSV", "*.csv")])
+        if not path:
+            return
+        with open(path, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.writer(f, delimiter=";")
+            w.writerow(["ordner_id", "ziel_pfad", "anzahl_dateien", "tags",
+                        "aufbewahrung", "wichtigkeit", "geprueft_am"])
+            for i, r in enumerate(self.rows, 1):
+                w.writerow(["O-{:03d}".format(i),
+                            "{}/{}".format(r["ziel"], os.path.basename(r["pfad"])),
+                            r["n"], "", "", "", ""])
+        self.say("Gesichert: " + path + " — Tags und Aufbewahrung füllst du in Sheets.")
+
+
+# ============================================================
+#  Register 7 — Index zusammenführen
+# ============================================================
+
+def read_csv_rows(path):
+    for enc in ("utf-8-sig", "cp1252"):
+        try:
+            with open(path, "r", newline="", encoding=enc) as f:
+                sample = f.read(4096)
+                f.seek(0)
+                delim = ";" if sample.count(";") >= sample.count(",") else ","
+                return list(csv.DictReader(f, delimiter=delim))
+        except (UnicodeDecodeError, OSError):
+            continue
+    return []
+
+
+class IndexTab(Section):
+    def __init__(self, master, app):
+        super().__init__(
+            master, app, "Phase 8 · Index",
+            "Aus dem fertigen Archiv und den Listen der vorherigen Register eine einzige "
+            "Index-Datei bauen — mit allen sechzehn Spalten. Was von Hand kommt, bleibt leer: "
+            "Tags, Aufbewahrung, Status und Notiz füllst du danach in Sheets.")
+
+        g = ttk.Frame(self.body)
+        g.pack(fill="x")
+        self.var_root = tk.StringVar()
+        self.var_dup = tk.StringVar()
+        self.var_img = tk.StringVar()
+        rows = [
+            ("Archiv", self.var_root, "folder", "Der fertige Zielordner — Sammelplatte oder Drive"),
+            ("Dubletten", self.var_dup, "file", "dubletten.csv aus Register 4 — freiwillig"),
+            ("Bilder", self.var_img, "file", "bilder.csv aus Register 5 — freiwillig"),
+        ]
+        for i, (lab, var, kind, hint) in enumerate(rows):
+            ttk.Label(g, text=lab, width=10).grid(row=i * 2, column=0, sticky="w", pady=(3, 0))
+            ttk.Entry(g, textvariable=var).grid(row=i * 2, column=1, sticky="ew", padx=8, pady=(3, 0))
+            ttk.Button(g, text="…", width=4,
+                       command=lambda v=var, k=kind: self._pick(v, k)).grid(row=i * 2, column=2, pady=(3, 0))
+            ttk.Label(g, text=hint, style="Hint.TLabel").grid(row=i * 2 + 1, column=1, sticky="w", padx=8)
+        g.columnconfigure(1, weight=1)
+
+        row = ttk.Frame(self.body)
+        row.pack(fill="x", pady=(10, 0))
+        ttk.Button(row, text="Index bauen", style="Go.TButton", command=self.start).pack(side="left")
+        ttk.Button(row, text="Abbrechen", command=self.stop).pack(side="left", padx=6)
+        ttk.Button(row, text="Index sichern", command=self.export).pack(side="left")
+
+        frame, self.tree = make_tree(
+            self.body, ("datei_id", "quelle_id", "dateiname", "kategorie", "MB", "dup_rolle"),
+            (90, 90, 280, 130, 80, 100), height=13)
+        frame.pack(fill="both", expand=True, pady=10)
+        self.summary = ttk.Label(self.body, text="", style="Sum.TLabel")
+        self.summary.pack(anchor="w")
+        self.index = []
+
+    def _pick(self, var, kind):
+        p = pick_folder("Ordner wählen") if kind == "folder" else \
+            filedialog.askopenfilename(title="CSV wählen", filetypes=[("CSV", "*.csv"), ("Alle", "*.*")])
+        if p:
+            var.set(p)
+
+    def start(self):
+        root = self.var_root.get().strip()
+        if not os.path.isdir(root):
+            messagebox.showwarning(APP_NAME, "Bitte den Archivordner wählen.")
+            return
+        dup_csv, img_csv = self.var_dup.get().strip(), self.var_img.get().strip()
+
+        def work(job):
+            job.say("Lese Archiv …")
+            entries = [e for e in scan_folder(root, job) if not is_junk(e)]
+
+            dup_by_key, dup_hits = {}, 0
+            if dup_csv and os.path.isfile(dup_csv):
+                job.say("Lese Dublettenliste …")
+                for r in read_csv_rows(dup_csv):
+                    k = (r.get("dateiname", "").lower(),
+                         (r.get("groesse_mb") or "").replace(",", "."))
+                    dup_by_key[k] = r
+
+            img_by_name = {}
+            if img_csv and os.path.isfile(img_csv):
+                job.say("Lese Bilderliste …")
+                for r in read_csv_rows(img_csv):
+                    img_by_name[r.get("dateiname", "").lower()] = r
+
+            job.say("Baue Index …")
+            out = []
+            for i, e in enumerate(entries, 1):
+                if job.stopped:
+                    break
+                if i % 2000 == 0:
+                    job.progress(i, len(entries))
+                parts = e.rel.replace("\\", "/").split("/")
+                quelle = parts[0] if len(parts) > 1 else ""
+                mb = "{:.2f}".format(e.size_mb)
+                d = dup_by_key.get((e.name.lower(), mb))
+                img = img_by_name.get(e.name.lower())
+                if d:
+                    dup_hits += 1
+                out.append({
+                    "datei_id": "{:06d}".format(i),
+                    "quelle_id": (img.get("quelle_id") if img else "") or quelle,
+                    "original_pfad": (img.get("herkunft_pfad") if img else "") or e.reldir,
+                    "dateiname": e.name,
+                    "endung": e.ext,
+                    "groesse_mb": mb.replace(".", ","),
+                    "geaendert_am": e.date,
+                    "pruefsumme": (d.get("pruefsumme") if d else ""),
+                    "dup_gruppe": (d.get("dup_gruppe") if d else ""),
+                    "dup_rolle": (d.get("dup_rolle") if d else ""),
+                    "kategorie": e.cat,
+                    "ziel_pfad": e.reldir,
+                    "tags": "", "aufbewahrung": "", "status": "neu", "notiz": "",
+                })
+            job.done("idx", (out, dup_hits, bool(img_by_name)))
+
+        self.run(work, self.finish)
+
+    def finish(self, _kind, payload):
+        self.index, dup_hits, had_img = payload
+        for r in self.tree.get_children():
+            self.tree.delete(r)
+        for r in self.index[:MAX_ROWS]:
+            self.tree.insert("", "end", values=(r["datei_id"], r["quelle_id"], r["dateiname"],
+                                                r["kategorie"], r["groesse_mb"], r["dup_rolle"]))
+        if len(self.index) > MAX_ROWS:
+            self.tree.insert("", "end", values=("…", "", "weitere ausgeblendet", "", "", ""))
+        self.summary.configure(
+            text="{} Zeilen · {} mit Dubletten-Angabe{}".format(
+                fmt_count(len(self.index)), fmt_count(dup_hits),
+                " · Bilderherkunft eingespielt" if had_img else ""))
+        self.say("Fertig. Sichern, in Sheets importieren, dann Tags und Aufbewahrung füllen.")
+
+    def export(self):
+        if not self.index:
+            messagebox.showinfo(APP_NAME, "Erst den Index bauen.")
+            return
+        path = filedialog.asksaveasfilename(
+            title="Index sichern", defaultextension=".csv",
+            initialfile="Dateiindex_2026.csv", filetypes=[("CSV", "*.csv")])
+        if not path:
+            return
+        cols = ["datei_id", "quelle_id", "original_pfad", "dateiname", "endung",
+                "groesse_mb", "geaendert_am", "pruefsumme", "dup_gruppe", "dup_rolle",
+                "kategorie", "ziel_pfad", "tags", "aufbewahrung", "status", "notiz"]
+        with open(path, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=cols, delimiter=";")
+            w.writeheader()
+            for r in self.index:
+                w.writerow(r)
+        self.say("Gesichert: " + path)
+
+
+# ============================================================
 #  Hauptfenster
 # ============================================================
 
@@ -1367,11 +1763,15 @@ class App(tk.Tk):
         self.tab_sam = SammelnTab(nb, self)
         self.tab_dup = DublettenTab(nb, self)
         self.tab_img = BilderTab(nb, self)
+        self.tab_kat = KategorienTab(nb, self)
+        self.tab_idx = IndexTab(nb, self)
         self.tab_exp = ExplorerTab(nb, self)
         nb.add(self.tab_inv, text="  1 · Inventur  ")
         nb.add(self.tab_sam, text="  3 · Sammeln  ")
         nb.add(self.tab_dup, text="  4 · Dubletten  ")
         nb.add(self.tab_img, text="  5 · Bilder  ")
+        nb.add(self.tab_kat, text="  7 · Kategorien  ")
+        nb.add(self.tab_idx, text="  8 · Index  ")
         nb.add(self.tab_exp, text="  Explorer  ")
 
         foot = ttk.Frame(self, padding=(14, 0, 14, 10))
