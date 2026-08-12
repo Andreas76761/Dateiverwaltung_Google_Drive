@@ -6,3 +6,6 @@ __pycache__/
 /build/
 /dist/
 *.spec
+
+# Gebaute Programmdatei — sie liegt unter Veroeffentlichungen, nicht hier
+/tool/fertig/
