@@ -992,9 +992,9 @@
       <h3>Die Reihenfolge</h3>
       <p>
         Nicht beliebig — sie legt fest, welche Kopie einer doppelten Datei später als Original gilt.
-        In dupeGuru steuerst du das in Phase 4 sauber über den Ordnerzustand <b>Referenz</b>:
-        Dateien in einem Referenzordner werden nie als Duplikat markiert. Die Reihenfolge hier
-        bestimmt, welcher Ordner diesen Zustand bekommt.
+        Im Werkzeug trägst du sie in Phase 4 in das Feld <b>Vorrang</b> ein — der oberste Ordner
+        gewinnt jeden Gleichstand, seine Dateien landen nie in der Quarantäne. Wer stattdessen
+        AllDup nimmt: dort ist es die Reihenfolge der Suchordner.
       </p>
       <ol>
         <li><b>Der Rechner mit dem wichtigsten Bestand zuerst.</b> Der aktuell genutzte, meist gepflegteste — seine Ordnernamen prägen später die ganze Ablage.</li>
@@ -1147,10 +1147,11 @@
             <h3>Dubletten finden — vor dem Upload</h3>
             <p>Der wichtigste Schritt, und der Grund für die ganze Sammelplatte. Was hier aussortiert wird, muss nie hochgeladen, nie bezahlt, nie später wiedergefunden werden.</p>
             <ul>
-              <li>In <b>AllDup</b> alle Quellordner der Sammelplatte auf einmal als Suchordner eintragen. Vergleichskriterium <b>Dateiinhalt</b> — nicht Name, nicht Grösse. Das liest jede Datei einmal und dauert entsprechend. Ein Lauf über den <em>gesamten</em> Bestand ist der ganze Sinn der Sammelplatte.</li>
-              <li><b>Suchordner in der Vorrang-Reihenfolge eintragen</b>, wichtigster Rechner ganz oben. Im Auswahl-Assistenten die automatische Auswahl nach dieser Ordner-Priorität treffen lassen: so bleibt immer die Kopie aus dem obersten Ordner erhalten. Die Bezeichnungen weichen je nach Programmversion ab — entscheidend ist, dass du die Auswahl <em>automatisch</em> treffen lässt und danach stichprobenartig prüfst, nicht Gruppe für Gruppe klickst.</li>
-              <li><b>Ergebnisliste vor jeder Aktion als CSV exportieren.</b> Diese Datei wird später zur Spalte <code>dup_gruppe</code> im Index — nach dem Verschieben lässt sie sich nicht mehr rekonstruieren.</li>
-              <li>Als Aktion <b>„Verschieben“</b> wählen, Ziel <code>D:\S\_QUARANTAENE\</code> — <b>niemals „Löschen“</b>. AllDup bietet beides gleichberechtigt an; ein Fehlklick ist endgültig. Vorher an fünf Testdateien üben.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>4 · Dubletten</em>: die Sammelplatte als zu prüfenden Ordner wählen, einen Quarantäne-Ordner daneben, und ins Feld <b>Vorrang</b> die Quellkürzel in der Reihenfolge aus Phase 3 eintragen — <code>PC1, PC2, EXT1</code>. Dann <em>Suchen</em>. Ein Lauf über den <em>gesamten</em> Bestand ist der ganze Sinn der Sammelplatte.</li>
+              <li>Verglichen wird über die <b>Prüfsumme</b>, nicht über Namen oder Grösse. Vorgruppiert wird nach Dateigrösse, gerechnet nur bei Gleichstand — deshalb dauert der Lauf Stunden statt Tage.</li>
+              <li><b>Wer lieber AllDup nimmt:</b> alle Quellordner als Suchordner eintragen, Vergleichskriterium <em>Dateiinhalt</em>, Suchordner in Vorrangfolge, Auswahl automatisch treffen lassen und danach stichprobenartig prüfen — nicht Gruppe für Gruppe klicken.</li>
+              <li><b>Liste sichern, bevor du verschiebst.</b> Sie wird später zur Spalte <code>dup_gruppe</code> im Index und lässt sich danach nicht mehr rekonstruieren.</li>
+              <li>Dann <b>Duplikate in Quarantäne verschieben</b>, Ziel <code>D:\S\_QUARANTAENE\</code>. Das Werkzeug kennt kein Löschen — bei AllDup dagegen liegt „Löschen“ gleichberechtigt daneben, und ein Fehlklick ist endgültig.</li>
               <li>Bleibt eine Entscheidung offen: die Kopie im aussagekräftigsten Ordner gewinnt, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen.</li>
               <li>Ähnliche — nicht identische — Fotos bleiben hier noch liegen. Die kommen in Phase 5 dran, wenn alle Bilder an einem Ort sind; dort ist die Suche schneller und das Ergebnis übersichtlicher.</li>
             </ul>
@@ -1173,10 +1174,9 @@
               zu verschieben, dauert Tage; auf der Platte sind es Minuten.
             </p>
             <ul>
-              <li>Zielordner <code>D:\S\_BILDER\</code> anlegen.</li>
-              <li>In <b>Advanced Renamer</b> den Stapelmodus <b>Verschieben</b> wählen und alle Quellordner der Sammelplatte hinzufügen. Dateifilter setzen — was mitkommt, steht in der Formatliste unten.</li>
-              <li><b>Erster Durchgang — Aufnahmedatum:</b> als neuen Pfad <code>D:\S\_BILDER\&lt;Img EXIF:DateTimeOriginal, yyyy&gt;\</code> eintragen. Greift bei JPEG, HEIC, HEIF und TIFF — allem, was aus Kamera oder Telefon kommt.</li>
-              <li><b>Zweiter Durchgang — Dateidatum:</b> PNG, WEBP, BMP, GIF und Bearbeitungsdateien haben meist kein Aufnahmedatum. Für sie das Änderungsdatum als Jahr verwenden.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>5 · Bilder</em>: links die Sammelplatte, rechts <code>D:\S\_BILDER\</code>. Erst <b>Probelauf</b> — er zeigt für jede Datei das ermittelte Jahr und woher es stammt, ohne etwas zu bewegen. Stimmt das Bild, dann <em>Ausführen</em>.</li>
+              <li>Das Jahr kommt in dieser Reihenfolge: <b>EXIF-Aufnahmedatum</b> bei JPEG und TIFF, sonst ein <b>Datum im Dateinamen</b> (<code>IMG_20190812_…</code>, <code>PXL_20230704_…</code>), sonst das <b>Dateidatum</b>. In der Spalte <em>Quelle</em> steht je Zeile, welcher der drei Wege gegriffen hat — <code>datei</code> ist der unzuverlässigste, sieh dir davon Stichproben an.</li>
+              <li><b>HEIC-Dateien vom iPhone</b> liest das Werkzeug nicht über EXIF, sondern über den Dateinamen — was bei iPhone-Aufnahmen praktisch immer ein Datum enthält. Wer es genauer will, nimmt für diese Gruppe zusätzlich Advanced Renamer mit <code>&lt;Img EXIF:DateTimeOriginal, yyyy&gt;</code>.</li>
               <li><b>Vorschau lesen, bevor du ausführst.</b> Advanced Renamer zeigt für jede Datei alten und neuen Pfad. Das ist deine einzige Kontrolle — nach dem Lauf sind zehntausende Dateien woanders.</li>
               <li><b>Kollisionsregel auf Nummer anhängen stellen</b>, nicht auf Überschreiben. <code>IMG_0001.jpg</code> gibt es aus vier Quellen garantiert mehrfach, und exakt gleiche wurden in Phase 4 schon aussortiert — was jetzt kollidiert, ist <em>verschieden</em> und muss beides bleiben.</li>
               <li>Jahre, die nicht stimmen können — 1970, 1980, alles vor 1995 oder in der Zukunft — nach <code>_Jahr_unklar\</code>. Grosszügig sein: dieser Ordner ist billiger als ein falsch einsortiertes Jahrzehnt.</li>
@@ -1430,7 +1430,7 @@
             <tr><td class="mono">groesse_mb</td><td class="num">2,41</td><td><span class="pill auto">automatisch</span></td><td>Kontrolle der 120-MB-Grenze</td></tr>
             <tr><td class="mono">geaendert_am</td><td class="mono">2019-08-14</td><td><span class="pill auto">automatisch</span></td><td>Zeitliche Einordnung, Original-Entscheidung</td></tr>
             <tr><td class="mono">pruefsumme</td><td class="mono">9f2a…c71b</td><td><span class="pill auto">automatisch</span></td><td>der einzige belastbare Gleichheitsbeweis</td></tr>
-            <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der dupeGuru-CSV; leer heisst: einmalig</td></tr>
+            <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der Dublettenliste; leer heisst: einmalig</td></tr>
             <tr><td class="mono">dup_rolle</td><td class="mono">original | duplikat</td><td><span class="pill auto">automatisch</span></td><td>welche Kopie bleibt, welche in Quarantäne ging</td></tr>
             <tr><td class="mono">kategorie</td><td class="mono">01_Dokumente</td><td><span class="pill auto">automatisch</span></td><td>aus der Endung abgeleitet, per Hand korrigierbar</td></tr>
             <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt — bei Bildern <code>80_Bilder/2019/</code></td></tr>
@@ -1566,11 +1566,11 @@
           <thead><tr><th>Fallstrick</th><th>Was passiert</th><th>Gegenmittel</th></tr></thead>
           <tbody>
             <tr><td><span class="pill risk">kritisch</span> <b>Platzhalter statt Dateien</b></td><td>„Nur online“-Dateien aus OneDrive, Dropbox oder iCloud werden als Hüllen von wenigen Bytes kopiert. Der Ordner sieht vollständig aus, ist aber leer.</td><td>Vor dem Kopieren „Immer auf diesem Gerät behalten“ setzen, Sync abwarten. Stichprobe: Dateigrösse im Sammelordner prüfen.</td></tr>
-            <tr><td><span class="pill risk">kritisch</span> <b>Löschen statt verschieben</b></td><td>Ein Fehlklick in dupeGuru entfernt tausende Dateien endgültig.</td><td>Immer „Verschieben nach“ wählen. Die Aktion vor dem ersten grossen Lauf an fünf Testdateien üben.</td></tr>
+            <tr><td><span class="pill risk">kritisch</span> <b>Löschen statt verschieben</b></td><td>Ein Fehlklick in AllDup oder dupeGuru entfernt tausende Dateien endgültig. Das eigene Werkzeug hat deshalb gar keine Löschfunktion.</td><td>Immer „Verschieben nach“ wählen. Die Aktion vor dem ersten grossen Lauf an fünf Testdateien üben.</td></tr>
             <tr><td><b>Zu lange Pfade</b></td><td>Windows bricht ab 260 Zeichen mitten im Kopieren ab, oft ohne klare Meldung.</td><td>Sammelpfad kurz halten: <code>D:\S\PC1</code>. Fehlerprotokoll von FreeFileSync nach jedem Lauf ansehen.</td></tr>
             <tr><td><b>Outlook-Postfächer</b></td><td>Mails liegen in einer einzigen PST- oder OST-Datei, die schnell mehrere Gigabyte gross wird und damit weit über der Grenze liegt. OST-Dateien lassen sich ausserdem nur mit dem zugehörigen Konto öffnen.</td><td>In Outlook <em>Datei → Öffnen und Exportieren → Importieren/Exportieren</em>, ordnerweise in mehrere PST-Dateien exportieren. Was dann noch zu gross ist, kommt ins Register.</td></tr>
             <tr><td><b>Gleicher Name, anderer Inhalt</b></td><td><code>Rechnung.pdf</code> gibt es dreimal, mit drei verschiedenen Inhalten. Ein Namensvergleich verwirft zwei davon.</td><td>Ausschliesslich Inhaltsvergleich. Die Quellordnerstruktur bleibt erhalten, damit Namensgleiche nicht kollidieren.</td></tr>
-            <tr><td><b>Gleicher Inhalt, anderer Name</b></td><td>Dieselbe Datei liegt als <code>IMG_2231.jpg</code> und <code>Urlaub_Kreta.jpg</code> vor und bleibt doppelt.</td><td>Ebenfalls Inhaltsvergleich — dupeGuru findet beide, unabhängig vom Namen.</td></tr>
+            <tr><td><b>Gleicher Inhalt, anderer Name</b></td><td>Dieselbe Datei liegt als <code>IMG_2231.jpg</code> und <code>Urlaub_Kreta.jpg</code> vor und bleibt doppelt.</td><td>Ebenfalls Prüfsummenvergleich — er findet beide, unabhängig vom Namen.</td></tr>
             <tr><td><b>Zeitstempel gehen verloren</b></td><td>Manche Kopierwege setzen das Änderungsdatum auf heute. Damit ist die zeitliche Einordnung des gesamten Bestands hin.</td><td>FreeFileSync erhält Zeitstempel. Nach dem ersten Lauf an drei Dateien im Sammelordner kontrollieren.</td></tr>
             <tr><td><b>Verschlüsselte Archive</b></td><td>Passwortgeschützte ZIP- und Container-Dateien wandern mit, lassen sich aber später nicht mehr öffnen.</td><td>Beim Sichten mit <code>status:unklar</code> markieren, Passwörter jetzt suchen, solange die alten Rechner noch laufen.</td></tr>
             <tr><td><b>Umlaute und Sonderzeichen</b></td><td>Dateinamen aus alten Beständen — noch in der Zeichenkodierung von Windows XP geschrieben — kommen in Drive verstümmelt an.</td><td>Fehlerprotokoll prüfen. Betroffene Ordner nach <code>99_Zu_Pruefen/</code> und einzeln nacharbeiten.</td></tr>
