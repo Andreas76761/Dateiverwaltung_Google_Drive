@@ -1783,6 +1783,7 @@
 
       <div class="xp-actions">
         <label class="xp-check"><input type="checkbox" id="fJunk" checked> Ausschlussliste aus Phase 2 anwenden</label>
+        <label class="xp-check"><input type="checkbox" id="fVideo"> Video übernehmen</label>
         <button type="button" class="xp-btn" data-preset="phase2">Voreinstellung Phase 2</button>
         <button type="button" class="xp-btn" data-preset="bilder">Nur Bilder</button>
         <button type="button" class="xp-btn" data-preset="reset">Filter zurücksetzen</button>
@@ -1921,6 +1922,9 @@
     dokument: "Dokumente", bild: "Bilder", video: "Video",
     audio: "Audio", archiv: "Archive", code: "Code", sonstiges: "Sonstiges"
   };
+
+  /* Video faehrt laut Plan nicht mit — eigener Schalter wie im Programm. */
+  var VIDEO_EXTS = ("mp4 mov m4v avi mkv wmv mpg mpeg 3gp mts m2ts webm flv").split(" ");
 
   /* Ausschlussliste aus Phase 2 */
   var JUNK_DIR = ["/windows/", "/program files", "/programdata/", "/appdata/", "/$recycle.bin/",
@@ -2066,6 +2070,7 @@
       return x.replace(/^[*.]+/, "").toLowerCase();
     }).filter(Boolean);
     filters.junk = $("fJunk").checked;
+    filters.video = $("fVideo").checked;
     filters.compare = $("fCompare").value;
   }
 
@@ -2102,6 +2107,7 @@
     var other = needCompare ? otherIndex(id) : null;
     return panes[id].files.filter(function (e) {
       if (filters.junk && isJunk(e)) { return false; }
+      if (!filters.video && VIDEO_EXTS.indexOf(e.ext) >= 0) { return false; }
       if (!nameHit(e)) { return false; }
       if (filters.min !== null && e.size < filters.min) { return false; }
       if (filters.max !== null && e.size > filters.max) { return false; }
@@ -2212,7 +2218,7 @@
 
   function refresh() { readFilters(); render("A"); render("B"); syncActions(); }
 
-  ["fName", "fMin", "fMax", "fFrom", "fTo", "fExt", "fJunk", "fCompare"].forEach(function (id) {
+  ["fName", "fMin", "fMax", "fFrom", "fTo", "fExt", "fJunk", "fVideo", "fCompare"].forEach(function (id) {
     var el = $(id);
     el.addEventListener(el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input", refresh);
   });
@@ -2234,10 +2240,11 @@
       } else if (p === "phase2") {
         $("fName").value = ""; $("fMin").value = ""; $("fMax").value = "120";
         $("fFrom").value = ""; $("fTo").value = ""; $("fExt").value = "";
-        $("fJunk").checked = true; $("fCompare").value = "all"; setCats([]);
+        $("fJunk").checked = true; $("fVideo").checked = false;
+        $("fCompare").value = "all"; setCats([]);
       } else if (p === "bilder") {
         $("fName").value = ""; $("fMin").value = ""; $("fMax").value = "120";
-        $("fJunk").checked = true; setCats(["bild"]);
+        $("fJunk").checked = true; $("fVideo").checked = false; setCats(["bild"]);
       }
       refresh();
     });
