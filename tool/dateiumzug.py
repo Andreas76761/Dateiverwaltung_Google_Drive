@@ -3170,7 +3170,7 @@ class IndexTab(Section):
         super().__init__(
             master, app, "Phase 8 · Index",
             "Aus dem fertigen Archiv und den Listen der vorherigen Register eine einzige "
-            "Index-Datei bauen — mit allen sechzehn Spalten. Was von Hand kommt, bleibt leer: "
+            "Index-Datei bauen — mit allen achtzehn Spalten. Was von Hand kommt, bleibt leer: "
             "Tags, Aufbewahrung, Status und Notiz füllst du danach in Sheets.")
 
         g = ttk.Frame(self.body)
@@ -3178,10 +3178,12 @@ class IndexTab(Section):
         self.var_root = tk.StringVar()
         self.var_dup = tk.StringVar()
         self.var_img = tk.StringVar()
+        self.var_sim = tk.StringVar()
         rows = [
             ("Archiv", self.var_root, "folder", "Der fertige Zielordner — Sammelplatte oder Drive"),
             ("Dubletten", self.var_dup, "file", "dubletten.csv aus Register 4 — freiwillig"),
             ("Bilder", self.var_img, "file", "bilder.csv aus Register 5 — freiwillig"),
+            ("Ähnliche", self.var_sim, "file", "aehnliche_bilder.csv aus Register 5b — freiwillig"),
         ]
         for i, (lab, var, kind, hint) in enumerate(rows):
             ttk.Label(g, text=lab, width=10).grid(row=i * 2, column=0, sticky="w", pady=(3, 0))
@@ -3221,6 +3223,7 @@ class IndexTab(Section):
             messagebox.showwarning(APP_NAME, "Bitte den Archivordner wählen.")
             return
         dup_csv, img_csv = self.var_dup.get().strip(), self.var_img.get().strip()
+        sim_csv = self.var_sim.get().strip()
 
         def work(job):
             job.say("Lese Archiv …")
@@ -3243,7 +3246,7 @@ class IndexTab(Section):
                 z = tabelle.get(schluessel)
                 return None if z is AMBIG else z
 
-            dup_by_path, dup_hits = {}, 0
+            dup_by_path, dup_hits, sim_hits = {}, 0, 0
             if dup_csv and os.path.isfile(dup_csv):
                 job.say("Lese Dublettenliste …")
                 for r in read_csv_rows(dup_csv):
@@ -3261,6 +3264,19 @@ class IndexTab(Section):
                     mb = (r.get("groesse_mb") or "").replace(",", ".")
                     ziel = (r.get("ziel_name") or r.get("dateiname") or "").lower()
                     merke(img_by_ziel, ((r.get("jahr") or "").lower(), ziel, mb), r)
+
+            # Register 5b laeuft ueber den Bilderordner, der Index oft ueber
+            # das ganze Archiv darueber. Der Schluessel ist darum der
+            # Dateiname und der Ordner, in dem die Datei unmittelbar liegt --
+            # der ist in beiden Faellen derselbe. Wird er mehrdeutig, bleibt
+            # die Spalte leer; eine falsche Angabe waere schlimmer als keine.
+            sim_by_key = {}
+            if sim_csv and os.path.isfile(sim_csv):
+                job.say("Lese Liste ähnlicher Bilder …")
+                for r in read_csv_rows(sim_csv):
+                    ordner = (r.get("herkunft_pfad") or "").replace("\\", "/").rstrip("/")
+                    merke(sim_by_key, (ordner.rsplit("/", 1)[-1].lower(),
+                                       (r.get("dateiname") or "").lower()), r)
 
             job.say("Baue Index …")
             out = []
@@ -3285,6 +3301,9 @@ class IndexTab(Section):
                     d = dup_by_path.get((pfad, name))
                 if d:
                     dup_hits += 1
+                sim = hole(sim_by_key, (jahr, name))
+                if sim:
+                    sim_hits += 1
                 out.append({
                     "datei_id": "{:06d}".format(i),
                     "quelle_id": (img.get("quelle_id") if img else "") or quelle,
@@ -3296,16 +3315,23 @@ class IndexTab(Section):
                     "pruefsumme": (d.get("pruefsumme") if d else ""),
                     "dup_gruppe": (d.get("dup_gruppe") if d else ""),
                     "dup_rolle": (d.get("dup_rolle") if d else ""),
+                    "aehnlich_gruppe": (sim.get("aehnlich_gruppe") if sim else ""),
+                    "aehnlich_rolle": (sim.get("aehnlich_rolle") if sim else ""),
                     "kategorie": e.cat,
                     "ziel_pfad": e.reldir,
-                    "tags": "", "aufbewahrung": "", "status": "neu", "notiz": "",
+                    "tags": "", "aufbewahrung": "",
+                    # Wer in einer Aehnlichkeitsgruppe nicht die beste Fassung
+                    # ist, bekommt gleich einen Vermerk: das sind die Zeilen,
+                    # die ein Auge brauchen.
+                    "status": "unklar" if (sim and sim.get("aehnlich_rolle") == "fassung") else "neu",
+                    "notiz": "",
                 })
-            job.done("idx", (out, dup_hits, bool(img_by_ziel)))
+            job.done("idx", (out, dup_hits, sim_hits, bool(img_by_ziel)))
 
         self.run(work, self.finish)
 
     def finish(self, _kind, payload):
-        self.index, dup_hits, had_img = payload
+        self.index, dup_hits, sim_hits, had_img = payload
         for r in self.tree.get_children():
             self.tree.delete(r)
         for r in self.index[:MAX_ROWS]:
@@ -3314,8 +3340,9 @@ class IndexTab(Section):
         if len(self.index) > MAX_ROWS:
             self.tree.insert("", "end", values=("…", "", "weitere ausgeblendet", "", "", ""))
         self.summary.configure(
-            text="{} Zeilen · {} mit Dubletten-Angabe{}".format(
+            text="{} Zeilen · {} mit Dubletten-Angabe{}{}".format(
                 fmt_count(len(self.index)), fmt_count(dup_hits),
+                " · {} ähnlich".format(fmt_count(sim_hits)) if sim_hits else "",
                 " · Bilderherkunft eingespielt" if had_img else ""))
         self.say("Fertig. Sichern, in Sheets importieren, dann Tags und Aufbewahrung füllen.")
 
@@ -3330,6 +3357,7 @@ class IndexTab(Section):
             return
         cols = ["datei_id", "quelle_id", "original_pfad", "dateiname", "endung",
                 "groesse_mb", "geaendert_am", "pruefsumme", "dup_gruppe", "dup_rolle",
+                "aehnlich_gruppe", "aehnlich_rolle",
                 "kategorie", "ziel_pfad", "tags", "aufbewahrung", "status", "notiz"]
         with open(path, "w", newline="", encoding="utf-8-sig") as f:
             w = csv.DictWriter(f, fieldnames=cols, delimiter=";")
