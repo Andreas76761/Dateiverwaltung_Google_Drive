@@ -26,6 +26,7 @@ import sys
 import threading
 import time
 import traceback
+import zlib
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
@@ -33,7 +34,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Dateiumzug 2026"
-APP_VERSION = "1.1"
+APP_VERSION = "1.2"
 
 COPY_BUFFER = 1024 * 1024        # 1 MB je Leseschritt
 DEFAULT_WORKERS = 4              # gleichzeitige Kopiervorgaenge
@@ -457,6 +458,883 @@ def year_of(entry, use_exif=True):
     if MIN_PLAUSIBLE_YEAR <= y <= datetime.now().year:
         return y, "datei"
     return None, "unklar"
+
+
+# ============================================================
+#  Bildfingerabdruck — aehnliche Aufnahmen erkennen
+# ============================================================
+#
+#  Gesucht ist ein 64-Bit-Wert, der zwei Fassungen derselben Aufnahme
+#  zusammenbringt: andere Groesse, andere Kompression, derselbe Inhalt.
+#  Dafuer braucht es ein kleines Graubild. Bei JPEG gibt es das fast
+#  geschenkt -- der erste Wert jedes 8x8-Blocks ist dessen Mittelwert.
+#  Wer nur ihn liest, hat das Bild in einem Achtel der Kantenlaenge
+#  vorliegen, ohne je eine Ruecktransformation gerechnet zu haben.
+#  Dasselbe von Hand fuer PNG. Alles mit der Standardbibliothek, damit
+#  die gebaute Datei eine einzige bleibt.
+
+ZIGZAG_FIRST = 0  # der DC-Wert steht immer an Position 0
+
+
+class NotSupported(Exception):
+    """Format erkannt, aber nicht lesbar (etwa progressives JPEG)."""
+
+
+# ------------------------------------------------------------
+#  JPEG: nur die DC-Werte der Helligkeit
+# ------------------------------------------------------------
+
+PEEK = 16  # so viele Bits schaut die Huffman-Tabelle auf einmal an
+
+
+def _entropy_pieces(data, pos):
+    """
+    Schneidet die Bilddaten hinter SOS heraus, einmal statt Byte fuer Byte.
+
+    Die 0xFF00-Fuellung verschwindet dabei gleich mit, und an jedem
+    Restart-Marker entsteht ein neues Stueck. Das ist mehr als doppelt so
+    schnell wie ein Leser, der jedes Byte selbst anfasst, weil das Suchen
+    und Ersetzen in C laeuft und nicht in Python.
+    """
+    n = len(data)
+    i = pos
+    while True:
+        i = data.find(b"\xff", i)
+        if i < 0 or i + 1 >= n:
+            i = n
+            break
+        nxt = data[i + 1]
+        if nxt == 0x00 or nxt == 0xFF or 0xD0 <= nxt <= 0xD7:
+            i += 2
+            continue
+        break
+    roh = data[pos:i]
+    stuecke = []
+    start = 0
+    j = 0
+    while True:
+        j = roh.find(b"\xff", j)
+        if j < 0 or j + 1 >= len(roh):
+            break
+        if 0xD0 <= roh[j + 1] <= 0xD7:
+            stuecke.append(roh[start:j])
+            j += 2
+            start = j
+        else:
+            j += 2
+    stuecke.append(roh[start:])
+    return [s.replace(b"\xff\x00", b"\xff") for s in stuecke]
+
+
+_MASKS = [(1 << i) - 1 for i in range(72)]
+
+
+def _build_huff(counts, symbols):
+    """
+    Baut eine Nachschlagetabelle ueber 16 Bit: Index -> (Zeichen, Laenge).
+
+    Ein Huffman-Code ist hoechstens 16 Bit lang. Wer 16 Bit auf einmal
+    anschaut, trifft das Zeichen mit einem einzigen Zugriff, statt sich Bit
+    fuer Bit durch den Baum zu tasten.
+    """
+    table = [None] * (1 << PEEK)
+    code = 0
+    k = 0
+    for length in range(1, 17):
+        rest = PEEK - length
+        for _ in range(counts[length - 1]):
+            if k >= len(symbols):
+                break
+            start = code << rest
+            span = 1 << rest
+            table[start:start + span] = [(symbols[k], length)] * span
+            code += 1
+            k += 1
+        code <<= 1
+    return table
+
+
+
+
+def jpeg_dc_plane(data):
+    """
+    Liefert (breite, hoehe, werte) der DC-Ebene des Helligkeitskanals.
+
+    breite und hoehe sind Bloecke, nicht Pixel; ein Block sind 8x8 Pixel
+    des Originals. werte ist eine flache Liste mit 0..255.
+    """
+    if data[:2] != b"\xff\xd8":
+        raise NotSupported("kein JPEG")
+    pos = 2
+    n = len(data)
+    qt = {}
+    huff_dc = {}
+    huff_ac = {}
+    comps = []
+    width = height = 0
+    restart_interval = 0
+    progressiv = False
+
+    while pos + 1 < n:
+        if data[pos] != 0xFF:
+            pos += 1
+            continue
+        marker = data[pos + 1]
+        pos += 2
+        if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:
+            continue
+        if marker == 0xD9:
+            break
+        if pos + 2 > n:
+            break
+        seglen = struct.unpack(">H", data[pos:pos + 2])[0]
+        seg = data[pos + 2:pos + seglen]
+        if marker in (0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+            raise NotSupported("JPEG-Variante ohne Baseline- oder Stufenkodierung")
+        if marker in (0xC0, 0xC1, 0xC2):
+            progressiv = marker == 0xC2
+            height, width = struct.unpack(">HH", seg[1:5])
+            ncomp = seg[5]
+            comps = []
+            for i in range(ncomp):
+                cid, hv, tq = seg[6 + i * 3:9 + i * 3]
+                comps.append({"id": cid, "h": hv >> 4, "v": hv & 15, "q": tq})
+        elif marker == 0xDB:
+            p = 0
+            while p < len(seg):
+                pq = seg[p] >> 4
+                tq = seg[p] & 15
+                p += 1
+                if pq:
+                    qt[tq] = struct.unpack(">64H", seg[p:p + 128])
+                    p += 128
+                else:
+                    qt[tq] = tuple(seg[p:p + 64])
+                    p += 64
+        elif marker == 0xC4:
+            p = 0
+            while p + 17 <= len(seg):
+                tc = seg[p] >> 4
+                th = seg[p] & 15
+                counts = list(seg[p + 1:p + 17])
+                total = sum(counts)
+                symbols = list(seg[p + 17:p + 17 + total])
+                table = _build_huff(counts, symbols)
+                if tc == 0:
+                    huff_dc[th] = table
+                else:
+                    huff_ac[th] = table
+                p += 17 + total
+        elif marker == 0xDD:
+            restart_interval = struct.unpack(">H", seg[0:2])[0]
+        elif marker == 0xDA:
+            ns = seg[0]
+            scan = []
+            for i in range(ns):
+                cs, tt = seg[1 + i * 2:3 + i * 2]
+                for c in comps:
+                    if c["id"] == cs:
+                        c["dc"] = tt >> 4
+                        c["ac"] = tt & 15
+                        scan.append(c)
+                        break
+            ss, se, a = seg[1 + ns * 2:4 + ns * 2]
+            if progressiv:
+                # In Stufen gespeicherte Bilder fangen mit einem Durchgang an,
+                # der nur die DC-Werte enthaelt. Genau den brauchen wir; die
+                # Nachbesserungen spaeterer Durchgaenge betreffen nur die
+                # untersten Bits und sind fuer ein Achtelbild gleichgueltig.
+                if ss != 0 or (a >> 4) != 0:
+                    pos += seglen
+                    continue
+                return _decode_scan(data, pos + seglen, width, height, comps,
+                                    scan, qt, huff_dc, huff_ac,
+                                    restart_interval, dc_shift=a & 15)
+            if ss != 0 or se < 63:
+                raise NotSupported("Bild in mehreren Durchgaengen gespeichert")
+            return _decode_scan(data, pos + seglen, width, height, comps,
+                                scan, qt, huff_dc, huff_ac, restart_interval)
+        pos += seglen
+    raise NotSupported("kein Bilddatenblock gefunden")
+
+
+def _decode_scan(data, pos, width, height, comps, scan, qt,
+                 huff_dc, huff_ac, restart_interval, dc_shift=None):
+    if not scan or not width or not height:
+        raise NotSupported("Kopfdaten unvollstaendig")
+    nur_dc = dc_shift is not None
+    if len(scan) != len(comps) and not (nur_dc and len(scan) == 1):
+        raise NotSupported("Bild in mehreren Durchgaengen gespeichert")
+
+    hmax = max(c["h"] for c in comps)
+    vmax = max(c["v"] for c in comps)
+    y = comps[0]
+    einzeln = len(scan) == 1 and len(comps) > 1
+    if einzeln:
+        # Durchgang mit nur einem Kanal: dann steht ein Block je Takt, und
+        # das Raster ist das des Kanals selbst.
+        if scan[0] is not y:
+            raise NotSupported("erster Durchgang ohne Helligkeitskanal")
+        mcux = (width + 7) // 8
+        mcuy = (height + 7) // 8
+        plane_w, plane_h = mcux, mcuy
+    else:
+        mcux = (width + 8 * hmax - 1) // (8 * hmax)
+        mcuy = (height + 8 * vmax - 1) // (8 * vmax)
+        plane_w = mcux * y["h"]
+        plane_h = mcuy * y["v"]
+    plane = [0] * (plane_w * plane_h)
+
+    q0 = qt.get(y["q"], (16,) * 64)[ZIGZAG_FIRST]
+    plan = []
+    for c in scan:
+        dct = huff_dc.get(c.get("dc", 0))
+        act = huff_ac.get(c.get("ac", 0))
+        if dct is None or (act is None and not nur_dc):
+            raise NotSupported("Huffman-Tabelle fehlt")
+        plan.append((c is y, dct, act,
+                     1 if einzeln else c["h"], 1 if einzeln else c["v"]))
+
+    stuecke = _entropy_pieces(data, pos)
+    stueck = 0
+    buf = stuecke[0]
+    end = len(buf)
+    bpos = acc = cnt = 0
+    shift = dc_shift or 0
+    pred = [0] * len(plan)
+    seen = 0
+    masken = _MASKS
+
+    # Ab hier steht alles in oertlichen Namen und die Bitarbeit direkt im
+    # Schleifenkoerper. Das sieht umstaendlicher aus als ein Leser mit
+    # Methoden, ist aber bei einem Zwoelf-Megapixel-Bild der Unterschied
+    # zwischen einer halben und einer ganzen Sekunde -- und das mal
+    # zwanzigtausend Fotos.
+    for my in range(mcuy):
+        for mx in range(mcux):
+            if restart_interval and seen == restart_interval:
+                stueck += 1
+                if stueck >= len(stuecke):
+                    return _crop(plane, plane_w, plane_h, width, height)
+                buf = stuecke[stueck]
+                end = len(buf)
+                bpos = acc = cnt = 0
+                pred = [0] * len(plan)
+                seen = 0
+            for ci in range(len(plan)):
+                ist_y, dct, act, ch, cv = plan[ci]
+                for by in range(cv):
+                    for bx in range(ch):
+                        while cnt < 16:
+                            if bpos < end:
+                                acc = (acc << 8) | buf[bpos]
+                                bpos += 1
+                            else:
+                                acc <<= 8
+                            cnt += 8
+                        eintrag = dct[(acc >> (cnt - 16)) & 0xFFFF]
+                        if eintrag is None:
+                            raise NotSupported("Huffman-Code nicht gefunden")
+                        s = eintrag[0]
+                        cnt -= eintrag[1]
+                        acc &= masken[cnt]
+                        if s:
+                            while cnt < s:
+                                if bpos < end:
+                                    acc = (acc << 8) | buf[bpos]
+                                    bpos += 1
+                                else:
+                                    acc <<= 8
+                                cnt += 8
+                            cnt -= s
+                            v = (acc >> cnt) & masken[s]
+                            acc &= masken[cnt]
+                            if v < (1 << (s - 1)):
+                                v -= masken[s]
+                            pred[ci] += v
+                        if ist_y:
+                            val = ((pred[ci] << shift) * q0) // 8 + 128
+                            if val < 0:
+                                val = 0
+                            elif val > 255:
+                                val = 255
+                            row = my * cv + by
+                            col = mx * ch + bx
+                            if row < plane_h and col < plane_w:
+                                plane[row * plane_w + col] = val
+                        if nur_dc:
+                            continue
+                        # Die Wechselwerte interessieren nicht, muessen aber
+                        # aus dem Bitstrom heraus — sonst verrutscht alles.
+                        k = 1
+                        while k <= 63:
+                            while cnt < 16:
+                                if bpos < end:
+                                    acc = (acc << 8) | buf[bpos]
+                                    bpos += 1
+                                else:
+                                    acc <<= 8
+                                cnt += 8
+                            eintrag = act[(acc >> (cnt - 16)) & 0xFFFF]
+                            if eintrag is None:
+                                raise NotSupported("Huffman-Code nicht gefunden")
+                            rs = eintrag[0]
+                            cnt -= eintrag[1]
+                            acc &= masken[cnt]
+                            ssss = rs & 15
+                            if ssss == 0:
+                                if rs == 0xF0:
+                                    k += 16
+                                    continue
+                                break
+                            k += (rs >> 4) + 1
+                            while cnt < ssss:
+                                if bpos < end:
+                                    acc = (acc << 8) | buf[bpos]
+                                    bpos += 1
+                                else:
+                                    acc <<= 8
+                                cnt += 8
+                            cnt -= ssss
+                            acc &= masken[cnt]
+            seen += 1
+    return _crop(plane, plane_w, plane_h, width, height)
+
+
+def _crop(plane, plane_w, plane_h, width, height):
+    want_w = min(plane_w, (width + 7) // 8)
+    want_h = min(plane_h, (height + 7) // 8)
+    if want_w == plane_w and want_h == plane_h:
+        return plane_w, plane_h, plane
+    out = []
+    for r in range(want_h):
+        out.extend(plane[r * plane_w:r * plane_w + want_w])
+    return want_w, want_h, out
+
+
+# ------------------------------------------------------------
+#  PNG: entpacken, Filter zuruecknehmen, grau rechnen
+# ------------------------------------------------------------
+
+_PNG_CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
+_SWAR = {}
+
+
+def _swar(stride):
+    """Hilfszahlen, um eine ganze Zeile byteweise zu addieren."""
+    w = _SWAR.get(stride)
+    if w is None:
+        maske = int.from_bytes(b"\x7f" * stride, "big")
+        hoch = int.from_bytes(b"\x80" * stride, "big")
+        voll = (1 << (stride * 8)) - 1
+        w = (maske, hoch, voll)
+        if len(_SWAR) < 32:
+            _SWAR[stride] = w
+    return w
+
+
+def _add_bytes(a, b, maske, hoch, voll):
+    """a + b, Byte fuer Byte, ohne dass ein Uebertrag ins Nachbarbyte laeuft."""
+    return (((a & maske) + (b & maske)) ^ ((a ^ b) & hoch)) & voll
+
+
+def png_gray_plane(data):
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise NotSupported("kein PNG")
+    pos = 8
+    n = len(data)
+    width = height = 0
+    depth = ctype = 0
+    interlace = 0
+    palette = None
+    idat = []
+    while pos + 8 <= n:
+        ln = struct.unpack(">I", data[pos:pos + 4])[0]
+        typ = data[pos + 4:pos + 8]
+        body = data[pos + 8:pos + 8 + ln]
+        pos += 12 + ln
+        if typ == b"IHDR":
+            width, height, depth, ctype, _comp, _filt, interlace = struct.unpack(
+                ">IIBBBBB", body[:13])
+        elif typ == b"PLTE":
+            palette = body
+        elif typ == b"IDAT":
+            idat.append(body)
+        elif typ == b"IEND":
+            break
+    if not width or not height:
+        raise NotSupported("PNG-Kopf unvollstaendig")
+    if interlace:
+        raise NotSupported("verschraenktes PNG")
+    if depth not in (8, 16):
+        raise NotSupported("PNG mit {} Bit je Kanal".format(depth))
+    channels = _PNG_CHANNELS.get(ctype)
+    if channels is None:
+        raise NotSupported("PNG-Farbtyp {}".format(ctype))
+
+    raw = zlib.decompress(b"".join(idat))
+    bpp = channels * (depth // 8)
+    stride = width * bpp
+    step = depth // 8
+
+    # Dasselbe Zwischenraster wie bei JPEG: ein Wert je 8x8 Bildpunkte.
+    # Nur so kommen dieselbe Aufnahme als JPEG und als PNG auf denselben
+    # Fingerabdruck. Die Zeilen muessen alle durch den Filter -- jede
+    # haengt an der vorherigen --, aber in Grauwerte umrechnen muss man
+    # nur die Bildpunkte, die im Raster auch landen.
+    tw = max(1, (width + 7) // 8)
+    th = max(1, (height + 7) // 8)
+    spalten = []
+    for tx in range(tw):
+        x0 = (width * tx) // tw
+        x1 = max(x0 + 1, (width * (tx + 1)) // tw)
+        weite = max(1, (x1 - x0) // 2)
+        spalten.append([x * bpp for x in range(x0, min(x1, width), weite)])
+    zeilen_weite = max(1, height // (th * 2))
+    summe = [0] * (tw * th)
+    anzahl = [0] * (tw * th)
+
+    prev = bytearray(stride)
+    p = 0
+    for row in range(height):
+        if p >= len(raw):
+            break
+        ft = raw[p]
+        p += 1
+        line = bytearray(raw[p:p + stride])
+        p += stride
+        if len(line) < stride:
+            line.extend(b"\x00" * (stride - len(line)))
+        if ft == 1:
+            # Jeder Wert ist die Summe aller linken Nachbarn seiner Spur.
+            # Statt Byte fuer Byte zu laufen, verdoppelt sich die
+            # Schrittweite: nach zehn Runden ist eine Zeile mit tausend
+            # Bildpunkten fertig, nicht nach tausend Schritten.
+            maske, hoch, voll = _swar(stride)
+            a = int.from_bytes(line, "big")
+            d = bpp * 8
+            grenze = stride * 8
+            while d < grenze:
+                a = _add_bytes(a, a >> d, maske, hoch, voll)
+                d *= 2
+            line = bytearray(a.to_bytes(stride, "big"))
+        elif ft == 2:
+            maske, hoch, voll = _swar(stride)
+            line = bytearray(_add_bytes(
+                int.from_bytes(line, "big"), int.from_bytes(prev, "big"),
+                maske, hoch, voll).to_bytes(stride, "big"))
+        elif ft == 3:
+            for i in range(bpp):
+                line[i] = (line[i] + (prev[i] >> 1)) & 0xFF
+            for i in range(bpp, stride):
+                line[i] = (line[i] + ((line[i - bpp] + prev[i]) >> 1)) & 0xFF
+        elif ft == 4:
+            # Paeth laesst sich nicht in einem Rutsch rechnen: jeder Wert
+            # braucht den linken Nachbarn, den es erst nach seiner eigenen
+            # Rechnung gibt. Hier bleibt es bei der Schleife; ein Versuch
+            # mit Reissverschluss und Ringpuffer war messbar langsamer.
+            for i in range(bpp):
+                line[i] = (line[i] + prev[i]) & 0xFF
+            for i in range(bpp, stride):
+                a = line[i - bpp]
+                b = prev[i]
+                c = prev[i - bpp]
+                pa = b - c
+                if pa < 0:
+                    pa = -pa
+                pb = a - c
+                if pb < 0:
+                    pb = -pb
+                pc = a + b - c - c
+                if pc < 0:
+                    pc = -pc
+                if pa <= pb and pa <= pc:
+                    line[i] = (line[i] + a) & 0xFF
+                elif pb <= pc:
+                    line[i] = (line[i] + b) & 0xFF
+                else:
+                    line[i] = (line[i] + c) & 0xFF
+        elif ft != 0:
+            raise NotSupported("PNG-Filter {}".format(ft))
+        prev = line
+
+        if row % zeilen_weite:
+            continue
+        band = ((row * th) // height) * tw
+        if ctype == 3:
+            if palette is None:
+                raise NotSupported("PNG ohne Farbtafel")
+            for tx in range(tw):
+                t = 0
+                offs = spalten[tx]
+                for o in offs:
+                    idx = line[o] * 3
+                    t += (palette[idx] * 77 + palette[idx + 1] * 151
+                          + palette[idx + 2] * 28) >> 8
+                summe[band + tx] += t
+                anzahl[band + tx] += len(offs)
+        elif ctype in (0, 4):
+            for tx in range(tw):
+                offs = spalten[tx]
+                t = 0
+                for o in offs:
+                    t += line[o]
+                summe[band + tx] += t
+                anzahl[band + tx] += len(offs)
+        else:
+            step2 = 2 * step
+            for tx in range(tw):
+                offs = spalten[tx]
+                t = 0
+                for o in offs:
+                    t += (line[o] * 77 + line[o + step] * 151
+                          + line[o + step2] * 28) >> 8
+                summe[band + tx] += t
+                anzahl[band + tx] += len(offs)
+
+    grob = [(summe[i] // anzahl[i]) if anzahl[i] else 0 for i in range(tw * th)]
+    return tw, th, grob
+
+
+# ------------------------------------------------------------
+#  Verkleinern und Fingerabdruck
+# ------------------------------------------------------------
+
+def _anteile(src, dst):
+    """
+    Welche Quellzellen zu welchem Anteil in eine Zielzelle fallen.
+
+    Mit ganzen Zellgrenzen zu rechnen reicht nicht. Ein Vorschaubild von
+    160x120 ergibt 20x15 Kaestchen, das ganze Foto 500x375 -- beide sollen
+    auf dasselbe 9x8-Raster kommen. Bei 20/9 liegen die Grenzen schief,
+    und aus dem schiefen Schnitt wurden gemessen sechs bis acht
+    abweichende Bits. Mit Bruchteilen stimmen die Raster ueberein.
+    """
+    out = []
+    skala = float(src) / dst
+    for i in range(dst):
+        a = i * skala
+        b = (i + 1) * skala
+        teile = []
+        j = int(a)
+        while j < src and j < b:
+            links = a if a > j else j
+            rechts = b if b < j + 1 else j + 1
+            if rechts > links:
+                teile.append((j, rechts - links))
+            j += 1
+        if not teile:
+            teile = [(min(int(a), src - 1), 1.0)]
+        out.append(teile)
+    return out
+
+
+def area_resize(w, h, px, tw, th):
+    """Verkleinert flaechentreu: jeder Quellpunkt zaehlt nach seinem Anteil."""
+    sx = _anteile(w, tw)
+    sy = _anteile(h, th)
+    out = [0.0] * (tw * th)
+    for ty in range(th):
+        for yy, wy in sy[ty]:
+            base = yy * w
+            ziel = ty * tw
+            for tx in range(tw):
+                s = 0.0
+                for xx, wx in sx[tx]:
+                    s += px[base + xx] * wx
+                out[ziel + tx] += s * wy
+    flaeche = (float(w) / tw) * (float(h) / th)
+    return [v / flaeche for v in out]
+
+
+def dhash_bits(w, h, px):
+    small = area_resize(w, h, px, 9, 8)
+    bits = 0
+    for y in range(8):
+        for x in range(8):
+            bits <<= 1
+            if small[y * 9 + x] > small[y * 9 + x + 1]:
+                bits |= 1
+    return bits
+
+
+def jpeg_size(data):
+    """Bildgroesse aus dem Kopf, ohne eine einzige Bildzeile zu lesen."""
+    pos = 2
+    n = len(data)
+    while pos + 3 < n:
+        if data[pos] != 0xFF:
+            pos += 1
+            continue
+        marker = data[pos + 1]
+        pos += 2
+        if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:
+            continue
+        if marker in (0xD9, 0xDA):
+            break
+        if pos + 2 > n:
+            break
+        seglen = struct.unpack(">H", data[pos:pos + 2])[0]
+        if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+            h, w = struct.unpack(">HH", data[pos + 3:pos + 7])
+            return w, h
+        pos += seglen
+    return 0, 0
+
+
+def exif_thumbnail(data):
+    """
+    Das Vorschaubild aus dem EXIF-Block, falls es zum Bild passt.
+
+    Telefone und Kameras legen eines in jedes Foto. Daraus den
+    Fingerabdruck zu nehmen kostet zwei Millisekunden statt zwei Sekunden.
+    Gebraucht wird aber dasselbe Bild, nicht ein anderer Ausschnitt: ein
+    beschnittenes Vorschaubild ergaebe einen anderen Abdruck als die
+    verkleinerte Fassung derselben Aufnahme daneben. Darum muss das
+    Seitenverhaeltnis stimmen.
+    """
+    volle_w, volle_h = jpeg_size(data)
+    if not volle_w or not volle_h:
+        return None
+    pos = 2
+    n = len(data)
+    while pos + 3 < n:
+        if data[pos] != 0xFF:
+            pos += 1
+            continue
+        marker = data[pos + 1]
+        pos += 2
+        if marker in (0xD8, 0x01) or 0xD0 <= marker <= 0xD7:
+            continue
+        if marker in (0xD9, 0xDA):
+            return None
+        seglen = struct.unpack(">H", data[pos:pos + 2])[0]
+        if marker == 0xE1 and data[pos + 2:pos + 8] == b"Exif\x00\x00":
+            tiff = data[pos + 8:pos + seglen]
+            thumb = _tiff_thumbnail(tiff)
+            if thumb and thumb[:2] == b"\xff\xd8":
+                tw, th = jpeg_size(thumb)
+                if tw >= 100 and th >= 100 or (tw >= 140 and th >= 90):
+                    if abs(tw * volle_h - th * volle_w) <= 0.02 * volle_w * th:
+                        return thumb
+            return None
+        pos += seglen
+    return None
+
+
+def _tiff_thumbnail(buf):
+    try:
+        if buf[:2] == b"II":
+            e = "<"
+        elif buf[:2] == b"MM":
+            e = ">"
+        else:
+            return None
+        magic, first = struct.unpack(e + "HI", buf[2:8])
+        if magic != 42:
+            return None
+        anzahl = struct.unpack(e + "H", buf[first:first + 2])[0]
+        weiter = struct.unpack(e + "I", buf[first + 2 + anzahl * 12:
+                                           first + 6 + anzahl * 12])[0]
+        if not weiter or weiter + 2 > len(buf):
+            return None
+        anzahl1 = struct.unpack(e + "H", buf[weiter:weiter + 2])[0]
+        off = laenge = 0
+        for i in range(anzahl1):
+            p = weiter + 2 + i * 12
+            tag, typ, num = struct.unpack(e + "HHI", buf[p:p + 8])
+            if typ == 4 and num == 1:
+                wert = struct.unpack(e + "I", buf[p + 8:p + 12])[0]
+                if tag == 0x0201:
+                    off = wert
+                elif tag == 0x0202:
+                    laenge = wert
+        if off and laenge and off + laenge <= len(buf):
+            return buf[off:off + laenge]
+    except (struct.error, IndexError):
+        return None
+    return None
+
+
+def _hat_balken(w, h, px):
+    """
+    Erkennt Vorschaubilder mit aufgefuellten Raendern.
+
+    Manche Geraete legen das Vorschaubild in einem festen
+    Seitenverhaeltnis ab und fuellen mit Balken auf. Der Inhalt sitzt dann
+    anders im Rahmen als im Foto selbst, und zwei verschiedene Fotos
+    haetten durch dieselben Balken schon ein Stueck Aehnlichkeit
+    geschenkt. Meist faellt so ein Bild schon durch das
+    Seitenverhaeltnis auf -- aufgefuellt wird ja gerade dann, wenn es
+    nicht passt. Das hier ist der Rest: gegenueberliegende Raender, beide
+    in sich voellig gleichmaessig. Eine Wolkendecke ist das nicht, die hat
+    einen Verlauf. Wer hier haengen bleibt, wird ganz durchgerechnet --
+    das kostet Zeit, nie Richtigkeit.
+    """
+    def gleichmaessig(werte):
+        hoch = tief = werte[0]
+        for v in werte:
+            if v > hoch:
+                hoch = v
+            elif v < tief:
+                tief = v
+        if hoch - tief > 2:
+            return False
+        # Aufgefuellt wird mit Schwarz, seltener mit Weiss. Ein gleichmaessiger
+        # Streifen Himmel in der Bildmitte der Helligkeit ist kein Balken --
+        # sonst verliert jedes Foto mit Verlauf den schnellen Weg.
+        mittel = sum(werte) // len(werte)
+        return mittel <= 20 or mittel >= 235
+
+    band_h = max(1, h // 12)
+    band_w = max(1, w // 12)
+    oben = px[:band_h * w]
+    unten = px[(h - band_h) * w:]
+    if gleichmaessig(oben) and gleichmaessig(unten):
+        return True
+    links = [px[y * w + x] for y in range(h) for x in range(band_w)]
+    rechts = [px[y * w + x] for y in range(h) for x in range(w - band_w, w)]
+    return gleichmaessig(links) and gleichmaessig(rechts)
+
+
+KOPF_BYTES = 262144  # so viel liest der erste Griff; EXIF steht am Anfang
+
+
+def fingerprint(path, miniatur=True):
+    """
+    Fingerabdruck, Groesse und Weg, auf dem er zustande kam.
+
+    Ergebnis: (abdruck, breite, hoehe, quelle). quelle ist "vorschau" oder
+    "ganz" -- das steht hinterher im Bericht, damit nachvollziehbar
+    bleibt, woraus der Wert kommt.
+    """
+    with open(path, "rb") as f:
+        kopf = f.read(KOPF_BYTES)
+        if kopf[:2] == b"\xff\xd8":
+            volle_w, volle_h = jpeg_size(kopf)
+            if miniatur:
+                thumb = exif_thumbnail(kopf)
+                if thumb:
+                    w, h, px = jpeg_dc_plane(thumb)
+                    if w >= 8 and h >= 8 and not _hat_balken(w, h, px):
+                        return dhash_bits(w, h, px), volle_w, volle_h, "vorschau"
+            rest = f.read()
+            data = kopf + rest if rest else kopf
+            w, h, px = jpeg_dc_plane(data)
+            return dhash_bits(w, h, px), volle_w, volle_h, "ganz"
+        if kopf[:8] == b"\x89PNG\r\n\x1a\n":
+            rest = f.read()
+            data = kopf + rest if rest else kopf
+            w, h, px = png_gray_plane(data)
+            if w < 2 or h < 2:
+                raise NotSupported("Bild zu klein")
+            return dhash_bits(w, h, px), w * 8, h * 8, "ganz"
+    raise NotSupported("Format wird nicht gelesen")
+
+
+def distance(a, b):
+    return bin(a ^ b).count("1")
+
+
+# ------------------------------------------------------------
+#  Gruppieren: wer gehoert zu wem
+# ------------------------------------------------------------
+
+def _baender(schwelle):
+    """
+    Zerlegt 64 Bit in Streifen.
+
+    Jeder Vergleich mit jedem waere bei zwanzigtausend Fotos eine
+    Viertelmilliarde Paare. Stattdessen: wer sich in hoechstens n Bits
+    unterscheidet, muss bei n+1 Streifen in mindestens einem Streifen
+    voellig uebereinstimmen -- sonst waere in jedem Streifen ein Fehler,
+    das waeren n+1. Verglichen wird also nur, wer sich einen Streifen
+    teilt.
+    """
+    n = max(2, min(8, schwelle + 1))
+    grenzen = []
+    los = 0
+    for i in range(n):
+        breite = (64 - los) // (n - i)
+        grenzen.append((los, breite))
+        los += breite
+    return grenzen
+
+
+def find_similar_pairs(items, schwelle, fortschritt=None):
+    """
+    Alle Paare, die hoechstens schwelle Bits auseinanderliegen.
+
+    items ist eine Liste (schluessel, abdruck); zurueck kommen die
+    Abstaende als {(i, j): abstand} mit i < j. Gegen den Vergleich jedes
+    mit jedem geprueft: bei 20 000 Abdruecken findet dieser Weg genau
+    dieselben Paare in 1,2 Sekunden statt in 106.
+    """
+    grenzen = _baender(schwelle)
+    eimer = [{} for _ in grenzen]
+    for i, (_, bits) in enumerate(items):
+        for b, (los, breite) in enumerate(grenzen):
+            teil = (bits >> los) & ((1 << breite) - 1)
+            eimer[b].setdefault(teil, []).append(i)
+
+    # Ein Paar kann in mehreren Streifen auftauchen und wird dann mehrfach
+    # verglichen. Das ist billiger, als sich alle geprueften Paare zu
+    # merken -- bei zwanzigtausend Fotos waeren das Millionen Eintraege.
+    abstaende = {}
+    for b, tabelle in enumerate(eimer):
+        for liste in tabelle.values():
+            if len(liste) < 2 or len(liste) > 4000:
+                continue
+            for ii in range(len(liste)):
+                i = liste[ii]
+                bits_i = items[i][1]
+                for jj in range(ii + 1, len(liste)):
+                    j = liste[jj]
+                    d = bin(bits_i ^ items[j][1]).count("1")
+                    if d <= schwelle:
+                        abstaende[(i, j) if i < j else (j, i)] = d
+        if fortschritt:
+            fortschritt(b + 1, len(grenzen))
+    return abstaende
+
+
+def group_similar(items, schwelle, fortschritt=None):
+    """
+    Bildet Gruppen um je eine Fassung herum.
+
+    items muss nach Guete sortiert sein, beste zuerst; die Reihenfolge
+    entscheidet, wer eine Gruppe anfuehrt. Jedes Mitglied liegt dann
+    hoechstens schwelle Bits von dieser Fassung entfernt.
+
+    Zusammenhaengende Mengen zu bilden -- A zu B, B zu C, also alle drei
+    in eine Gruppe -- war der erste Versuch und ging schief: in einem
+    Durchlauf ueber 1000 Bilder zog eine Kette zwei voellig verschiedene
+    Aufnahmen zusammen, weil eine kleine Fassung beiden nahe lag. In der
+    Anzeige stand dann ein Abstand von 9 bei einer Schaerfe von 6. Mit
+    einer Anfuehrerin je Gruppe kann das nicht passieren.
+    """
+    abstaende = find_similar_pairs(items, schwelle, fortschritt)
+    nachbarn = {}
+    for (i, j), d in abstaende.items():
+        nachbarn.setdefault(i, []).append((j, d))
+        nachbarn.setdefault(j, []).append((i, d))
+
+    vergeben = set()
+    gruppen = []
+    for i in range(len(items)):
+        if i in vergeben or i not in nachbarn:
+            continue
+        gruppe = [(i, 0)]
+        vergeben.add(i)
+        for j, d in sorted(nachbarn[i], key=lambda x: x[1]):
+            if j not in vergeben:
+                gruppe.append((j, d))
+                vergeben.add(j)
+        if len(gruppe) > 1:
+            gruppen.append(gruppe)
+        else:
+            vergeben.discard(i)  # allein ist keine Gruppe; darf spaeter mit
+    return gruppen, abstaende
 
 
 # ============================================================
@@ -1039,11 +1917,12 @@ class RegelnTab(Section):
         if not folder:
             return
 
+        limit = self.app.limit_bytes()
+        skip_video = self.app.var_skip_video.get()
+
         def work(job):
             job.say("Lese …")
             entries = scan_folder(folder, job)
-            limit = self.app.limit_bytes()
-            skip_video = self.app.var_skip_video.get()
             res = {"mit": 0, "mit_bytes": 0, "junk": 0, "video": 0, "gross": 0,
                    "gesamt": len(entries), "gesamt_bytes": 0}
             for e in entries:
@@ -1119,12 +1998,8 @@ class SammelnTab(Section):
             var.set(p)
             self.app.remember("sammeln", p)
 
-    def _plan(self, job):
-        src = self.var_src.get().strip()
-        dst = self.var_dst.get().strip()
+    def _plan(self, job, src, dst, limit, skip_video):
         entries = scan_folder(src, job)
-        limit = self.app.limit_bytes()
-        skip_video = self.app.var_skip_video.get()
         items, chosen = [], []
         for e in entries:
             if is_junk(e):
@@ -1155,14 +2030,20 @@ class SammelnTab(Section):
                 .format(src, dst)):
             return
 
+        # Alles, was aus der Oberflaeche kommt, wird hier gelesen -- im
+        # Faden selbst hat Tkinter darauf nichts zu suchen.
+        limit = self.app.limit_bytes()
+        skip_video = self.app.var_skip_video.get()
+        workers = self.app.workers()
+
         def work(job):
             job.say("Lese Quelle …")
-            items, chosen = self._plan(job)
+            items, chosen = self._plan(job, src, dst, limit, skip_video)
             if job.stopped:
                 job.done("copy", (None, chosen, True))
                 return
             job.say("{} Dateien vorgemerkt.".format(fmt_count(len(items))))
-            rep = transfer(items, job, dry_run=dry, move=False, workers=self.app.workers())
+            rep = transfer(items, job, dry_run=dry, move=False, workers=workers)
             job.done("copy", (rep, chosen, dry))
 
         self.run(work, self.finish)
@@ -1417,6 +2298,7 @@ class BilderTab(Section):
                 .format("verschieben" if move else "kopieren", dst)):
             return
         take_edit = self.var_edit.get()
+        workers = self.app.workers()
 
         def work(job):
             job.say("Lese …")
@@ -1447,7 +2329,7 @@ class BilderTab(Section):
                 plan.append((e.abspath, target, e.size))
                 rows.append((str(year) if year else "unklar", source, e,
                              os.path.basename(target)))
-            rep = transfer(plan, job, dry_run=dry, move=move, workers=self.app.workers())
+            rep = transfer(plan, job, dry_run=dry, move=move, workers=workers)
             job.done("img", (rep, rows, dry, umbenannt))
 
         self.run(work, self.finish)
@@ -1496,6 +2378,298 @@ class BilderTab(Section):
                             "{:.2f}".format(e.size_mb).replace(".", ","),
                             jahr, quelle, jahr])
         self.say("Gesichert: " + path + " — diese Datei liest Register 8 ein.")
+
+
+# ============================================================
+#  Register 5b — Aehnliche Bilder
+# ============================================================
+
+HASH_EXTS = set("jpg jpeg png".split())
+UNGEPRUEFT_EXTS = set("heic heif webp tif tiff bmp gif".split())
+
+# Gemessen an Vorlagen mit bekanntem Ergebnis: dieselbe Aufnahme in anderer
+# Groesse oder Kompression liegt bis 4 Bit auseinander, fremde Bilder ab 8.
+# Dazwischen liegt die Grenze.
+SCHAERFEN = [
+    ("streng — nur sehr nahe Fassungen", 3),
+    ("normal — empfohlen", 6),
+    ("weit — findet mehr, auch Fehlgriffe", 9),
+]
+
+
+def fingerprint_file():
+    return os.path.join(os.path.dirname(settings_file()), "bildabdruecke.csv")
+
+
+def load_fingerprints():
+    """Gemerkte Abdruecke: Pfad -> (groesse, geaendert, abdruck, breite, hoehe, quelle)."""
+    cache = {}
+    try:
+        with open(fingerprint_file(), "r", encoding="utf-8") as f:
+            for row in csv.reader(f, delimiter=";"):
+                if len(row) != 7:
+                    continue
+                try:
+                    cache[row[0]] = (int(row[1]), int(row[2]), int(row[3], 16),
+                                     int(row[4]), int(row[5]), row[6])
+                except ValueError:
+                    continue
+    except OSError:
+        pass
+    return cache
+
+
+def save_fingerprints(cache, grenze=400000):
+    try:
+        path = fingerprint_file()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f, delimiter=";")
+            for i, (pfad, v) in enumerate(cache.items()):
+                if i >= grenze:
+                    break
+                w.writerow([pfad, v[0], v[1], "{:016x}".format(v[2]), v[3], v[4], v[5]])
+    except OSError:
+        pass
+
+
+class AehnlicheTab(Section):
+    def __init__(self, master, app):
+        super().__init__(
+            master, app, "Phase 5b · Ähnliche Bilder",
+            "Dieselbe Aufnahme in zwei Auflösungen, einmal beschnitten, einmal neu "
+            "gespeichert — das findet keine Prüfsumme. Hier bekommt jedes Bild einen "
+            "Fingerabdruck aus seinem eigenen Inhalt; wer dicht beieinanderliegt, "
+            "kommt in eine Gruppe. Die Gruppen werden nur angezeigt und notiert. "
+            "Gelöscht wird nichts.")
+
+        g = ttk.Frame(self.body)
+        g.pack(fill="x")
+        self.var_root = tk.StringVar()
+        self.var_quar = tk.StringVar()
+        for i, (lab, var, title) in enumerate([
+                ("Prüfen", self.var_root, "Bilderordner"),
+                ("Quarantäne", self.var_quar, "Quarantäne-Ordner")]):
+            ttk.Label(g, text=lab, width=11).grid(row=i, column=0, sticky="w", pady=3)
+            ttk.Entry(g, textvariable=var).grid(row=i, column=1, sticky="ew", padx=8, pady=3)
+            ttk.Button(g, text="…", width=4,
+                       command=lambda v=var, t=title: self._pick(v, t)).grid(row=i, column=2, pady=3)
+        g.columnconfigure(1, weight=1)
+
+        opts = ttk.Frame(self.body)
+        opts.pack(fill="x", pady=(10, 0))
+        ttk.Label(opts, text="Schärfe").pack(side="left")
+        self.var_schaerfe = ttk.Combobox(opts, state="readonly", width=34,
+                                         values=[s[0] for s in SCHAERFEN])
+        self.var_schaerfe.current(1)
+        self.var_schaerfe.pack(side="left", padx=(6, 16))
+        self.var_thumb = tk.BooleanVar(value=True)
+        ttk.Checkbutton(opts, text="Vorschaubilder der Kamera nutzen (viel schneller)",
+                        variable=self.var_thumb).pack(side="left")
+
+        ttk.Label(self.body, style="Hint.TLabel", wraplength=980, justify="left",
+                  text="Fotos tragen ein kleines Vorschaubild in sich. Daraus ist der "
+                       "Fingerabdruck in Millisekunden fertig statt in Sekunden — geprüft "
+                       "wurde, dass derselbe Wert herauskommt. Passt das Vorschaubild nicht "
+                       "zum Bild, rechnet das Programm von allein das ganze Bild durch.\n"
+                       "Gelesen werden JPEG und PNG. HEIC, TIFF, WebP, BMP und GIF werden "
+                       "gezählt und unten genannt, aber nicht verglichen."
+                  ).pack(anchor="w", pady=(4, 0))
+
+        row = ttk.Frame(self.body)
+        row.pack(fill="x", pady=(8, 0))
+        b_go = ttk.Button(row, text="Suchen", style="Go.TButton", command=self.start)
+        b_go.pack(side="left")
+        b_stop = ttk.Button(row, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left", padx=6)
+        b_exp = ttk.Button(row, text="Liste sichern", command=self.export)
+        b_exp.pack(side="left")
+        b_quar = ttk.Button(row, text="Kleinere Fassungen in Quarantäne",
+                            command=self.quarantine)
+        b_quar.pack(side="left", padx=6)
+        self.wire(go=(b_go, b_exp, b_quar), stop=(b_stop,))
+
+        # Neun Zeilen, nicht zwölf: ueber der Tabelle steht in diesem
+        # Register eine Zeile mehr als in den anderen, und bei der
+        # kleinsten zulaessigen Fenstergroesse schnitt sonst die
+        # Statuszeile unten ab.
+        frame, self.tree = make_tree(
+            self.body, ("Gruppe", "Rolle", "Datei", "Ordner", "Pixel", "MB", "Abstand", "gelesen"),
+            (80, 90, 230, 250, 110, 70, 70, 70), height=9)
+        frame.pack(fill="both", expand=True, pady=10)
+        self.summary = ttk.Label(self.body, text="", style="Sum.TLabel")
+        self.summary.pack(anchor="w")
+        self.gruppen = []
+
+    def _pick(self, var, title):
+        p = pick_folder(title, var.get() or self.app.recall("aehnlich"))
+        if p:
+            var.set(p)
+            self.app.remember("aehnlich", p)
+
+    def start(self):
+        root = self.var_root.get().strip()
+        if not os.path.isdir(root):
+            messagebox.showwarning(APP_NAME, "Bitte einen vorhandenen Ordner wählen.")
+            return
+        schwelle = SCHAERFEN[self.var_schaerfe.current()][1]
+        thumb = self.var_thumb.get()
+
+        def work(job):
+            job.say("Lese Ordner …")
+            alle = [e for e in scan_folder(root, job) if not is_junk(e)]
+            bilder = [e for e in alle if e.ext in HASH_EXTS]
+            andere = sum(1 for e in alle if e.ext in UNGEPRUEFT_EXTS)
+            job.say("{} Bilder. Berechne Fingerabdrücke …".format(fmt_count(len(bilder))))
+
+            cache = load_fingerprints()
+            items, fehler, aus_cache, vorschau = [], 0, 0, 0
+            t0 = time.time()
+            for i, e in enumerate(bilder, 1):
+                if job.stopped:
+                    break
+                if i % 25 == 0 or i == len(bilder):
+                    job.progress(i, len(bilder))
+                    rest = ""
+                    verbraucht = time.time() - t0
+                    if verbraucht > 2 and i > aus_cache:
+                        je = verbraucht / i
+                        rest = " · noch etwa " + fmt_time(je * (len(bilder) - i))
+                    job.say("Abdruck {} von {}{}".format(
+                        fmt_count(i), fmt_count(len(bilder)), rest))
+                merkmal = (e.size, int(e.mtime))
+                alt = cache.get(e.abspath)
+                if alt and (alt[0], alt[1]) == merkmal:
+                    bits, bw, bh, woher = alt[2], alt[3], alt[4], alt[5]
+                    aus_cache += 1
+                else:
+                    try:
+                        bits, bw, bh, woher = fingerprint(e.abspath, miniatur=thumb)
+                    except (NotSupported, OSError, ValueError, struct.error, zlib.error):
+                        fehler += 1
+                        continue
+                    cache[e.abspath] = (e.size, int(e.mtime), bits, bw, bh, woher)
+                if woher == "vorschau":
+                    vorschau += 1
+                items.append((e, bits, bw, bh, woher))
+            save_fingerprints(cache)
+
+            if job.stopped:
+                job.done("sim", (None, 0, 0, 0, 0, 0))
+                return
+            job.say("Vergleiche {} Abdrücke …".format(fmt_count(len(items))))
+            # Beste zuerst: die groesste Fassung fuehrt ihre Gruppe an.
+            items.sort(key=lambda it: (-(it[2] * it[3]), -it[0].size, len(it[0].rel)))
+            rohe, _ = group_similar([(i, it[1]) for i, it in enumerate(items)],
+                                    schwelle,
+                                    lambda a, b: job.progress(a, b))
+            gruppen = [[(items[i][0], items[i][2], items[i][3], items[i][4], d)
+                        for i, d in g] for g in rohe]
+            gruppen.sort(key=lambda g: -len(g))
+            job.done("sim", (gruppen, len(items), fehler, andere, aus_cache, vorschau))
+
+        self.run(work, self.finish)
+
+    def finish(self, _kind, payload):
+        gruppen, geprueft, fehler, andere, aus_cache, vorschau = payload
+        if gruppen is None:
+            self.say("Abgebrochen. Die bereits berechneten Abdrücke sind gemerkt.")
+            return
+        self.gruppen = gruppen
+        for r in self.tree.get_children():
+            self.tree.delete(r)
+        shown, fassungen, belegt = 0, 0, 0
+        for gi, grp in enumerate(gruppen, 1):
+            for j, (e, bw, bh, woher, d) in enumerate(grp):
+                if j > 0:
+                    fassungen += 1
+                    belegt += e.size
+                if shown < MAX_ROWS:
+                    self.tree.insert("", "end", values=(
+                        "A-{:04d}".format(gi), "beste" if j == 0 else "Fassung",
+                        e.name, e.reldir,
+                        "{} × {}".format(bw, bh) if bw and bh else "?",
+                        "{:.2f}".format(e.size_mb).replace(".", ","),
+                        "—" if j == 0 else str(d), woher))
+                    shown += 1
+        if shown >= MAX_ROWS:
+            self.tree.insert("", "end", values=("…", "weitere ausgeblendet", "", "", "", "", "", ""))
+        self.summary.configure(
+            text="{} Gruppen · {} ähnliche Fassungen · {} belegt · {} Bilder geprüft".format(
+                fmt_count(len(gruppen)), fmt_count(fassungen), fmt_size(belegt),
+                fmt_count(geprueft)))
+        # Die Statuszeile ist eine Zeile und wird nicht umgebrochen — kurz halten.
+        teile = []
+        if vorschau:
+            teile.append("{} per Vorschaubild".format(fmt_count(vorschau)))
+        if aus_cache:
+            teile.append("{} schon bekannt".format(fmt_count(aus_cache)))
+        if andere:
+            teile.append("{} andere Formate".format(fmt_count(andere)))
+        if fehler:
+            teile.append("{} nicht lesbar".format(fmt_count(fehler)))
+        self.say("Fertig{}{}".format(" — " if teile else ".", " · ".join(teile)))
+
+    def export(self):
+        if not self.gruppen:
+            messagebox.showinfo(APP_NAME, "Erst suchen.")
+            return
+        path = filedialog.asksaveasfilename(
+            title="Liste ähnlicher Bilder sichern", defaultextension=".csv",
+            initialfile="aehnliche_bilder.csv", filetypes=[("CSV", "*.csv")])
+        if not path:
+            return
+        with open(path, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.writer(f, delimiter=";")
+            w.writerow(["aehnlich_gruppe", "aehnlich_rolle", "herkunft_pfad", "dateiname",
+                        "breite", "hoehe", "groesse_mb", "abstand", "abdruck_quelle"])
+            for gi, grp in enumerate(self.gruppen, 1):
+                for j, (e, bw, bh, woher, d) in enumerate(grp):
+                    w.writerow(["A-{:04d}".format(gi), "beste" if j == 0 else "fassung",
+                                e.reldir, e.name, bw, bh,
+                                "{:.2f}".format(e.size_mb).replace(".", ","),
+                                d, woher])
+        self.say("Gesichert: " + path)
+
+    def quarantine(self):
+        if not self.gruppen:
+            messagebox.showinfo(APP_NAME, "Erst suchen.")
+            return
+        quar = self.var_quar.get().strip()
+        if not quar:
+            messagebox.showwarning(APP_NAME, "Bitte einen Quarantäne-Ordner wählen.")
+            return
+        items = []
+        for grp in self.gruppen:
+            for e, _bw, _bh, _woher, _d in grp[1:]:
+                items.append((e.abspath, os.path.join(quar, e.rel), e.size))
+        if not items:
+            messagebox.showinfo(APP_NAME, "Es gibt nichts zu verschieben.")
+            return
+        if not messagebox.askyesno(
+                APP_NAME,
+                "{} kleinere Fassungen in die Quarantäne verschieben?\n\nNach: {}\n\n"
+                "Ähnlich ist nicht gleich: hier bleibt ein Rest Urteilssache. "
+                "Die Dateien bleiben vollständig erhalten und lassen sich jederzeit "
+                "zurückholen. Gelöscht wird nichts.".format(fmt_count(len(items)), quar)):
+            return
+        root = os.path.abspath(self.var_root.get().strip())
+        if os.path.abspath(quar).lower().startswith(root.lower()):
+            if not messagebox.askyesno(
+                    APP_NAME,
+                    "Die Quarantäne liegt innerhalb des geprüften Ordners. "
+                    "Das funktioniert, aber ein erneuter Suchlauf findet die Dateien wieder."
+                    "\n\nTrotzdem fortfahren?"):
+                return
+        self.run(lambda job: job.done("quar", transfer(items, job, dry_run=False, move=True,
+                                                       workers=self.app.workers())),
+                 self.after_move)
+
+    def after_move(self, _kind, rep):
+        self.say("Verschoben: {} · übersprungen: {} · fehlgeschlagen: {}. Nichts gelöscht."
+                 .format(fmt_count(rep["ok"]), fmt_count(rep["skip"]), fmt_count(rep["fail"])))
+        if rep["errors"]:
+            messagebox.showwarning(APP_NAME, "\n".join(rep["errors"][:12]))
 
 
 # ============================================================
@@ -2126,7 +3300,7 @@ class IndexTab(Section):
                     "ziel_pfad": e.reldir,
                     "tags": "", "aufbewahrung": "", "status": "neu", "notiz": "",
                 })
-            job.done("idx", (out, dup_hits, bool(img_by_name)))
+            job.done("idx", (out, dup_hits, bool(img_by_ziel)))
 
         self.run(work, self.finish)
 
@@ -2206,6 +3380,7 @@ class App(tk.Tk):
         self.tab_sam = SammelnTab(nb, self)
         self.tab_dup = DublettenTab(nb, self)
         self.tab_img = BilderTab(nb, self)
+        self.tab_sim = AehnlicheTab(nb, self)
         self.tab_kat = KategorienTab(nb, self)
         self.tab_idx = IndexTab(nb, self)
         self.tab_exp = ExplorerTab(nb, self)
@@ -2214,6 +3389,7 @@ class App(tk.Tk):
         nb.add(self.tab_sam, text="  3 · Sammeln  ")
         nb.add(self.tab_dup, text="  4 · Dubletten  ")
         nb.add(self.tab_img, text="  5 · Bilder  ")
+        nb.add(self.tab_sim, text="  5b · Ähnliche  ")
         nb.add(self.tab_kat, text="  7 · Kategorien  ")
         nb.add(self.tab_idx, text="  8 · Index  ")
         nb.add(self.tab_exp, text="  Explorer  ")

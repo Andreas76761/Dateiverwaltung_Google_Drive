@@ -1185,7 +1185,7 @@
               <li><b>Liste sichern, bevor du verschiebst.</b> Sie wird später zur Spalte <code>dup_gruppe</code> im Index und lässt sich danach nicht mehr rekonstruieren.</li>
               <li>Dann <b>Duplikate in Quarantäne verschieben</b>, Ziel <code>D:\S\_QUARANTAENE\</code>. Das Werkzeug kennt kein Löschen — bei AllDup dagegen liegt „Löschen“ gleichberechtigt daneben, und ein Fehlklick ist endgültig.</li>
               <li>Bleibt eine Entscheidung offen: die Kopie im aussagekräftigsten Ordner gewinnt, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen.</li>
-              <li>Ähnliche — nicht identische — Fotos bleiben hier noch liegen. Die kommen in Phase 5 dran, wenn alle Bilder an einem Ort sind; dort ist die Suche schneller und das Ergebnis übersichtlicher.</li>
+              <li>Ähnliche — nicht identische — Fotos bleiben hier noch liegen. Eine Prüfsumme kennt nur gleich oder ungleich; dasselbe Foto in zwei Grössen sind für sie zwei fremde Dateien. Die kommen in Phase 5 dran, im Register <em>5b · Ähnliche</em>, wenn alle Bilder an einem Ort sind.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> die Quarantäne gefüllt, die CSV-Liste exportiert ist und ein zweiter AllDup-Lauf über die Sammelplatte keine exakten Treffer mehr liefert.</p>
           </div>
@@ -1213,7 +1213,8 @@
               <li><b>Kollisionsregel auf Nummer anhängen stellen</b>, nicht auf Überschreiben. <code>IMG_0001.jpg</code> gibt es aus vier Quellen garantiert mehrfach, und exakt gleiche wurden in Phase 4 schon aussortiert — was jetzt kollidiert, ist <em>verschieden</em> und muss beides bleiben.</li>
               <li>Jahre, die nicht stimmen können — 1970, 1980, alles vor 1995 oder in der Zukunft — nach <code>_Jahr_unklar\</code>. Grosszügig sein: dieser Ordner ist billiger als ein falsch einsortiertes Jahrzehnt.</li>
               <li>Dieser Ordner wird in Phase 6 <b>zweimal</b> gebraucht: einmal für Drive, einmal als Quelle für Google Fotos. Was hier fehlt, fehlt an beiden Stellen.</li>
-              <li><b>Jetzt der Ähnlichkeitslauf:</b> <b>dupeGuru</b> im Modus <b>Bilder</b> über <code>_BILDER\</code>. Er findet dieselbe Aufnahme in anderer Auflösung, neu komprimierte Kopien, Screenshots von Screenshots. Treffer als Liste exportieren und im Index auf <code>status:unklar</code> setzen — <b>nicht verschieben</b>, die brauchen dein Auge.</li>
+              <li><b>Jetzt der Ähnlichkeitslauf:</b> im <b>Werkzeug</b>, Register <em>5b · Ähnliche</em> über <code>_BILDER\</code>. Es findet dieselbe Aufnahme in anderer Auflösung, neu komprimierte Kopien, die für WhatsApp verkleinerte Fassung daneben. Schärfe auf <em>normal</em> lassen. Liste sichern und im Index auf <code>status:unklar</code> setzen — <b>nicht verschieben</b>, die brauchen dein Auge. Ein zusätzliches Programm wie dupeGuru ist dafür nicht mehr nötig.</li>
+              <li>Gelesen werden dabei <b>JPEG und PNG</b>. HEIC, TIFF, WebP, BMP und GIF werden gezählt und genannt, aber nicht verglichen — bei HEIC vom iPhone bleibt also der Blick von Hand. Der erste Lauf über einen grossen Bilderordner dauert; jeder weitere ist schnell, weil sich das Werkzeug die Fingerabdrücke merkt.</li>
             </ul>
 
             <div class="scroller">
@@ -1326,7 +1327,7 @@
               <li>In <code>00_Index</code> ein Google Sheet <b>Dateiindex_2026</b> anlegen, Spalten nach dem <a href="#index">Index-Schema</a>.</li>
               <li>Im <b>Werkzeug</b>, Register <em>8 · Index</em>: den fertigen Zielordner wählen, dazu die Dublettenliste aus Phase 4 und die Bilderliste aus Phase 5. Es liest das Archiv frisch ein und verbindet beides — damit sind zwölf der sechzehn Spalten ohne Handarbeit gefüllt. Ergebnis sichern und in Sheets importieren.</li>
               <li><b>Die Bilderliste ist nicht optional</b>, wenn du wissen willst, woher ein Foto stammt: im Archiv liegen Bilder in Jahresordnern, ihre Herkunft ist am Pfad nicht mehr ablesbar. Nur diese Liste holt sie zurück. Also in Phase 5 das Sichern nicht vergessen.</li>
-              <li>Die Ähnlichkeitsliste aus Phase 5 einspielen: die betroffenen Bilder bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner.</li>
+              <li>Die Ähnlichkeitsliste aus Register <em>5b</em> einspielen: die betroffenen Bilder bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner. Die Spalte <code>aehnlich_gruppe</code> hält zusammen, was zusammengehört — in Sheets danach sortieren, dann stehen die Fassungen untereinander.</li>
               <li>Ein zweites Blatt <b>Ordnerregister</b>: eine Zeile pro Ordner der zweiten und dritten Ebene, mit Tags, Aufbewahrung und Notiz. <b>Hier findet das Taggen statt</b>, nicht auf Dateiebene.</li>
               <li>Ein drittes Blatt <b>Quellen</b> mit der Kürzelliste aus Phase 0, ergänzt um Volumen und Dateianzahl.</li>
               <li>Nur Tags aus dem festgelegten <a href="#tags">Vokabular</a> verwenden. In Sheets als Dropdown einrichten — Freitext macht den Index binnen Wochen wertlos.</li>
@@ -1572,13 +1573,13 @@
         <table>
           <thead><tr><th>Werkzeug</th><th>Installieren auf</th><th>Wofür</th><th>Phase</th></tr></thead>
           <tbody>
-            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, Kategorien und den Index in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 7, 8</td></tr>
+            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, ähnliche Bilder, Kategorien und den Index in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer, dupeGuru und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 5b, 7, 8</td></tr>
             <tr><td><b>WizTree</b></td><td>alle vier</td><td>Inventur in Sekunden, CSV-Export der kompletten Dateiliste — Rohdaten für den Index</td><td class="mono">1</td></tr>
             <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
             <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
             <tr><td><b>AllDup</b></td><td>Sammelrechner</td><td>Dublettensuche nach Inhalt, Auswahl-Assistent, Aktion „Verschieben“ — auf Windows die schnellste Wahl</td><td class="mono">4</td></tr>
             <tr><td><b>Advanced Renamer</b></td><td>Sammelrechner</td><td>Bilder anhand des EXIF-Aufnahmedatums in Jahresordner verschieben, mit Vorschau vor dem Ausführen</td><td class="mono">5</td></tr>
-            <tr><td><b>dupeGuru</b></td><td>Sammelrechner</td><td>ergänzend für <em>ähnliche</em> Fotos, die AllDup nicht findet</td><td class="mono">5</td></tr>
+            <tr><td><b>dupeGuru</b></td><td>— nicht mehr nötig</td><td>fand <em>ähnliche</em> Fotos, die AllDup nicht findet. Das kann jetzt Register <em>5b</em> des Werkzeugs; dupeGuru bleibt nur als zweite Meinung interessant</td><td class="mono">5b</td></tr>
             <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer, und die Sicherung des Bilderordners nach Google Fotos</td><td class="mono">0, 6</td></tr>
             <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">8</td></tr>
             <tr><td><b>TreeSize Free</b></td><td>optional</td><td>Alternative zu WizTree, langsamer, dafür bessere Auswertungen</td><td class="mono">1</td></tr>
