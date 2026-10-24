@@ -39,6 +39,7 @@ grossen Vorgänge gibt es einen Probelauf, der nur zählt und rechnet.
 | **Sammeln** | 3 | Aus einer Quelle auf die Sammelplatte kopieren, mit Grössengrenze und Ausschlussliste |
 | **Dubletten** | 4 | Inhaltsgleiche Dateien über die Prüfsumme finden, Original bestimmen, Rest in Quarantäne |
 | **Bilder** | 5 | Bilder nach Aufnahmejahr einsortieren — EXIF, sonst Dateiname, sonst Dateidatum |
+| **Ähnliche** | 5b | Dieselbe Aufnahme in anderer Grösse oder Qualität finden — über den Bildinhalt, nicht über die Prüfsumme |
 | **Kategorien** | 7 | Ordner statt Einzeldateien einsortieren, mit Vorschlag je Ordner |
 | **Index** | 8 | Archiv und die Listen der Register 4 und 5 zu einer Index-Datei verbinden |
 | **Explorer** | — | Zwei Ordner nebeneinander, filtern, vergleichen, Auswahl kopieren |
@@ -87,6 +88,36 @@ der Zukunft — landen in `_Jahr_unklar`.
 greifen Dateiname und Dateidatum. Das trifft fast nur iPhone-Aufnahmen, die praktisch immer
 ein Datum im Namen haben.
 
+**Ähnliche Bilder** in Register 5b sind etwas anderes als Dubletten. Eine Prüfsumme sagt nur
+*gleich* oder *ungleich*: dasselbe Foto einmal in voller Grösse und einmal für WhatsApp
+verkleinert sind für sie zwei fremde Dateien. Register 5b vergleicht darum den Bildinhalt.
+Jedes Bild bekommt einen **Fingerabdruck** aus 64 Bit: das Bild wird auf ein winziges
+Graubild heruntergerechnet, und für jedes Feld wird nur notiert, ob es heller ist als sein
+rechter Nachbar. Diese Hell-Dunkel-Verhältnisse überstehen Verkleinern und Nachkomprimieren;
+die Farben und die Schärfe tun das nicht. Zwei Bilder gehören zusammen, wenn sich ihre
+Fingerabdrücke in höchstens so vielen Bits unterscheiden, wie die **Schärfe** erlaubt.
+
+Das Herunterrechnen geht bei JPEG fast umsonst: in einer JPEG-Datei steht für jeden
+8×8-Block bereits dessen Mittelwert. Wer nur diese Werte liest, hat das Bild in einem Achtel
+der Kantenlänge vorliegen, ohne je ein Bild aufgebaut zu haben. Dazu kommt eine Abkürzung:
+Kameras und Telefone legen in jedes Foto ein kleines **Vorschaubild**. Passt es zum Bild,
+wird es genommen — aus drei Millisekunden statt anderthalb Sekunden bei einem
+Zwölf-Megapixel-Foto. Passt es nicht (anderes Seitenverhältnis, aufgefüllte Ränder), rechnet
+das Programm von sich aus das ganze Bild durch. Geprüft wurde, dass beide Wege denselben
+Fingerabdruck ergeben.
+
+Gelesen werden **JPEG und PNG**. HEIC, TIFF, WebP, BMP und GIF werden gezählt und genannt,
+aber nicht geprüft. Einmal berechnete Fingerabdrücke merkt sich das Programm
+(`bildabdruecke.csv` neben den Einstellungen); ein zweiter Lauf über denselben Ordner ist
+dadurch um ein Vielfaches schneller.
+
+Gruppen bildet Register 5b **um die beste Fassung herum** — die mit den meisten Bildpunkten.
+Jedes Mitglied liegt höchstens die eingestellte Schärfe von ihr entfernt. Der erste Entwurf
+hat stattdessen alles zusammengezogen, was irgendwie zusammenhing: A zu B, B zu C, also alle
+drei in eine Gruppe. Das brachte im Versuch zwei völlig verschiedene Aufnahmen in dieselbe
+Gruppe, weil eine kleine Fassung zufällig beiden nahe lag. Mit einer Anführerin je Gruppe
+kann das nicht mehr passieren.
+
 **Kategorievorschläge** in Register 7 entstehen aus dem **Volumen** je Ordner, nicht aus der
 Anzahl der Dateien: ein Ordner mit einem grossen Vertrag und zwanzig winzigen Skripten ist ein
 Dokumentenordner. Der Vorschlag ist nie bindend — Doppelklick auf eine Zeile schaltet zur
@@ -124,6 +155,7 @@ Grösse bei verschiedenem Inhalt.
 | 3 · Sammeln | 11.227 Dateien kopiert | Probelauf = Ausführung, Quelle unverändert, 40 Stichproben byteweise gleich |
 | 4 · Dubletten | 2.000 bekannte Gruppen, 6.800 Fallen | 2.000 von 2.000 getroffen, 0 übersehen, 0 Falle zugeschnappt |
 | 5 · Bilder | 3.620 Bilder mit bekanntem Jahr | alle richtig; EXIF schlägt widersprechenden Dateinamen |
+| 5b · Ähnliche | 200 Vorlagen à drei Fassungen, 400 Einzelbilder | bei *normal* 198 von 200 gefunden, 7 Gruppen mit Fremdem — siehe unten |
 | 7 · Kategorien | 5 Ordner mit bekannter Kategorie | alle 5 richtig, Volumen schlägt Anzahl |
 | 8 · Index | 27.785 Zeilen, 800 Fallen | jede Dubletten-Angabe an der richtigen Datei |
 | Explorer | 8 Filterproben, 4 Vergleichsarten | jede Zahl mit unabhängiger Nachzählung deckungsgleich |
@@ -131,10 +163,41 @@ Grösse bei verschiedenem Inhalt.
 Tempo an 34.521 Dateien mit 2,8 GB über fünf Quellen: Inventur 0,5 s · Sammeln 9,2 s ·
 Wiederholung 1,1 s · Dubletten 2,4 s · Bilder 1,7 s · Index 0,3 s.
 
+### Welche Schärfe in Register 5b
+
+An 1.000 Bildern — 200 Vorlagen in je drei Fassungen (voll, halb, viertel) und 400
+Einzelbildern:
+
+| Schärfe | Vorlagen gefunden | Gruppen mit Fremdem darin | Fassungen unvollständig |
+|---|---|---|---|
+| streng (3 Bit) | 181 von 200 | **0** | 106 |
+| **normal (6 Bit)** | **198 von 200** | 7 | 26 |
+| weit (9 Bit) | 161 von 200 | 65 | 11 |
+
+*normal* ist die Voreinstellung. *streng* lässt viertelgrosse Fassungen liegen, *weit* wirft
+zu viel zusammen. Der Prüfbestand ist dabei härter als echte Fotos: alle 1.000 Bilder sind
+nach demselben Muster erzeugt und sehen einander von Haus aus ähnlich — zwei der sieben
+beanstandeten Gruppen enthalten Bilder, die auch ein Mensch für Varianten desselben Motivs
+hielte. Bei Urlaubsfotos liegen fremde Aufnahmen deutlich weiter auseinander.
+
+Tempo: 1.000 Bilder à 0,3 Megapixel in 27 Sekunden, beim zweiten Lauf aus dem Gedächtnis in
+1 Sekunde. Ein Zwölf-Megapixel-Foto braucht 0,3 bis 1,7 Sekunden, wenn das ganze Bild
+gerechnet werden muss — und 3 Millisekunden, wenn das Vorschaubild der Kamera taugt. Das
+Vergleichen selbst fällt kaum ins Gewicht: 20.000 Fingerabdrücke brauchen 1,2 Sekunden statt
+106 Sekunden für jeden-mit-jedem, und finden dabei nachweislich dieselben Paare.
+
 Umlaute und 164 Zeichen lange Pfade blieben heil, die Quelle war nach jedem Lauf unverändert.
 
-Diese Prüfungen laufen gegen die Programmlogik, nicht gegen die Fenster. Dass sich alle
-Register aufbauen und bedienen lassen, ist getrennt geprüft.
+Register 5b wurde durch die Oberfläche selbst getrieben — Ordner eintragen, *Suchen*
+drücken, Tabelle auslesen —, ebenso ein Durchlauf durch alle übrigen Register nacheinander.
+Dabei kam ein Fehler ans Licht, der in der Logikprüfung nicht auffallen konnte: Register 8
+brach am Ende jedes Laufs mit einer Fehlermeldung ab, weil beim letzten Umbau ein alter
+Name stehen geblieben war. Behoben; der Durchlauf über alle Register gehört jetzt zur
+Prüfung.
+
+Ausserdem lasen drei Register ihre Einstellungen aus dem Arbeitsfaden heraus direkt aus den
+Eingabefeldern. Das geht in der Praxis gut, ist aber nicht zugesichert; jetzt wird alles
+vorher im Hauptfaden gelesen und als einfacher Wert weitergereicht.
 
 ## Selbst starten, ohne den Build abzuwarten
 
