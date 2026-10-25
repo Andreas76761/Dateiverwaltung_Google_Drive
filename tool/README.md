@@ -161,7 +161,16 @@ Grösse bei verschiedenem Inhalt.
 Die Prüfung bedient dabei die **echte Oberfläche** — Felder füllen, Knopf drücken,
 Ergebnis aus der Tabelle lesen —, nicht die Funktionen darunter. Nur so fallen Fehler auf,
 die zwischen Fenster und Logik sitzen; genau dort steckten die, die zuletzt gefunden wurden.
-**64 Prüfungen, alle grün.**
+**78 Prüfungen, alle grün.**
+
+Die Prüfung liegt im Repository und lässt sich jederzeit wiederholen:
+
+```
+python3 tool/pruefung/alles.py --schnell       # knapp drei Minuten
+xvfb-run -a python3 tool/pruefung/alles.py     # alles, ohne Bildschirm
+```
+
+Was sie im Einzelnen tut, steht in [tool/pruefung/README.md](pruefung/README.md).
 
 | Register | Prüfung | Ergebnis |
 |---|---|---|
