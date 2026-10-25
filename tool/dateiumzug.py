@@ -34,7 +34,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Dateiumzug 2026"
-APP_VERSION = "1.2"
+APP_VERSION = "1.3"
 
 COPY_BUFFER = 1024 * 1024        # 1 MB je Leseschritt
 DEFAULT_WORKERS = 4              # gleichzeitige Kopiervorgaenge
@@ -125,6 +125,10 @@ RAW_STAY_EXTS = set("cr2 cr3 nef arw dng raf orf rw2".split())
 
 DEFAULT_MAX_MB = 120.0
 MIN_PLAUSIBLE_YEAR = 1995
+
+# Formate, in denen ein Aufnahmedatum stehen kann
+EXIF_EXTS = ("jpg", "jpeg", "tif", "tiff", "heic", "heif", "avif")
+HEIF_KOPF = 262144   # so viel liest der erste Griff in eine HEIC-Datei
 
 
 # ============================================================
@@ -414,8 +418,225 @@ def _parse_tiff_datetime(buf):
     return None
 
 
+# ------------------------------------------------------------
+#  HEIC und HEIF — der Behaelter, nicht das Bild
+# ------------------------------------------------------------
+#
+#  Eine HEIC-Datei vom iPhone ist keine Bilddatei im gewohnten Sinn,
+#  sondern ein Behaelter nach demselben Muster wie MP4: ineinander
+#  geschachtelte Kaesten. Das Bild darin ist ein HEVC-Einzelbild, dafuer
+#  braeuchte es einen Videodekoder. Ohne jeden Dekoder herauszuholen sind
+#  aber: die EXIF-Daten mit dem Aufnahmedatum, die Bildgroesse, und ein
+#  etwaiges eingebettetes JPEG. Das Aufnahmedatum ist der Grund fuer den
+#  ganzen Aufwand -- es ist bei iPhone-Fotos die einzige verlaessliche
+#  Quelle fuer das Jahr.
+
+
+def _heif_boxes(data, start, ende):
+    """Laeuft die Kaesten einer Ebene ab und liefert (typ, inhalt, ende)."""
+    p = start
+    while p + 8 <= ende:
+        groesse = struct.unpack(">I", data[p:p + 4])[0]
+        typ = data[p + 4:p + 8]
+        kopf = 8
+        if groesse == 1:
+            if p + 16 > ende:
+                return
+            groesse = struct.unpack(">Q", data[p + 8:p + 16])[0]
+            kopf = 16
+        elif groesse == 0:
+            groesse = ende - p
+        if groesse < kopf or p + groesse > ende:
+            return
+        yield typ, p + kopf, p + groesse
+        p += groesse
+
+
+def _heif_zahl(data, p, breite):
+    if breite == 0:
+        return 0, p
+    return int.from_bytes(data[p:p + breite], "big"), p + breite
+
+
+def _heif_iloc(data, anfang, ende):
+    """Wo die Teile liegen: {teil: [(versatz, laenge), ...]}."""
+    version = data[anfang]
+    p = anfang + 4
+    b = data[p]
+    offset_breite, laenge_breite = b >> 4, b & 15
+    b = data[p + 1]
+    basis_breite, index_breite = b >> 4, b & 15
+    p += 2
+    if version < 2:
+        anzahl = struct.unpack(">H", data[p:p + 2])[0]
+        p += 2
+    else:
+        anzahl = struct.unpack(">I", data[p:p + 4])[0]
+        p += 4
+    orte = {}
+    for _ in range(anzahl):
+        if p + 8 > ende:
+            break
+        if version < 2:
+            teil = struct.unpack(">H", data[p:p + 2])[0]
+            p += 2
+        else:
+            teil = struct.unpack(">I", data[p:p + 4])[0]
+            p += 4
+        if version >= 1:
+            p += 2          # Bauart des Teils
+        p += 2              # Verweis auf eine andere Datei
+        basis, p = _heif_zahl(data, p, basis_breite)
+        anzahl_stuecke = struct.unpack(">H", data[p:p + 2])[0]
+        p += 2
+        stuecke = []
+        for _ in range(anzahl_stuecke):
+            if index_breite:
+                _, p = _heif_zahl(data, p, index_breite)
+            off, p = _heif_zahl(data, p, offset_breite)
+            lng, p = _heif_zahl(data, p, laenge_breite)
+            stuecke.append((basis + off, lng))
+        orte[teil] = stuecke
+    return orte
+
+
+def _heif_iinf(data, anfang, ende):
+    """Welcher Teil welche Art hat: {teil: b'Exif' / b'hvc1' / b'jpeg' / ...}."""
+    version = data[anfang]
+    p = anfang + 4
+    if version == 0:
+        p += 2
+    else:
+        p += 4
+    arten = {}
+    for typ, a, e in _heif_boxes(data, p, ende):
+        if typ != b"infe" or data[a] < 2:
+            continue
+        q = a + 4
+        if data[a] == 2:
+            teil = struct.unpack(">H", data[q:q + 2])[0]
+            q += 2
+        else:
+            teil = struct.unpack(">I", data[q:q + 4])[0]
+            q += 4
+        arten[teil] = data[q + 2:q + 6]
+    return arten
+
+
+def _heif_groessen(data, anfang, ende):
+    """ipco und ipma zusammen: {teil: (breite, hoehe)}."""
+    eigenschaften = []
+    zuordnung = {}
+    for typ, a, e in _heif_boxes(data, anfang, ende):
+        if typ == b"ipco":
+            for ptyp, pa, pe in _heif_boxes(data, a, e):
+                eigenschaften.append(
+                    struct.unpack(">II", data[pa + 4:pa + 12]) if ptyp == b"ispe" else None)
+        elif typ == b"ipma":
+            version = data[a]
+            merker = struct.unpack(">I", b"\x00" + data[a + 1:a + 4])[0]
+            p = a + 4
+            anzahl = struct.unpack(">I", data[p:p + 4])[0]
+            p += 4
+            for _ in range(anzahl):
+                if p + 3 > ende:
+                    break
+                if version < 1:
+                    teil = struct.unpack(">H", data[p:p + 2])[0]
+                    p += 2
+                else:
+                    teil = struct.unpack(">I", data[p:p + 4])[0]
+                    p += 4
+                n = data[p]
+                p += 1
+                for _ in range(n):
+                    if merker & 1:
+                        index = struct.unpack(">H", data[p:p + 2])[0] & 0x7FFF
+                        p += 2
+                    else:
+                        index = data[p] & 0x7F
+                        p += 1
+                    if 1 <= index <= len(eigenschaften) and eigenschaften[index - 1]:
+                        zuordnung[teil] = eigenschaften[index - 1]
+    return zuordnung
+
+
+def heif_meta(kopf):
+    """
+    Liest den Beschreibungsteil einer HEIF-Datei.
+
+    kopf sind die ersten Bytes der Datei. Ergebnis: dict mit primary,
+    arten, orte und groessen -- oder None, wenn es keine HEIF-Datei ist.
+    Die Bilddaten selbst liegen oft weit hinter diesem Bereich; die
+    Fundstellen in orte zeigen darauf.
+    """
+    if len(kopf) < 12 or kopf[4:8] != b"ftyp":
+        return None
+    ftyp_ende = struct.unpack(">I", kopf[0:4])[0]
+    marken = kopf[8:max(16, min(ftyp_ende, len(kopf)))]
+    if not any(m in marken for m in (b"heic", b"heix", b"heim", b"heis", b"hevc",
+                                     b"hevx", b"mif1", b"msf1", b"miaf", b"avif")):
+        return None
+    for typ, a, e in _heif_boxes(kopf, 0, len(kopf)):
+        if typ != b"meta":
+            continue
+        ergebnis = {"primary": None, "arten": {}, "orte": {}, "groessen": {}}
+        for btyp, ba, be in _heif_boxes(kopf, a + 4, e):
+            if btyp == b"pitm":
+                ergebnis["primary"] = (
+                    struct.unpack(">H", kopf[ba + 4:ba + 6])[0] if kopf[ba] == 0
+                    else struct.unpack(">I", kopf[ba + 4:ba + 8])[0])
+            elif btyp == b"iinf":
+                ergebnis["arten"] = _heif_iinf(kopf, ba, be)
+            elif btyp == b"iloc":
+                ergebnis["orte"] = _heif_iloc(kopf, ba, be)
+            elif btyp == b"iprp":
+                ergebnis["groessen"] = _heif_groessen(kopf, ba, be)
+        return ergebnis
+    return None
+
+
+def _heif_teil(f, kopf, meta, teil):
+    """Holt die Daten eines Teils -- aus dem Kopf, sonst von der Platte."""
+    stuecke = meta["orte"].get(teil)
+    if not stuecke:
+        return b""
+    out = []
+    for versatz, laenge in stuecke:
+        if laenge <= 0 or laenge > 64 * 1024 * 1024:
+            return b""
+        if versatz + laenge <= len(kopf):
+            out.append(kopf[versatz:versatz + laenge])
+        else:
+            f.seek(versatz)
+            out.append(f.read(laenge))
+    return b"".join(out)
+
+
+def _heif_teil_art(meta, art):
+    for teil, a in meta["arten"].items():
+        if a == art:
+            return teil
+    return None
+
+
+def heif_exif(f, kopf, meta):
+    """Der EXIF-Block einer HEIF-Datei als TIFF, oder None."""
+    teil = _heif_teil_art(meta, b"Exif")
+    if teil is None:
+        return None
+    roh = _heif_teil(f, kopf, meta, teil)
+    if len(roh) < 8:
+        return None
+    # Die ersten vier Bytes sagen, wie weit vor dem TIFF-Kopf noch
+    # etwas steht; bei allen geprueften Dateien ist das null.
+    versatz = struct.unpack(">I", roh[:4])[0]
+    rest = roh[4 + versatz:]
+    return rest if rest[:2] in (b"II", b"MM") else None
+
+
 def year_from_exif(path):
-    """Aufnahmejahr aus JPEG oder TIFF. Andere Formate liefern None."""
+    """Aufnahmejahr aus JPEG, TIFF oder HEIC. Andere Formate liefern None."""
     try:
         with open(path, "rb") as f:
             head = f.read(2)
@@ -423,6 +644,12 @@ def year_from_exif(path):
                 f.seek(0)
                 return _parse_tiff_datetime(f.read(65536))
             if head != b"\xff\xd8":
+                f.seek(0)
+                kopf = f.read(HEIF_KOPF)
+                meta = heif_meta(kopf)
+                if meta:
+                    block = heif_exif(f, kopf, meta)
+                    return _parse_tiff_datetime(block) if block else None
                 return None
             while True:
                 b = f.read(2)
@@ -447,7 +674,7 @@ def year_from_exif(path):
 
 def year_of(entry, use_exif=True):
     """Aufnahmejahr, sonst Jahr aus dem Dateinamen, sonst Dateidatum."""
-    if use_exif and entry.ext in ("jpg", "jpeg", "tif", "tiff"):
+    if use_exif and entry.ext in EXIF_EXTS:
         y = year_from_exif(entry.abspath)
         if y:
             return y, "exif"
@@ -1110,16 +1337,31 @@ def exif_thumbnail(data):
             return None
         seglen = struct.unpack(">H", data[pos:pos + 2])[0]
         if marker == 0xE1 and data[pos + 2:pos + 8] == b"Exif\x00\x00":
-            tiff = data[pos + 8:pos + seglen]
-            thumb = _tiff_thumbnail(tiff)
-            if thumb and thumb[:2] == b"\xff\xd8":
-                tw, th = jpeg_size(thumb)
-                if tw >= 100 and th >= 100 or (tw >= 140 and th >= 90):
-                    if abs(tw * volle_h - th * volle_w) <= 0.02 * volle_w * th:
-                        return thumb
-            return None
+            return vorschau_taugt(_tiff_thumbnail(data[pos + 8:pos + seglen]),
+                                  volle_w, volle_h)
         pos += seglen
     return None
+
+
+def vorschau_taugt(thumb, volle_w, volle_h):
+    """
+    Gibt das Vorschaubild zurueck, wenn es dasselbe Bild zeigt.
+
+    Gross genug muss es sein, und das Seitenverhaeltnis muss stimmen --
+    ein beschnittenes oder aufgefuelltes Vorschaubild ergaebe einen
+    anderen Abdruck als die verkleinerte Fassung derselben Aufnahme
+    daneben.
+    """
+    if not thumb or thumb[:2] != b"\xff\xd8" or not volle_w or not volle_h:
+        return None
+    tw, th = jpeg_size(thumb)
+    if not tw or not th:
+        return None
+    if not ((tw >= 100 and th >= 100) or (tw >= 140 and th >= 90)):
+        return None
+    if abs(tw * volle_h - th * volle_w) > 0.02 * volle_w * th:
+        return None
+    return thumb
 
 
 def _tiff_thumbnail(buf):
@@ -1229,7 +1471,41 @@ def fingerprint(path, miniatur=True):
             if w < 2 or h < 2:
                 raise NotSupported("Bild zu klein")
             return dhash_bits(w, h, px), w * 8, h * 8, "ganz"
+        if kopf[4:8] == b"ftyp":
+            return _heif_fingerprint(f, kopf)
     raise NotSupported("Format wird nicht gelesen")
+
+
+def _heif_fingerprint(f, kopf):
+    """
+    Fingerabdruck einer HEIC-Datei -- soweit das ohne Videodekoder geht.
+
+    Das Bild selbst ist ein HEVC-Einzelbild und bleibt verschlossen.
+    Zwei Wege fuehren trotzdem zum Ziel: ein ganzes JPEG als Teil der
+    Datei, oder ein Vorschaubild im EXIF-Block. Gibt es keines von
+    beiden, sagt das Programm das -- und schweigt nicht einfach.
+    """
+    meta = heif_meta(kopf)
+    if not meta:
+        raise NotSupported("Format wird nicht gelesen")
+    volle_w, volle_h = meta["groessen"].get(meta["primary"], (0, 0))
+
+    teil = _heif_teil_art(meta, b"jpeg")
+    if teil is not None:
+        daten = _heif_teil(f, kopf, meta, teil)
+        if daten[:2] == b"\xff\xd8":
+            w, h, px = jpeg_dc_plane(daten)
+            if w >= 8 and h >= 8:
+                jw, jh = jpeg_size(daten)
+                return (dhash_bits(w, h, px), volle_w or jw, volle_h or jh, "ganz")
+
+    block = heif_exif(f, kopf, meta)
+    thumb = vorschau_taugt(_tiff_thumbnail(block), volle_w, volle_h) if block else None
+    if thumb:
+        w, h, px = jpeg_dc_plane(thumb)
+        if w >= 8 and h >= 8 and not _hat_balken(w, h, px):
+            return dhash_bits(w, h, px), volle_w, volle_h, "vorschau"
+    raise NotSupported("HEIC ohne brauchbare Vorschau")
 
 
 def distance(a, b):
@@ -2384,8 +2660,8 @@ class BilderTab(Section):
 #  Register 5b — Aehnliche Bilder
 # ============================================================
 
-HASH_EXTS = set("jpg jpeg png".split())
-UNGEPRUEFT_EXTS = set("heic heif webp tif tiff bmp gif".split())
+HASH_EXTS = set("jpg jpeg png heic heif avif".split())
+UNGEPRUEFT_EXTS = set("webp tif tiff bmp gif".split())
 
 # Gemessen an Vorlagen mit bekanntem Ergebnis: dieselbe Aufnahme in anderer
 # Groesse oder Kompression liegt bis 4 Bit auseinander, fremde Bilder ab 8.
@@ -2472,8 +2748,10 @@ class AehnlicheTab(Section):
                        "Fingerabdruck in Millisekunden fertig statt in Sekunden — geprüft "
                        "wurde, dass derselbe Wert herauskommt. Passt das Vorschaubild nicht "
                        "zum Bild, rechnet das Programm von allein das ganze Bild durch.\n"
-                       "Gelesen werden JPEG und PNG. HEIC, TIFF, WebP, BMP und GIF werden "
-                       "gezählt und unten genannt, aber nicht verglichen."
+                       "Gelesen werden JPEG und PNG. Bei HEIC vom iPhone geht nur, was "
+                       "als JPEG mit darin liegt — das Bild selbst ist ein Videoeinzelbild "
+                       "und bleibt verschlossen; was dabei übrig bleibt, steht unten. "
+                       "TIFF, WebP, BMP und GIF werden gezählt, aber nicht verglichen."
                   ).pack(anchor="w", pady=(4, 0))
 
         row = ttk.Frame(self.body)
@@ -2523,7 +2801,7 @@ class AehnlicheTab(Section):
             job.say("{} Bilder. Berechne Fingerabdrücke …".format(fmt_count(len(bilder))))
 
             cache = load_fingerprints()
-            items, fehler, aus_cache, vorschau = [], 0, 0, 0
+            items, fehler, aus_cache, vorschau, ohne_vorschau = [], 0, 0, 0, 0
             t0 = time.time()
             for i, e in enumerate(bilder, 1):
                 if job.stopped:
@@ -2545,7 +2823,17 @@ class AehnlicheTab(Section):
                 else:
                     try:
                         bits, bw, bh, woher = fingerprint(e.abspath, miniatur=thumb)
-                    except (NotSupported, OSError, ValueError, struct.error, zlib.error):
+                    except NotSupported as grund:
+                        # HEIC ohne eingebettetes JPEG ist kein Fehler der
+                        # Datei und keiner des Programms -- es ist einfach
+                        # verschlossen. Das wird getrennt gezaehlt und
+                        # genannt, statt es unter "nicht lesbar" zu verstecken.
+                        if "Vorschau" in str(grund):
+                            ohne_vorschau += 1
+                        else:
+                            fehler += 1
+                        continue
+                    except (OSError, ValueError, struct.error, zlib.error):
                         fehler += 1
                         continue
                     cache[e.abspath] = (e.size, int(e.mtime), bits, bw, bh, woher)
@@ -2555,7 +2843,7 @@ class AehnlicheTab(Section):
             save_fingerprints(cache)
 
             if job.stopped:
-                job.done("sim", (None, 0, 0, 0, 0, 0))
+                job.done("sim", (None, 0, 0, 0, 0, 0, 0))
                 return
             job.say("Vergleiche {} Abdrücke …".format(fmt_count(len(items))))
             # Beste zuerst: die groesste Fassung fuehrt ihre Gruppe an.
@@ -2566,12 +2854,13 @@ class AehnlicheTab(Section):
             gruppen = [[(items[i][0], items[i][2], items[i][3], items[i][4], d)
                         for i, d in g] for g in rohe]
             gruppen.sort(key=lambda g: -len(g))
-            job.done("sim", (gruppen, len(items), fehler, andere, aus_cache, vorschau))
+            job.done("sim", (gruppen, len(items), fehler, andere, aus_cache,
+                             vorschau, ohne_vorschau))
 
         self.run(work, self.finish)
 
     def finish(self, _kind, payload):
-        gruppen, geprueft, fehler, andere, aus_cache, vorschau = payload
+        gruppen, geprueft, fehler, andere, aus_cache, vorschau, ohne_vorschau = payload
         if gruppen is None:
             self.say("Abgebrochen. Die bereits berechneten Abdrücke sind gemerkt.")
             return
@@ -2604,6 +2893,8 @@ class AehnlicheTab(Section):
             teile.append("{} per Vorschaubild".format(fmt_count(vorschau)))
         if aus_cache:
             teile.append("{} schon bekannt".format(fmt_count(aus_cache)))
+        if ohne_vorschau:
+            teile.append("{} HEIC ohne Vorschau".format(fmt_count(ohne_vorschau)))
         if andere:
             teile.append("{} andere Formate".format(fmt_count(andere)))
         if fehler:

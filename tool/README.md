@@ -84,9 +84,13 @@ greift ein Datum im Dateinamen (`IMG_20190812_…`, `PXL_20230704_…`, `Screens
 Fehlt auch das, gilt das Änderungsdatum der Datei. Unplausible Jahre — vor 1995 oder in
 der Zukunft — landen in `_Jahr_unklar`.
 
-**HEIC-Dateien** tragen ihr EXIF in einem Format, das dieses Programm nicht liest; für sie
-greifen Dateiname und Dateidatum. Das trifft fast nur iPhone-Aufnahmen, die praktisch immer
-ein Datum im Namen haben.
+**HEIC-Dateien vom iPhone** werden gelesen. Eine HEIC-Datei ist keine Bilddatei im gewohnten
+Sinn, sondern ein Behälter nach demselben Muster wie ein Video: ineinander geschachtelte
+Kästen, und das Bild darin ist ein Videoeinzelbild. Das Bild selbst bleibt deshalb
+verschlossen — die **EXIF-Daten mit dem Aufnahmedatum** liegen aber als eigener Teil daneben
+und werden jetzt direkt aus dem Behälter geholt. Damit bekommen iPhone-Fotos ihr echtes
+Aufnahmejahr statt einer Schätzung aus Dateiname oder Dateidatum. Geprüft an einem echten
+iPhone-Foto: Aufnahmedatum 11.05.2010, erkanntes Jahr 2010.
 
 **Ähnliche Bilder** in Register 5b sind etwas anderes als Dubletten. Eine Prüfsumme sagt nur
 *gleich* oder *ungleich*: dasselbe Foto einmal in voller Grösse und einmal für WhatsApp
@@ -106,8 +110,13 @@ Zwölf-Megapixel-Foto. Passt es nicht (anderes Seitenverhältnis, aufgefüllte R
 das Programm von sich aus das ganze Bild durch. Geprüft wurde, dass beide Wege denselben
 Fingerabdruck ergeben.
 
-Gelesen werden **JPEG und PNG**. HEIC, TIFF, WebP, BMP und GIF werden gezählt und genannt,
-aber nicht geprüft. Einmal berechnete Fingerabdrücke merkt sich das Programm
+Verglichen werden **JPEG und PNG**, und **HEIC, soweit ein JPEG mit darin liegt** — viele
+Geräte legen ein Vorschaubild in den EXIF-Block, manche ein ganzes JPEG daneben. Dann stimmt
+der Fingerabdruck mit dem der JPEG-Fassung desselben Fotos überein; geprüft wurde genau das
+(Abstand 0 beim eingebetteten JPEG, 2 beim Vorschaubild). Findet sich keines von beidem,
+sagt das Programm es: solche Dateien erscheinen als *HEIC ohne Vorschau* und nicht als
+Fehler. TIFF, WebP, BMP und GIF werden gezählt, aber nicht verglichen. Einmal berechnete
+Fingerabdrücke merkt sich das Programm
 (`bildabdruecke.csv` neben den Einstellungen); ein zweiter Lauf über denselben Ordner ist
 dadurch um ein Vielfaches schneller.
 
@@ -157,6 +166,7 @@ Grösse bei verschiedenem Inhalt.
 | 4 · Dubletten | 2.000 bekannte Gruppen, 6.800 Fallen | 2.000 von 2.000 getroffen, 0 übersehen, 0 Falle zugeschnappt |
 | 5 · Bilder | 3.620 Bilder mit bekanntem Jahr | alle richtig; EXIF schlägt widersprechenden Dateinamen |
 | 5b · Ähnliche | 200 Vorlagen à drei Fassungen, 400 Einzelbilder | bei *normal* 198 von 200 gefunden, 7 Gruppen mit Fremdem — siehe unten |
+| HEIC | 4 echte Dateien aus dem Netz, 4 selbst gebaute | Bildgrösse wie ImageMagick; Aufnahmedatum eines iPhone-Fotos richtig; HEIC und JPEG desselben Motivs in einer Gruppe |
 | 7 · Kategorien | 5 Ordner mit bekannter Kategorie | alle 5 richtig, Volumen schlägt Anzahl |
 | 8 · Index | 27.785 Zeilen, 800 Fallen | jede Dubletten-Angabe an der richtigen Datei |
 | Explorer | 8 Filterproben, 4 Vergleichsarten | jede Zahl mit unabhängiger Nachzählung deckungsgleich |
