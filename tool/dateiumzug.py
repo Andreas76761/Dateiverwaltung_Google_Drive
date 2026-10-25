@@ -34,7 +34,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Dateiumzug 2026"
-APP_VERSION = "1.3"
+APP_VERSION = "1.4"
 
 COPY_BUFFER = 1024 * 1024        # 1 MB je Leseschritt
 DEFAULT_WORKERS = 4              # gleichzeitige Kopiervorgaenge
@@ -1886,18 +1886,23 @@ class Section(ttk.Frame):
                 elif kind == "failed":
                     self.say("Fehler — der Vorgang wurde abgebrochen.")
                     self._set_running(False)
+                    self.job = None
                     messagebox.showerror(APP_NAME, payload)
                     alive = False
                 elif kind == "done":
                     self._set_running(False)
                     self.bar.configure(value=self.bar["maximum"])
+                    # Der Vorgang ist vorbei, also aus der Hand legen. Sonst
+                    # haelt run() ihn fuer laufend und weist jeden weiteren
+                    # ab -- und genau das ist der uebliche Weg: erst
+                    # Probelauf, dann Ausfuehren. Vor dem Rueckruf loesen,
+                    # weil manche Rueckrufe gleich den naechsten starten.
+                    self.job = None
                     self._on_done(*payload)
                     alive = False
         except queue.Empty:
             pass
-        if alive and self.job and not self.job.stopped:
-            self.after(100, self._pump)
-        elif alive and self.job and self.job.stopped:
+        if alive and self.job:
             self.after(100, self._pump)
 
     @staticmethod
@@ -1914,6 +1919,27 @@ class Section(ttk.Frame):
 
     def say(self, text):
         self.status.configure(text=text)
+
+    def _gleicher_ordner(self):
+        """
+        Wacht darueber, dass ein Knopf auf den Ordner wirkt, der im Feld
+        steht -- und nicht auf den vom vorigen Durchlauf.
+
+        Beim Pruefen aufgefallen: Ordner im Feld geaendert, "Suchen" wies
+        ihn ab, weil es ihn nicht gab, und der Knopf daneben haette
+        danach die Treffer des vorigen Ordners verschoben. Ein Tippfehler
+        im Pfad reicht dafuer aus.
+        """
+        jetzt = os.path.abspath(self.var_root.get().strip() or ".")
+        gesucht = os.path.abspath(getattr(self, "groups_root", "") or ".")
+        if jetzt == gesucht:
+            return True
+        messagebox.showwarning(
+            APP_NAME,
+            "Die Treffer stammen aus einem anderen Ordner:\n\n{}\n\n"
+            "Im Feld steht jetzt:\n\n{}\n\nBitte zuerst neu suchen."
+            .format(gesucht, jetzt))
+        return False
 
 
 def pick_folder(title, start=None):
@@ -1981,7 +2007,7 @@ class InventurTab(Section):
         bottom = ttk.Frame(self.body)
         bottom.pack(fill="x")
         ttk.Button(bottom, text="Inventur als CSV sichern", command=self.export).pack(side="left")
-        ttk.Button(bottom, text="Register der Übergrossen sichern",
+        ttk.Button(bottom, text="Register Nicht übernommen sichern",
                    command=self.export_register).pack(side="left", padx=6)
         self.summary = ttk.Label(bottom, text="", style="Sum.TLabel")
         self.summary.pack(side="right")
@@ -2024,7 +2050,14 @@ class InventurTab(Section):
                 n, b, under, over = stats[key]
                 self.tree.insert("", "end", values=(key, fmt_count(n), fmt_size(b),
                                                     fmt_count(under), fmt_count(over)))
-        keep = [e for e in entries if not is_junk(e) and e.size <= limit]
+        # Die Videoregel gehoert hier genauso dazu wie in allen anderen
+        # Registern. Ohne sie verspricht die Inventur mehr Mitfahrer, als
+        # Register 3 dann kopiert -- und widerspricht dem Register der
+        # nicht uebernommenen Dateien gleich nebenan.
+        skip_video = self.app.var_skip_video.get()
+        keep = [e for e in entries
+                if not is_junk(e) and e.size <= limit
+                and not (skip_video and e.ext in VIDEO_EXTS)]
         kb = sum(e.size for e in keep)
         self.summary.configure(
             text="{} Dateien gelesen · {} · davon fahren {} mit ({})".format(
@@ -2044,12 +2077,14 @@ class InventurTab(Section):
         if not path:
             return
         limit = self.app.limit_bytes()
+        skip_video = self.app.var_skip_video.get()
         with open(path, "w", newline="", encoding="utf-8-sig") as f:
             w = csv.writer(f, delimiter=";")
             w.writerow(["quelle_id", "original_pfad", "dateiname", "endung",
                         "groesse_mb", "geaendert_am", "kategorie", "faehrt_mit"])
             for e in entries:
-                mit = "nein" if (is_junk(e) or e.size > limit) else "ja"
+                mit = "nein" if (is_junk(e) or e.size > limit
+                                 or (skip_video and e.ext in VIDEO_EXTS)) else "ja"
                 w.writerow([self.app.source_id, e.reldir, e.name, e.ext,
                             "{:.2f}".format(e.size_mb).replace(".", ","),
                             e.date, e.cat, mit])
@@ -2398,6 +2433,7 @@ class DublettenTab(Section):
         self.summary = ttk.Label(self.body, text="", style="Sum.TLabel")
         self.summary.pack(anchor="w")
         self.groups = []
+        self.groups_root = ""     # Ordner, aus dem die Treffer stammen
 
     def _pick(self, var, title):
         p = pick_folder(title, var.get() or self.app.recall("dubletten"))
@@ -2419,12 +2455,14 @@ class DublettenTab(Section):
             groups = find_duplicates(entries, job)
             for grp in groups:
                 grp.sort(key=lambda e: rank_key(e, prio))
-            job.done("dup", groups)
+            job.done("dup", (groups, root))
 
         self.run(work, self.finish)
 
-    def finish(self, _kind, groups):
+    def finish(self, _kind, payload):
+        groups, root = payload
         self.groups = groups
+        self.groups_root = root
         for row in self.tree.get_children():
             self.tree.delete(row)
         shown, waste, dupes = 0, 0, 0
@@ -2465,8 +2503,9 @@ class DublettenTab(Section):
         self.say("Gesichert: " + path)
 
     def quarantine(self):
-        if not self.groups:
-            messagebox.showinfo(APP_NAME, "Erst suchen.")
+        if not self.groups or not self._gleicher_ordner():
+            if not self.groups:
+                messagebox.showinfo(APP_NAME, "Erst suchen.")
             return
         quar = self.var_quar.get().strip()
         if not quar:
@@ -2493,8 +2532,9 @@ class DublettenTab(Section):
                     "Das funktioniert, aber ein erneuter Suchlauf findet die Dateien wieder.\n\n"
                     "Trotzdem fortfahren?"):
                 return
+        workers = self.app.workers()
         self.run(lambda job: job.done("quar", transfer(items, job, dry_run=False, move=True,
-                                           workers=self.app.workers())),
+                                                      workers=workers)),
                  self.after_move)
 
     def after_move(self, _kind, rep):
@@ -2778,6 +2818,7 @@ class AehnlicheTab(Section):
         self.summary = ttk.Label(self.body, text="", style="Sum.TLabel")
         self.summary.pack(anchor="w")
         self.gruppen = []
+        self.groups_root = ""     # Ordner, aus dem die Treffer stammen
 
     def _pick(self, var, title):
         p = pick_folder(title, var.get() or self.app.recall("aehnlich"))
@@ -2843,7 +2884,7 @@ class AehnlicheTab(Section):
             save_fingerprints(cache)
 
             if job.stopped:
-                job.done("sim", (None, 0, 0, 0, 0, 0, 0))
+                job.done("sim", (None, 0, 0, 0, 0, 0, 0, root))
                 return
             job.say("Vergleiche {} Abdrücke …".format(fmt_count(len(items))))
             # Beste zuerst: die groesste Fassung fuehrt ihre Gruppe an.
@@ -2855,12 +2896,14 @@ class AehnlicheTab(Section):
                         for i, d in g] for g in rohe]
             gruppen.sort(key=lambda g: -len(g))
             job.done("sim", (gruppen, len(items), fehler, andere, aus_cache,
-                             vorschau, ohne_vorschau))
+                             vorschau, ohne_vorschau, root))
 
         self.run(work, self.finish)
 
     def finish(self, _kind, payload):
-        gruppen, geprueft, fehler, andere, aus_cache, vorschau, ohne_vorschau = payload
+        (gruppen, geprueft, fehler, andere, aus_cache, vorschau,
+         ohne_vorschau, root) = payload
+        self.groups_root = root
         if gruppen is None:
             self.say("Abgebrochen. Die bereits berechneten Abdrücke sind gemerkt.")
             return
@@ -2923,8 +2966,9 @@ class AehnlicheTab(Section):
         self.say("Gesichert: " + path)
 
     def quarantine(self):
-        if not self.gruppen:
-            messagebox.showinfo(APP_NAME, "Erst suchen.")
+        if not self.gruppen or not self._gleicher_ordner():
+            if not self.gruppen:
+                messagebox.showinfo(APP_NAME, "Erst suchen.")
             return
         quar = self.var_quar.get().strip()
         if not quar:
@@ -2952,8 +2996,9 @@ class AehnlicheTab(Section):
                     "Das funktioniert, aber ein erneuter Suchlauf findet die Dateien wieder."
                     "\n\nTrotzdem fortfahren?"):
                 return
+        workers = self.app.workers()
         self.run(lambda job: job.done("quar", transfer(items, job, dry_run=False, move=True,
-                                                       workers=self.app.workers())),
+                                                      workers=workers)),
                  self.after_move)
 
     def after_move(self, _kind, rep):
@@ -3085,11 +3130,20 @@ class ExplorerTab(Section):
 
         act = ttk.Frame(self.body)
         act.pack(fill="x")
-        ttk.Button(act, text="Auswahl A → B kopieren", style="Go.TButton",
-                   command=lambda: self.copy("a", "b")).pack(side="left")
-        ttk.Button(act, text="Auswahl B → A kopieren", style="Go.TButton",
-                   command=lambda: self.copy("b", "a")).pack(side="left", padx=6)
-        ttk.Button(act, text="Auswahl als CSV sichern", command=self.export).pack(side="left")
+        b_ab = ttk.Button(act, text="Auswahl A → B kopieren", style="Go.TButton",
+                          command=lambda: self.copy("a", "b"))
+        b_ab.pack(side="left")
+        b_ba = ttk.Button(act, text="Auswahl B → A kopieren", style="Go.TButton",
+                          command=lambda: self.copy("b", "a"))
+        b_ba.pack(side="left", padx=6)
+        b_csv = ttk.Button(act, text="Auswahl als CSV sichern", command=self.export)
+        b_csv.pack(side="left")
+        b_stop = ttk.Button(act, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left", padx=6)
+        # Als einziges Register hatte der Explorer seine Knoepfe nicht
+        # angemeldet: waehrend des Kopierens blieb alles bedienbar, und
+        # einen Abbrechen-Knopf gab es gar nicht.
+        self.wire(go=(b_ab, b_ba, b_csv), stop=(b_stop,))
         ttk.Label(act, text="Mehrfachauswahl mit Strg oder Umschalt. Gelöscht wird nie.",
                   style="Hint.TLabel").pack(side="right")
 
@@ -3190,8 +3244,9 @@ class ExplorerTab(Section):
                 .format(fmt_count(len(picked)), t.root)):
             return
         items = [(e.abspath, os.path.join(t.root, e.rel), e.size) for e in picked]
+        workers = self.app.workers()
         self.run(lambda job: job.done("cp", transfer(items, job, dry_run=False, move=False,
-                                         workers=self.app.workers())),
+                                                     workers=workers)),
                  lambda k, rep: self.say(
                      "Kopiert: {} · übersprungen: {} · fehlgeschlagen: {}. Nichts gelöscht."
                      .format(fmt_count(rep["ok"]), fmt_count(rep["skip"]), fmt_count(rep["fail"]))))

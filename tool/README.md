@@ -158,21 +158,53 @@ was herauskommen muss — Dubletten in bekannten Gruppen, Bilder mit hinterlegte
 Aufnahmejahr, Ordner mit bekannter Kategorie, Fallen mit gleichem Namen und gleicher
 Grösse bei verschiedenem Inhalt.
 
+Die Prüfung bedient dabei die **echte Oberfläche** — Felder füllen, Knopf drücken,
+Ergebnis aus der Tabelle lesen —, nicht die Funktionen darunter. Nur so fallen Fehler auf,
+die zwischen Fenster und Logik sitzen; genau dort steckten die, die zuletzt gefunden wurden.
+**64 Prüfungen, alle grün.**
+
 | Register | Prüfung | Ergebnis |
 |---|---|---|
-| 1 · Inventur | 12.542 Dateien, Aufteilung und CSV | Ausschlüsse, Übergrosse und Spalte `faehrt_mit` exakt |
-| 2 · Regeln | Grenze, Videoschalter, Listen ändern | jede Datei genau einmal einsortiert; Regeländerung greift sofort |
-| 3 · Sammeln | 11.227 Dateien kopiert | Probelauf = Ausführung, Quelle unverändert, 40 Stichproben byteweise gleich |
-| 4 · Dubletten | 2.000 bekannte Gruppen, 6.800 Fallen | 2.000 von 2.000 getroffen, 0 übersehen, 0 Falle zugeschnappt |
-| 5 · Bilder | 3.620 Bilder mit bekanntem Jahr | alle richtig; EXIF schlägt widersprechenden Dateinamen |
+| 1 · Inventur | 2.914 Dateien, Aufteilung, beide CSV-Listen | Anzahl und Volumen exakt; `faehrt_mit` 2.843; Register der Nichtübernommenen 71 mit richtigem Grund je Zeile |
+| 2 · Regeln | Endung ergänzen, erproben, zurücksetzen | Regeländerung greift sofort (2.843 → 2.651), *Auslieferungszustand* stellt die Listen her |
+| 3 · Sammeln | 2.843 Dateien kopiert | Probelauf = Ausführung, Quelle unverändert, Stichproben byteweise gleich, Umlaute und neun Ebenen tiefe Pfade heil, Wiederholung überspringt alle in 0,6 s |
+| 4 · Dubletten | 139 Gruppen, 150 Fallen | alle 139 gefunden, keine erfunden, keine Falle zugeschnappt, Original überall nach der Vorrangregel |
+| 5 · Bilder | 344 Bilder mit bekanntem Jahr | jedes Jahr und jede Herkunft richtig; EXIF schlägt widersprechendes Dateidatum; 40 Namensgleiche nummeriert, keine verloren |
 | 5b · Ähnliche | 200 Vorlagen à drei Fassungen, 400 Einzelbilder | bei *normal* 198 von 200 gefunden, 7 Gruppen mit Fremdem — siehe unten |
 | HEIC | 4 echte Dateien aus dem Netz, 4 selbst gebaute | Bildgrösse wie ImageMagick; Aufnahmedatum eines iPhone-Fotos richtig; HEIC und JPEG desselben Motivs in einer Gruppe |
-| 7 · Kategorien | 5 Ordner mit bekannter Kategorie | alle 5 richtig, Volumen schlägt Anzahl |
-| 8 · Index | 27.785 Zeilen, 800 Fallen | jede Dubletten-Angabe an der richtigen Datei |
-| Explorer | 8 Filterproben, 4 Vergleichsarten | jede Zahl mit unabhängiger Nachzählung deckungsgleich |
+| 7 · Kategorien | Ordner mit bekannter Kategorie | richtig, Volumen schlägt Anzahl |
+| 8 · Index | 344 Zeilen, 18 Spalten | jede Dubletten- und jede Ähnlichkeitsangabe an der richtigen Datei, keine an einer unbeteiligten |
+| Explorer | 7 Filter- und Vergleichsproben, Kopieren | jede Zahl mit unabhängiger Nachzählung deckungsgleich; 5 markierte Dateien kopiert, Quelle unverändert |
+| Abbrechen | mitten im Lauf gestoppt | keine halbe Datei, Quelle unverändert |
+| Quarantäne | 381 Duplikate verschoben | alle wieder auffindbar, nichts verschwunden |
+| Einstellungen | Grenze und Fäden | über einen Neustart hinweg gemerkt |
 
-Tempo an 34.521 Dateien mit 2,8 GB über fünf Quellen: Inventur 0,5 s · Sammeln 9,2 s ·
-Wiederholung 1,1 s · Dubletten 2,4 s · Bilder 1,7 s · Index 0,3 s.
+Tempo an diesem Bestand: Inventur 0,4 s · Sammeln 4,6 s · Wiederholung 0,6 s ·
+Dubletten 2,1 s · Bilder 1,2 s · Index 0,4 s.
+
+### Was diese Prüfung gefunden hat
+
+Sechs Fehler, alle behoben. Zwei davon hätten beim ersten echten Lauf zugeschlagen:
+
+- **Jedes Register verweigerte den zweiten Vorgang.** Nach einem beendeten Lauf meldete
+  es „Es läuft noch ein Vorgang" und tat nichts mehr — also genau beim Weg
+  *Probelauf, dann Ausführen*, der überall empfohlen wird. Ein fertiger Vorgang wurde nie
+  aus der Hand gelegt und galt weiter als laufend. Dass es vorher nicht auffiel, liegt an
+  den früheren Prüfungen: die starteten jedes Register nur einmal.
+- **Der Quarantäne-Knopf konnte auf den vorigen Ordner wirken.** Wer den Ordner wechselt
+  und sich vertippt, bekommt beim Suchen eine Warnung — der Knopf daneben hätte danach
+  die Treffer des alten Ordners verschoben. Jetzt prüft er, woher die Treffer stammen, und
+  sagt es, statt zu handeln.
+- **Die Inventur ignorierte die Videoregel** in ihrer Zusammenfassung und in der Spalte
+  `faehrt_mit` — und widersprach damit dem Register der Nichtübernommenen gleich daneben,
+  das dieselben Dateien mit Grund *video* führte.
+- **Der Knopf „Register der Übergrossen"** schrieb in Wahrheit alles, was nicht mitfährt,
+  mit Begründung. Jetzt heisst er auch so.
+- **Der Explorer meldete seine Knöpfe nicht an:** während des Kopierens blieb alles
+  bedienbar, und einen Abbrechen-Knopf gab es dort gar nicht.
+- **Drei Stellen lasen Eingabefelder aus dem Arbeitsfaden heraus** (die beiden
+  Quarantäne-Knöpfe und das Kopieren im Explorer). In der Praxis geht das meist gut,
+  zugesichert ist es nicht.
 
 ### Welche Schärfe in Register 5b
 
@@ -199,16 +231,13 @@ Vergleichen selbst fällt kaum ins Gewicht: 20.000 Fingerabdrücke brauchen 1,2 
 
 Umlaute und 164 Zeichen lange Pfade blieben heil, die Quelle war nach jedem Lauf unverändert.
 
-Register 5b wurde durch die Oberfläche selbst getrieben — Ordner eintragen, *Suchen*
-drücken, Tabelle auslesen —, ebenso ein Durchlauf durch alle übrigen Register nacheinander.
-Dabei kam ein Fehler ans Licht, der in der Logikprüfung nicht auffallen konnte: Register 8
-brach am Ende jedes Laufs mit einer Fehlermeldung ab, weil beim letzten Umbau ein alter
-Name stehen geblieben war. Behoben; der Durchlauf über alle Register gehört jetzt zur
-Prüfung.
+Früher gefunden und ebenfalls behoben: Register 8 brach am Ende jedes Laufs mit einer
+Fehlermeldung ab, weil beim Umbau ein alter Name stehen geblieben war, und drei Register
+lasen ihre Einstellungen aus dem Arbeitsfaden heraus direkt aus den Eingabefeldern.
 
-Ausserdem lasen drei Register ihre Einstellungen aus dem Arbeitsfaden heraus direkt aus den
-Eingabefeldern. Das geht in der Praxis gut, ist aber nicht zugesichert; jetzt wird alles
-vorher im Hauptfaden gelesen und als einfacher Wert weitergereicht.
+Jedes Register wurde ausserdem in beiden Fenstergrössen angesehen — in voller Grösse und
+auf dem kleinsten zulässigen Mass. Nichts wird abgeschnitten, jede Schaltfläche bleibt
+erreichbar.
 
 ## Selbst starten, ohne den Build abzuwarten
 
