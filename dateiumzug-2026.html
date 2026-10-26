@@ -769,6 +769,38 @@
   .xp-status.ok   { border-color: var(--accent); color: var(--accent); background: var(--accent-sf); }
   .xp-status.warn { border-color: var(--warn);   color: var(--warn);   background: var(--warn-sf); }
 
+
+  /* ---------- Fortschritt beim Sammeln ---------- */
+
+  .xp-progress { margin-top: var(--s4); }
+
+  .xp-bar {
+    height: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .xp-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width .2s linear;
+  }
+  @media (prefers-reduced-motion: reduce) { .xp-bar span { transition: none; } }
+
+  .xp-progress-line {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s4);
+    font-family: var(--f-mono);
+    font-size: .75rem;
+    color: var(--ink-2);
+    margin-top: var(--s2);
+    font-variant-numeric: tabular-nums;
+  }
+  .xp-progress-line #progText { color: var(--accent); }
+
   .xp-note { font-size: .8125rem; color: var(--ink-2); margin: var(--s3) 0 0; max-width: 70ch; }
 </style>
 
@@ -1153,7 +1185,7 @@
               <li><b>Liste sichern, bevor du verschiebst.</b> Sie wird später zur Spalte <code>dup_gruppe</code> im Index und lässt sich danach nicht mehr rekonstruieren.</li>
               <li>Dann <b>Duplikate in Quarantäne verschieben</b>, Ziel <code>D:\S\_QUARANTAENE\</code>. Das Werkzeug kennt kein Löschen — bei AllDup dagegen liegt „Löschen“ gleichberechtigt daneben, und ein Fehlklick ist endgültig.</li>
               <li>Bleibt eine Entscheidung offen: die Kopie im aussagekräftigsten Ordner gewinnt, dann die mit dem ältesten Änderungsdatum, dann die mit dem sprechenderen Dateinamen.</li>
-              <li>Ähnliche — nicht identische — Fotos bleiben hier noch liegen. Die kommen in Phase 5 dran, wenn alle Bilder an einem Ort sind; dort ist die Suche schneller und das Ergebnis übersichtlicher.</li>
+              <li>Ähnliche — nicht identische — Fotos bleiben hier noch liegen. Eine Prüfsumme kennt nur gleich oder ungleich; dasselbe Foto in zwei Grössen sind für sie zwei fremde Dateien. Die kommen in Phase 5 dran, im Register <em>5b · Ähnliche</em>, wenn alle Bilder an einem Ort sind.</li>
             </ul>
             <p class="done"><b>Fertig, wenn</b> die Quarantäne gefüllt, die CSV-Liste exportiert ist und ein zweiter AllDup-Lauf über die Sammelplatte keine exakten Treffer mehr liefert.</p>
           </div>
@@ -1176,12 +1208,13 @@
             <ul>
               <li>Im <b>Werkzeug</b>, Register <em>5 · Bilder</em>: links die Sammelplatte, rechts <code>D:\S\_BILDER\</code>. Erst <b>Probelauf</b> — er zeigt für jede Datei das ermittelte Jahr und woher es stammt, ohne etwas zu bewegen. Stimmt das Bild, dann <em>Ausführen</em>.</li>
               <li>Das Jahr kommt in dieser Reihenfolge: <b>EXIF-Aufnahmedatum</b> bei JPEG und TIFF, sonst ein <b>Datum im Dateinamen</b> (<code>IMG_20190812_…</code>, <code>PXL_20230704_…</code>), sonst das <b>Dateidatum</b>. In der Spalte <em>Quelle</em> steht je Zeile, welcher der drei Wege gegriffen hat — <code>datei</code> ist der unzuverlässigste, sieh dir davon Stichproben an.</li>
-              <li><b>HEIC-Dateien vom iPhone</b> liest das Werkzeug nicht über EXIF, sondern über den Dateinamen — was bei iPhone-Aufnahmen praktisch immer ein Datum enthält. Wer es genauer will, nimmt für diese Gruppe zusätzlich Advanced Renamer mit <code>&lt;Img EXIF:DateTimeOriginal, yyyy&gt;</code>.</li>
+              <li><b>HEIC-Dateien vom iPhone</b> liest das Werkzeug inzwischen richtig: eine HEIC-Datei ist ein Behälter wie ein Video, und die EXIF-Daten liegen darin als eigener Teil neben dem Bild. Das Aufnahmedatum kommt also aus der Kamera und nicht aus dem Dateinamen. In der Spalte <em>Quelle</em> steht dann <code>exif</code>. Advanced Renamer brauchst du dafür nicht mehr.</li>
               <li><b>Vorschau lesen, bevor du ausführst.</b> Advanced Renamer zeigt für jede Datei alten und neuen Pfad. Das ist deine einzige Kontrolle — nach dem Lauf sind zehntausende Dateien woanders.</li>
               <li><b>Kollisionsregel auf Nummer anhängen stellen</b>, nicht auf Überschreiben. <code>IMG_0001.jpg</code> gibt es aus vier Quellen garantiert mehrfach, und exakt gleiche wurden in Phase 4 schon aussortiert — was jetzt kollidiert, ist <em>verschieden</em> und muss beides bleiben.</li>
               <li>Jahre, die nicht stimmen können — 1970, 1980, alles vor 1995 oder in der Zukunft — nach <code>_Jahr_unklar\</code>. Grosszügig sein: dieser Ordner ist billiger als ein falsch einsortiertes Jahrzehnt.</li>
               <li>Dieser Ordner wird in Phase 6 <b>zweimal</b> gebraucht: einmal für Drive, einmal als Quelle für Google Fotos. Was hier fehlt, fehlt an beiden Stellen.</li>
-              <li><b>Jetzt der Ähnlichkeitslauf:</b> <b>dupeGuru</b> im Modus <b>Bilder</b> über <code>_BILDER\</code>. Er findet dieselbe Aufnahme in anderer Auflösung, neu komprimierte Kopien, Screenshots von Screenshots. Treffer als Liste exportieren und im Index auf <code>status:unklar</code> setzen — <b>nicht verschieben</b>, die brauchen dein Auge.</li>
+              <li><b>Jetzt der Ähnlichkeitslauf:</b> im <b>Werkzeug</b>, Register <em>5b · Ähnliche</em> über <code>_BILDER\</code>. Es findet dieselbe Aufnahme in anderer Auflösung, neu komprimierte Kopien, die für WhatsApp verkleinerte Fassung daneben. Schärfe auf <em>normal</em> lassen. Liste sichern und im Index auf <code>status:unklar</code> setzen — <b>nicht verschieben</b>, die brauchen dein Auge. Ein zusätzliches Programm wie dupeGuru ist dafür nicht mehr nötig.</li>
+              <li>Verglichen werden <b>JPEG und PNG</b>, dazu <b>HEIC, soweit ein JPEG mit darin liegt</b> — die meisten Geräte legen ein Vorschaubild in den EXIF-Block. Dann findet das Werkzeug auch dieselbe Aufnahme einmal als HEIC und einmal als JPEG. Das HEVC-Bild selbst bleibt verschlossen; solche Dateien stehen am Ende als <em>HEIC ohne Vorschau</em> und bleiben dein Blick von Hand. TIFF, WebP, BMP und GIF werden gezählt, aber nicht verglichen. Der erste Lauf über einen grossen Bilderordner dauert; jeder weitere ist schnell, weil sich das Werkzeug die Fingerabdrücke merkt.</li>
             </ul>
 
             <div class="scroller">
@@ -1292,9 +1325,9 @@
             <p>Der Index ist das eigentliche Ergebnis des Projekts. Er beantwortet Fragen, die Drive nicht beantworten kann: Woher stammt das? Gibt es das doppelt? Wie lange muss ich es aufbewahren?</p>
             <ul>
               <li>In <code>00_Index</code> ein Google Sheet <b>Dateiindex_2026</b> anlegen, Spalten nach dem <a href="#index">Index-Schema</a>.</li>
-              <li>Im <b>Werkzeug</b>, Register <em>8 · Index</em>: den fertigen Zielordner wählen, dazu die Dublettenliste aus Phase 4 und die Bilderliste aus Phase 5. Es liest das Archiv frisch ein und verbindet beides — damit sind zwölf der sechzehn Spalten ohne Handarbeit gefüllt. Ergebnis sichern und in Sheets importieren.</li>
+              <li>Im <b>Werkzeug</b>, Register <em>8 · Index</em>: den fertigen Zielordner wählen, dazu die Dublettenliste aus Phase 4, die Bilderliste aus Register 5 und die Ähnlichkeitsliste aus Register 5b. Es liest das Archiv frisch ein und verbindet alles — damit sind vierzehn der achtzehn Spalten ohne Handarbeit gefüllt. Ergebnis sichern und in Sheets importieren.</li>
               <li><b>Die Bilderliste ist nicht optional</b>, wenn du wissen willst, woher ein Foto stammt: im Archiv liegen Bilder in Jahresordnern, ihre Herkunft ist am Pfad nicht mehr ablesbar. Nur diese Liste holt sie zurück. Also in Phase 5 das Sichern nicht vergessen.</li>
-              <li>Die Ähnlichkeitsliste aus Phase 5 einspielen: die betroffenen Bilder bekommen <code>status:unklar</code>, damit du sie später gezielt durchsehen kannst statt den ganzen Bilderordner.</li>
+              <li>Die Ähnlichkeitsliste aus Register <em>5b</em> trägt das Werkzeug selbst ein: <code>aehnlich_gruppe</code> hält zusammen, was zusammengehört, <code>aehnlich_rolle</code> nennt die beste Fassung — und jede <em>kleinere</em> Fassung bekommt gleich <code>status:unklar</code>. Damit siehst du später gezielt diese Zeilen durch statt den ganzen Bilderordner.</li>
               <li>Ein zweites Blatt <b>Ordnerregister</b>: eine Zeile pro Ordner der zweiten und dritten Ebene, mit Tags, Aufbewahrung und Notiz. <b>Hier findet das Taggen statt</b>, nicht auf Dateiebene.</li>
               <li>Ein drittes Blatt <b>Quellen</b> mit der Kürzelliste aus Phase 0, ergänzt um Volumen und Dateianzahl.</li>
               <li>Nur Tags aus dem festgelegten <a href="#tags">Vokabular</a> verwenden. In Sheets als Dropdown einrichten — Freitext macht den Index binnen Wochen wertlos.</li>
@@ -1434,6 +1467,8 @@
             <tr><td class="mono">pruefsumme</td><td class="mono">9f2a…c71b</td><td><span class="pill auto">automatisch</span></td><td>der einzige belastbare Gleichheitsbeweis</td></tr>
             <tr><td class="mono">dup_gruppe</td><td class="mono">G-0421</td><td><span class="pill auto">automatisch</span></td><td>aus der Dublettenliste; leer heisst: einmalig</td></tr>
             <tr><td class="mono">dup_rolle</td><td class="mono">original | duplikat</td><td><span class="pill auto">automatisch</span></td><td>welche Kopie bleibt, welche in Quarantäne ging</td></tr>
+            <tr><td class="mono">aehnlich_gruppe</td><td class="mono">A-0007</td><td><span class="pill auto">automatisch</span></td><td>aus Register 5b; leer heisst: kein ähnliches Bild gefunden</td></tr>
+            <tr><td class="mono">aehnlich_rolle</td><td class="mono">beste | fassung</td><td><span class="pill auto">automatisch</span></td><td>die beste Fassung der Gruppe, oder eine der kleineren</td></tr>
             <tr><td class="mono">kategorie</td><td class="mono">01_Dokumente</td><td><span class="pill auto">automatisch</span></td><td>aus der Endung abgeleitet, per Hand korrigierbar</td></tr>
             <tr><td class="mono">ziel_pfad</td><td class="mono">10_PC1/01_Dokumente/Steuer2019/</td><td><span class="pill auto">automatisch</span></td><td>Wo es jetzt liegt — bei Bildern <code>80_Bilder/2019/</code></td></tr>
             <tr><td class="mono">tags</td><td class="mono">thema:steuer jahr:2019</td><td><span class="pill hand">Handarbeit</span></td><td>aus dem Vokabular, meist vom Ordner geerbt</td></tr>
@@ -1540,13 +1575,13 @@
         <table>
           <thead><tr><th>Werkzeug</th><th>Installieren auf</th><th>Wofür</th><th>Phase</th></tr></thead>
           <tbody>
-            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, Kategorien und den Index in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 7, 8</td></tr>
+            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, ähnliche Bilder, Kategorien und den Index in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer, dupeGuru und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 5b, 7, 8</td></tr>
             <tr><td><b>WizTree</b></td><td>alle vier</td><td>Inventur in Sekunden, CSV-Export der kompletten Dateiliste — Rohdaten für den Index</td><td class="mono">1</td></tr>
             <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
             <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
             <tr><td><b>AllDup</b></td><td>Sammelrechner</td><td>Dublettensuche nach Inhalt, Auswahl-Assistent, Aktion „Verschieben“ — auf Windows die schnellste Wahl</td><td class="mono">4</td></tr>
             <tr><td><b>Advanced Renamer</b></td><td>Sammelrechner</td><td>Bilder anhand des EXIF-Aufnahmedatums in Jahresordner verschieben, mit Vorschau vor dem Ausführen</td><td class="mono">5</td></tr>
-            <tr><td><b>dupeGuru</b></td><td>Sammelrechner</td><td>ergänzend für <em>ähnliche</em> Fotos, die AllDup nicht findet</td><td class="mono">5</td></tr>
+            <tr><td><b>dupeGuru</b></td><td>— nicht mehr nötig</td><td>fand <em>ähnliche</em> Fotos, die AllDup nicht findet. Das kann jetzt Register <em>5b</em> des Werkzeugs; dupeGuru bleibt nur als zweite Meinung interessant</td><td class="mono">5b</td></tr>
             <tr><td><b>Google Drive für Desktop</b></td><td>Sammelrechner</td><td>Zielordner als Laufwerk einbinden, Upload per Explorer, und die Sicherung des Bilderordners nach Google Fotos</td><td class="mono">0, 6</td></tr>
             <tr><td><b>Google Sheets</b></td><td>Browser</td><td>Index, Ordnerregister, Quellenliste</td><td class="mono">8</td></tr>
             <tr><td><b>TreeSize Free</b></td><td>optional</td><td>Alternative zu WizTree, langsamer, dafür bessere Auswertungen</td><td class="mono">1</td></tr>
@@ -1673,6 +1708,12 @@
         <b>Gelöscht wird hier nichts.</b> Das Werkzeug kennt keine Löschfunktion — es liest, filtert,
         vergleicht und kopiert.
       </p>
+      <p>
+        <b>Für den echten Umzug nimm das Programm, nicht diese Seite.</b> Ein Browser darf das
+        Änderungsdatum einer geschriebenen Datei nicht setzen — jede Kopie von hier trägt das
+        heutige Datum. Phase 5 bestimmt das Aufnahmejahr aber unter anderem daraus. Zum Ausprobieren
+        an einem einzelnen Ordner ist das gleichgültig, für den Bestand nicht.
+      </p>
     </div>
 
     <div class="note" style="margin-bottom:var(--s2)">
@@ -1745,6 +1786,7 @@
 
       <div class="xp-actions">
         <label class="xp-check"><input type="checkbox" id="fJunk" checked> Ausschlussliste aus Phase 2 anwenden</label>
+        <label class="xp-check"><input type="checkbox" id="fVideo"> Video übernehmen</label>
         <button type="button" class="xp-btn" data-preset="phase2">Voreinstellung Phase 2</button>
         <button type="button" class="xp-btn" data-preset="bilder">Nur Bilder</button>
         <button type="button" class="xp-btn" data-preset="reset">Filter zurücksetzen</button>
@@ -1774,17 +1816,41 @@
       </div>
     </div>
 
-    <!-- ================= AKTIONEN ================= -->
+    <!-- ================= SAMMELN ================= -->
     <div class="xp-panel">
-      <span class="xp-legend">Aktionen · Auswahl übertragen oder ausgeben</span>
-      <div class="xp-actions">
-        <button type="button" class="xp-btn primary" id="copyAB" disabled>Auswahl A → B kopieren</button>
-        <button type="button" class="xp-btn primary" id="copyBA" disabled>Auswahl B → A kopieren</button>
+      <span class="xp-legend">Sammeln · alles Gefilterte von einer Seite zur anderen</span>
+
+      <div class="xp-actions" style="margin-top:0">
+        <button type="button" class="xp-btn" id="dryAB" disabled>Probelauf A → B</button>
+        <button type="button" class="xp-btn primary" id="copyAB" disabled>Alles Gefilterte A → B kopieren</button>
+        <button type="button" class="xp-btn primary" id="copyBA" disabled>Alles Gefilterte B → A kopieren</button>
+        <button type="button" class="xp-btn" id="copySel" disabled>Nur markierte Zeilen</button>
+        <button type="button" class="xp-btn" id="cancelCopy" disabled>Abbrechen</button>
+        <label class="xp-check" style="margin-left:auto">gleichzeitig
+          <input type="number" id="fWorkers" value="4" min="1" max="16"
+                 style="width:3.5rem;text-align:center">
+        </label>
+      </div>
+
+      <div class="xp-progress" id="progWrap" hidden>
+        <div class="xp-bar"><span id="progBar"></span></div>
+        <div class="xp-progress-line">
+          <span id="progText">—</span>
+          <span id="progDetail"></span>
+        </div>
+      </div>
+
+      <p class="xp-note" id="copyNote"></p>
+    </div>
+
+    <!-- ================= AUSGEBEN ================= -->
+    <div class="xp-panel">
+      <span class="xp-legend">Ausgeben · Listen für den Index und für andere Werkzeuge</span>
+      <div class="xp-actions" style="margin-top:0">
         <button type="button" class="xp-btn" id="expList" disabled>Auswahl als Liste sichern</button>
         <button type="button" class="xp-btn" id="expFilter" disabled>FreeFileSync-Filter erzeugen</button>
         <button type="button" class="xp-btn" id="expIndex" disabled>Index-Zeilen erzeugen</button>
       </div>
-      <p class="xp-note" id="copyNote"></p>
     </div>
 
     <div class="xp-panel">
@@ -1796,6 +1862,7 @@
             <tr><td>Ordner samt Unterordnern einlesen, filtern, sortieren, vergleichen</td><td>funktioniert in jedem Browser</td></tr>
             <tr><td>Dateien wirklich von A nach B kopieren</td><td id="capCopy">wird beim Laden geprüft</td></tr>
             <tr><td>Auswahl als Liste, Filter oder Index-Zeilen sichern</td><td id="capSave">wird beim Laden geprüft</td></tr>
+            <tr><td><b>Änderungsdatum der Kopie erhalten</b></td><td><b>nein</b> — der Browser lässt das nicht zu; Kopien tragen das heutige Datum</td></tr>
             <tr><td>Löschen, Umbenennen, Verschieben</td><td>bewusst nicht eingebaut</td></tr>
             <tr><td>Google Drive direkt anbinden</td><td>nicht möglich — siehe Hinweis unten</td></tr>
           </tbody>
@@ -1858,6 +1925,9 @@
     dokument: "Dokumente", bild: "Bilder", video: "Video",
     audio: "Audio", archiv: "Archive", code: "Code", sonstiges: "Sonstiges"
   };
+
+  /* Video faehrt laut Plan nicht mit — eigener Schalter wie im Programm. */
+  var VIDEO_EXTS = ("mp4 mov m4v avi mkv wmv mpg mpeg 3gp mts m2ts webm flv").split(" ");
 
   /* Ausschlussliste aus Phase 2 */
   var JUNK_DIR = ["/windows/", "/program files", "/programdata/", "/appdata/", "/$recycle.bin/",
@@ -2003,6 +2073,7 @@
       return x.replace(/^[*.]+/, "").toLowerCase();
     }).filter(Boolean);
     filters.junk = $("fJunk").checked;
+    filters.video = $("fVideo").checked;
     filters.compare = $("fCompare").value;
   }
 
@@ -2039,6 +2110,7 @@
     var other = needCompare ? otherIndex(id) : null;
     return panes[id].files.filter(function (e) {
       if (filters.junk && isJunk(e)) { return false; }
+      if (!filters.video && VIDEO_EXTS.indexOf(e.ext) >= 0) { return false; }
       if (!nameHit(e)) { return false; }
       if (filters.min !== null && e.size < filters.min) { return false; }
       if (filters.max !== null && e.size > filters.max) { return false; }
@@ -2149,7 +2221,7 @@
 
   function refresh() { readFilters(); render("A"); render("B"); syncActions(); }
 
-  ["fName", "fMin", "fMax", "fFrom", "fTo", "fExt", "fJunk", "fCompare"].forEach(function (id) {
+  ["fName", "fMin", "fMax", "fFrom", "fTo", "fExt", "fJunk", "fVideo", "fCompare"].forEach(function (id) {
     var el = $(id);
     el.addEventListener(el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input", refresh);
   });
@@ -2171,10 +2243,11 @@
       } else if (p === "phase2") {
         $("fName").value = ""; $("fMin").value = ""; $("fMax").value = "120";
         $("fFrom").value = ""; $("fTo").value = ""; $("fExt").value = "";
-        $("fJunk").checked = true; $("fCompare").value = "all"; setCats([]);
+        $("fJunk").checked = true; $("fVideo").checked = false;
+        $("fCompare").value = "all"; setCats([]);
       } else if (p === "bilder") {
         $("fName").value = ""; $("fMin").value = ""; $("fMax").value = "120";
-        $("fJunk").checked = true; setCats(["bild"]);
+        $("fJunk").checked = true; $("fVideo").checked = false; setCats(["bild"]);
       }
       refresh();
     });
@@ -2186,68 +2259,211 @@
     return (st.view || []).filter(function (e) { return st.sel[e.key]; });
   }
 
+  /* Alles, was die Filter gerade durchlassen — unabhaengig von der Markierung. */
+  function filteredOf(id) { return panes[id].view || []; }
+
+  var running = false;
+  var cancelled = false;
+
   function syncActions() {
     var a = selectedOf("A").length, b = selectedOf("B").length;
-    $("copyAB").disabled = !(a && panes.B.handle);
-    $("copyBA").disabled = !(b && panes.A.handle);
-    $("expList").disabled = !(a + b) || !CAN_SAVE;
-    $("expFilter").disabled = !(a + b) || !CAN_SAVE;
-    $("expIndex").disabled = !(a + b) || !CAN_SAVE;
+    var fa = filteredOf("A").length, fb = filteredOf("B").length;
+    var anySel = a + b;
+
+    $("dryAB").disabled   = running || !fa;
+    $("copyAB").disabled  = running || !(fa && panes.B.handle);
+    $("copyBA").disabled  = running || !(fb && panes.A.handle);
+    $("copySel").disabled = running || !(anySel && (panes.A.handle || panes.B.handle));
+    $("cancelCopy").disabled = !running;
+    $("expList").disabled   = running || !CAN_SAVE || !(anySel || fa + fb);
+    $("expFilter").disabled = running || !CAN_SAVE || !(anySel || fa + fb);
+    $("expIndex").disabled  = running || !CAN_SAVE || !(anySel || fa + fb);
 
     var note = [];
     if (!CAN_PICK) {
-      note.push("Dein Browser erlaubt dieser Seite kein Schreiben auf die Festplatte — Ordner werden nur gelesen. Zum Kopieren die Auswahl als Liste oder FreeFileSync-Filter sichern und den Kopiervorgang dort ausführen.");
+      note.push("Dein Browser erlaubt dieser Seite kein Schreiben auf die Festplatte — Ordner werden nur gelesen. Zum Kopieren die Liste oder den FreeFileSync-Filter sichern und den Vorgang dort ausführen.");
     } else if (!panes.A.handle && !panes.B.handle) {
       note.push("Kopieren wird möglich, sobald die Zielseite über „Ordner wählen“ geladen ist und du den Schreibzugriff bestätigst.");
+    } else {
+      note.push("Kopiert wird, was die Filter gerade durchlassen — eine Markierung ist nicht nötig. Vorhandene Dateien werden übersprungen, nie überschrieben. Gelöscht wird nie.");
     }
     if (!CAN_SAVE) { note.push("Das Sichern von Dateien ist in dieser Ansicht nicht verfügbar."); }
     $("copyNote").textContent = note.join(" ");
   }
 
-  async function ensureDir(rootHandle, relDir) {
-    var h = rootHandle;
-    if (!relDir) { return h; }
-    var parts = relDir.split("/").filter(Boolean);
-    for (var i = 0; i < parts.length; i++) {
-      h = await h.getDirectoryHandle(parts[i], { create: true });
-    }
-    return h;
+  /* ---------- Fortschritt ---------- */
+
+  function showProgress(on) {
+    $("progWrap").hidden = !on;
+    if (!on) { return; }
+    $("progBar").style.width = "0%";
+    $("progText").textContent = "—";
+    $("progDetail").textContent = "";
   }
 
-  async function doCopy(from, to) {
+  function fmtTime(sec) {
+    sec = Math.max(0, Math.round(sec));
+    if (sec < 90) { return sec + " s"; }
+    if (sec < 5400) { return Math.round(sec / 60) + " min"; }
+    return (sec / 3600).toFixed(1).replace(".", ",") + " h";
+  }
+
+  function paintProgress(done, total, bytes, totalBytes, started) {
+    $("progBar").style.width = (total ? (100 * done / total) : 0).toFixed(1) + "%";
+    $("progText").textContent = done.toLocaleString("de-DE") + " / " + total.toLocaleString("de-DE");
+    var parts = [];
+    if (totalBytes) { parts.push(fmtSize(bytes) + " / " + fmtSize(totalBytes)); }
+    var el = (performance.now() - started) / 1000;
+    if (el > 1 && bytes > 0) {
+      var rate = bytes / el;
+      parts.push(fmtSize(Math.round(rate)) + "/s");
+      var rest = totalBytes - bytes;
+      if (rest > 0) { parts.push("noch " + fmtTime(rest / rate)); }
+    }
+    $("progDetail").textContent = parts.join("   ·   ");
+  }
+
+  /* ---------- Zielordner nur einmal anlegen ---------- */
+
+  function makeDirCache(rootHandle) {
+    var cache = { "": Promise.resolve(rootHandle) };
+    function get(relDir) {
+      relDir = relDir || "";
+      if (cache[relDir]) { return cache[relDir]; }
+      var cut = relDir.lastIndexOf("/");
+      var parent = cut < 0 ? "" : relDir.slice(0, cut);
+      var leaf = cut < 0 ? relDir : relDir.slice(cut + 1);
+      cache[relDir] = get(parent).then(function (h) {
+        return h.getDirectoryHandle(leaf, { create: true });
+      });
+      return cache[relDir];
+    }
+    return get;
+  }
+
+  /* ---------- Kopieren ---------- */
+
+  async function copyOne(getDir, entry) {
+    var dir = await getDir(entry.dir);
+    try {
+      await dir.getFileHandle(entry.name);
+      return { kind: "skip", bytes: 0 };
+    } catch (notThere) { /* gibt es noch nicht — gut */ }
+    var fh = await dir.getFileHandle(entry.name, { create: true });
+    var w = await fh.createWritable();
+    try {
+      await w.write(entry.file);
+    } finally {
+      await w.close();
+    }
+    return { kind: "ok", bytes: entry.size };
+  }
+
+  async function runCopy(items, target, dry) {
+    var total = items.length;
+    var totalBytes = items.reduce(function (n, e) { return n + e.size; }, 0);
+    var done = 0, bytes = 0, ok = 0, skip = 0, fail = 0, errors = [];
+    var started = performance.now();
+    var getDir = dry ? null : makeDirCache(target);
+
+    var workers = Math.max(1, Math.min(16, parseInt($("fWorkers").value, 10) || 4));
+    var next = 0;
+
+    async function worker() {
+      while (true) {
+        if (cancelled) { return; }
+        var i = next++;
+        if (i >= total) { return; }
+        var e = items[i];
+        try {
+          if (dry) {
+            ok++; bytes += e.size;
+          } else {
+            var r = await copyOne(getDir, e);
+            if (r.kind === "ok") { ok++; bytes += r.bytes; } else { skip++; }
+          }
+        } catch (x) {
+          fail++;
+          if (errors.length < 50) { errors.push(e.path + ": " + (x && x.message || x)); }
+        }
+        done++;
+        if (done % 10 === 0 || done === total) {
+          paintProgress(done, total, bytes, totalBytes, started);
+          await new Promise(function (r) { setTimeout(r, 0); });   // Oberfläche atmen lassen
+        }
+      }
+    }
+
+    var crew = [];
+    for (var k = 0; k < (dry ? 1 : workers); k++) { crew.push(worker()); }
+    await Promise.all(crew);
+    paintProgress(done, total, bytes, totalBytes, started);
+    return { ok: ok, skip: skip, fail: fail, bytes: bytes, errors: errors };
+  }
+
+  async function sammeln(from, to, opts) {
+    opts = opts || {};
+    if (running) { return; }
+    var items = opts.selectionOnly ? selectedOf(from) : filteredOf(from);
+    if (!items.length) { say("Auf Seite " + from + " ist gerade nichts ausgewählt.", "warn"); return; }
+
     var target = panes[to].handle;
-    var items = selectedOf(from);
-    if (!target || !items.length) { return; }
-    if (target.requestPermission) {
-      var perm = await target.requestPermission({ mode: "readwrite" });
-      if (perm !== "granted") { say("Schreibzugriff auf Seite " + to + " wurde nicht erteilt.", "warn"); return; }
+    if (!opts.dry) {
+      if (!target) { say("Seite " + to + " hat keinen Schreibzugriff. Lade sie über „Ordner wählen“.", "warn"); return; }
+      if (target.requestPermission) {
+        var perm = await target.requestPermission({ mode: "readwrite" });
+        if (perm !== "granted") { say("Schreibzugriff auf Seite " + to + " wurde nicht erteilt.", "warn"); return; }
+      }
+      var volumen = fmtSize(items.reduce(function (n, e) { return n + e.size; }, 0));
+      if (!window.confirm(items.length.toLocaleString("de-DE") + " Dateien (" + volumen +
+          ") von Seite " + from + " nach " + panes[to].root + " kopieren?\n\n" +
+          "Es wird nur kopiert. In der Quelle ändert sich nichts, " +
+          "vorhandene Dateien werden übersprungen.")) { return; }
     }
-    var ok = 0, skip = 0, fail = 0;
-    for (var i = 0; i < items.length; i++) {
-      var e = items[i];
-      say("Kopiere " + (i + 1) + " von " + items.length + " …");
-      try {
-        var dir = await ensureDir(target, e.dir);
-        var exists = false;
-        try { await dir.getFileHandle(e.name); exists = true; } catch (x) { exists = false; }
-        if (exists) { skip++; continue; }
-        var fh = await dir.getFileHandle(e.name, { create: true });
-        var w = await fh.createWritable();
-        await w.write(e.file);
-        await w.close();
-        ok++;
-      } catch (x) { fail++; }
+
+    running = true; cancelled = false;
+    syncActions(); showProgress(true);
+    say((opts.dry ? "Probelauf" : "Kopiere") + " " + items.length.toLocaleString("de-DE") + " Dateien …");
+
+    var rep;
+    try {
+      rep = await runCopy(items, target, opts.dry);
+    } catch (x) {
+      running = false; syncActions();
+      say("Abgebrochen: " + (x && x.message || x), "warn");
+      return;
     }
-    say("Fertig: " + ok + " kopiert, " + skip + " übersprungen (schon vorhanden), " + fail + " fehlgeschlagen. Nichts wurde gelöscht.", fail ? "warn" : "ok");
-    openPane_refreshHint(to);
+    running = false; syncActions();
+
+    var wort = opts.dry ? "Probelauf" : (cancelled ? "Abgebrochen" : "Fertig");
+    say(wort + ": " + rep.ok.toLocaleString("de-DE") + (opts.dry ? " kämen mit" : " kopiert") +
+        " · " + rep.skip.toLocaleString("de-DE") + " übersprungen" +
+        " · " + rep.fail.toLocaleString("de-DE") + " fehlgeschlagen" +
+        (opts.dry ? " · " + fmtSize(rep.bytes) + " Volumen" : "") +
+        ". Gelöscht wurde nichts.",
+        rep.fail ? "warn" : "ok");
+    if (rep.errors.length) {
+      $("copyNote").textContent = "Nicht übertragen: " + rep.errors.slice(0, 3).join(" | ") +
+        (rep.errors.length > 3 ? " … und " + (rep.errors.length - 3) + " weitere" : "");
+    }
+    if (!opts.dry) { openPane_refreshHint(to); }
   }
 
   function openPane_refreshHint(id) {
     $("path" + id).textContent = panes[id].root + "  (lesen und schreiben · neu laden für aktuelle Liste)";
   }
 
-  $("copyAB").addEventListener("click", function () { doCopy("A", "B"); });
-  $("copyBA").addEventListener("click", function () { doCopy("B", "A"); });
+  $("dryAB").addEventListener("click", function () { sammeln("A", "B", { dry: true }); });
+  $("copyAB").addEventListener("click", function () { sammeln("A", "B", {}); });
+  $("copyBA").addEventListener("click", function () { sammeln("B", "A", {}); });
+  $("copySel").addEventListener("click", function () {
+    var from = selectedOf("A").length ? "A" : "B";
+    sammeln(from, from === "A" ? "B" : "A", { selectionOnly: true });
+  });
+  $("cancelCopy").addEventListener("click", function () {
+    cancelled = true;
+    say("Abbruch angefordert — der laufende Schritt wird noch zu Ende geführt.");
+  });
 
   async function offer(filename, text, alt) {
     if (!CAN_SAVE) { say("Sichern ist in dieser Ansicht nicht verfügbar.", "warn"); return; }
@@ -2262,8 +2478,13 @@
   }
 
   function allSelected() {
-    return selectedOf("A").map(function (e) { return ["A", e]; })
+    var sel = selectedOf("A").map(function (e) { return ["A", e]; })
       .concat(selectedOf("B").map(function (e) { return ["B", e]; }));
+    if (sel.length) { return sel; }
+    // Ohne Markierung gilt, was die Filter durchlassen — sonst waere die
+    // Ausgabe leer, obwohl der Knopf bedienbar ist.
+    return filteredOf("A").map(function (e) { return ["A", e]; })
+      .concat(filteredOf("B").map(function (e) { return ["B", e]; }));
   }
 
   $("expList").addEventListener("click", function () {
