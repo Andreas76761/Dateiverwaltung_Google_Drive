@@ -12,7 +12,9 @@ Schaerfe wirklich einen Streifen mehr gibt als erlaubte Abweichungen --
 sonst traegt der Satz oben nicht --, und dass viele voellig gleiche
 Bilder nicht durchfallen, weil ihr Eimer zu voll wird.
 
-Laeuft in einer Minute und braucht weder ImageMagick noch eine Anzeige.
+Laeuft in zweieinhalb Minuten -- die meiste Zeit geht fuer den vollen
+Vergleich drauf, gegen den geprueft wird -- und braucht weder ImageMagick
+noch eine Anzeige.
 
 Aufruf:  python3 tool/pruefung/pruefe_gruppen.py [anzahl]
 """

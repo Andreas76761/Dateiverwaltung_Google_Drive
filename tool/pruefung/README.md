@@ -15,9 +15,10 @@ verschiedenem Inhalt, Ordner mit bekannter Kategorie.
 python3 tool/pruefung/alles.py --schnell
 ```
 
-Das baut den Bestand, lässt drei Prüfungen laufen und braucht knapp drei
-Minuten. Ohne `--schnell` kommt der Bildbestand dazu (ein paar Minuten mehr,
-siehe unten).
+Das baut den Bestand, lässt drei Prüfungen laufen und braucht knapp fünf
+Minuten — die meiste Zeit geht für den vollen Vergleich drauf, gegen den die
+Streifensuche geprüft wird. Ohne `--schnell` kommt der Bildbestand dazu (ein
+paar Minuten mehr, siehe unten).
 
 Der Bestand landet in einem Ordner im Temp-Verzeichnis; etwa ein halbes
 Gigabyte. Woanders hin:

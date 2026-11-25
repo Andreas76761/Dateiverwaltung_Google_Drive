@@ -161,12 +161,12 @@ Grösse bei verschiedenem Inhalt.
 Die Prüfung bedient dabei die **echte Oberfläche** — Felder füllen, Knopf drücken,
 Ergebnis aus der Tabelle lesen —, nicht die Funktionen darunter. Nur so fallen Fehler auf,
 die zwischen Fenster und Logik sitzen; genau dort steckten die, die zuletzt gefunden wurden.
-**78 Prüfungen, alle grün.**
+**105 Prüfungen, alle grün.**
 
 Die Prüfung liegt im Repository und lässt sich jederzeit wiederholen:
 
 ```
-python3 tool/pruefung/alles.py --schnell       # knapp drei Minuten
+python3 tool/pruefung/alles.py --schnell       # knapp fünf Minuten
 xvfb-run -a python3 tool/pruefung/alles.py     # alles, ohne Bildschirm
 ```
 
