@@ -201,6 +201,13 @@ def baue(vorlagen=VORLAGEN, einzelne=EINZELNE):
     if os.path.isdir(fotos):
         import time
         for n in sorted(os.listdir(heic)):
+            # Das PNG bleibt draussen: es ist unkomprimiert und damit
+            # groesser als die Grenze des Pruefbestands. Im Bestand waere
+            # es eine Datei mehr unter "zu gross", und alle hinterlegten
+            # Soll-Zahlen der Register 1, 2 und 3 verschoeben sich. Fuer
+            # den PNG-Weg ist der Probenordner da.
+            if not n.endswith((".heic", ".jpg")):
+                continue
             ziel = os.path.join(fotos, n)
             shutil.copy2(os.path.join(heic, n), ziel)
             t = time.mktime((2019, 5, 5, 12, 0, 0, 0, 0, -1))
