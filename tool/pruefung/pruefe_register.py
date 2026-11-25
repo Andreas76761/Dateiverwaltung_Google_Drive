@@ -56,8 +56,14 @@ junk, video = set(W["junk"]), set(W["video"])
 # Programms: alles ausser Abfall, Video und Uebergrossem faehrt mit.
 # Von mach_bilder nachgelegte HEIC-Dateien fahren mit.
 soll_mit = len(vorher) - len(junk) - len(video) - len(W["ueber_grenze"])
+# Geprueft wird nur, was wirklich daliegt: mach_bestand baut den Bestand
+# jedes Mal neu und raeumt die nachgelegten Dateien damit weg. Wer der
+# alten Bilder-Wahrheit glaubt, bekommt nach einem Lauf mit --schnell
+# einen Fehler gemeldet, der keiner ist.
+IM_BESTAND = [rel for rel in (BILDER_W or {}).get("im_bestand", [])
+              if os.path.isfile(os.path.join(QUELLE, rel))]
 heic_jahre = {}
-for rel in (BILDER_W or {}).get("im_bestand", []):
+for rel in IM_BESTAND:
     heic_jahre[rel] = [2014, "exif"] if rel.endswith("mit_datum.heic") else [2019, "datei"]
 W["jahre"].update(heic_jahre)
 print("{} Dateien im Quellbestand, {} davon sollen mitfahren\n".format(
@@ -233,13 +239,15 @@ warte(t, app)
 sim_gruppen = t.gruppen
 b.prueft("5b Ähnliche", "kein Mitglied weiter weg als die Schärfe", 0,
          sum(1 for g in sim_gruppen for _e, _w, _h, _q, ab in g if ab > 6))
-if BILDER_W and BILDER_W.get("im_bestand"):
+if IM_BESTAND:
     heic_gruppen = [sorted(e.name for e, *_r in g) for g in sim_gruppen
                     if any(e.name.endswith(".heic") for e, *_r in g)]
     b.prueft("5b Ähnliche", "HEIC und JPEG desselben Motivs zusammen", 1,
              len(heic_gruppen), str(heic_gruppen))
 else:
-    b.notiz("5b Ähnliche", "HEIC", "übersprungen — mach_bilder.py nicht gelaufen")
+    b.notiz("5b Ähnliche", "HEIC",
+            "übersprungen — keine HEIC-Proben im Bestand (mach_bilder.py läuft "
+            "nach mach_bestand.py, nicht davor)")
 b.notiz("5b Ähnliche", "Zusammenfassung", t.summary.cget("text"))
 b.notiz("5b Ähnliche", "Statuszeile", t.status.cget("text"))
 

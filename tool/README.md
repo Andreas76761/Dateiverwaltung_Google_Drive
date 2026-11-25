@@ -179,8 +179,9 @@ Was sie im Einzelnen tut, steht in [tool/pruefung/README.md](pruefung/README.md)
 | 3 · Sammeln | 2.843 Dateien kopiert | Probelauf = Ausführung, Quelle unverändert, Stichproben byteweise gleich, Umlaute und neun Ebenen tiefe Pfade heil, Wiederholung überspringt alle in 0,6 s |
 | 4 · Dubletten | 139 Gruppen, 150 Fallen | alle 139 gefunden, keine erfunden, keine Falle zugeschnappt, Original überall nach der Vorrangregel |
 | 5 · Bilder | 344 Bilder mit bekanntem Jahr | jedes Jahr und jede Herkunft richtig; EXIF schlägt widersprechendes Dateidatum; 40 Namensgleiche nummeriert, keine verloren |
-| 5b · Ähnliche | 200 Vorlagen à drei Fassungen, 400 Einzelbilder | bei *normal* 198 von 200 gefunden, 7 Gruppen mit Fremdem — siehe unten |
-| HEIC | 4 echte Dateien aus dem Netz, 4 selbst gebaute | Bildgrösse wie ImageMagick; Aufnahmedatum eines iPhone-Fotos richtig; HEIC und JPEG desselben Motivs in einer Gruppe |
+| 5b · Ähnliche | 200 Vorlagen à drei Fassungen, 400 Einzelbilder | bei *normal* 196 von 200 gefunden, 5 Gruppen mit Fremdem — siehe unten |
+| 5b · Streifensuche | 20.000 Fingerabdrücke gegen jeden-mit-jedem | dieselben Paare bei allen drei Schärfen; ein Streifen mehr als erlaubte Bits; 6.000 völlig gleiche Bilder bilden eine Gruppe mit allen |
+| HEIC | 4 echte Dateien aus dem Netz, 4 selbst gebaute | Bildgrösse wie ImageMagick; Aufnahmedatum eines iPhone-Fotos richtig; HEIC, JPEG und PNG desselben Motivs in einer Gruppe, jedes mit seiner wirklichen Bildgrösse; der Schalter für die Vorschaubilder greift auch im zweiten Lauf |
 | 7 · Kategorien | Ordner mit bekannter Kategorie | richtig, Volumen schlägt Anzahl |
 | 8 · Index | 344 Zeilen, 18 Spalten | jede Dubletten- und jede Ähnlichkeitsangabe an der richtigen Datei, keine an einer unbeteiligten |
 | Explorer | 7 Filter- und Vergleichsproben, Kopieren | jede Zahl mit unabhängiger Nachzählung deckungsgleich; 5 markierte Dateien kopiert, Quelle unverändert |
@@ -255,22 +256,26 @@ mehr als auf — 20.000 Fingerabdrücke bei *normal* in 0,3 statt 1,4 Sekunden.
 ### Welche Schärfe in Register 5b
 
 An 1.000 Bildern — 200 Vorlagen in je drei Fassungen (voll, halb, viertel) und 400
-Einzelbildern:
+Einzelbildern (`python3 tool/pruefung/mach_bilder.py 200`; im Standardlauf sind es 120
+Vorlagen und 240 Einzelbilder):
 
 | Schärfe | Vorlagen gefunden | Gruppen mit Fremdem darin | Fassungen unvollständig |
 |---|---|---|---|
-| streng (3 Bit) | 181 von 200 | **0** | 106 |
-| **normal (6 Bit)** | **198 von 200** | 7 | 26 |
-| weit (9 Bit) | 161 von 200 | 65 | 11 |
+| streng (3 Bit) | 175 von 200 | **1** | 113 |
+| **normal (6 Bit)** | **196 von 200** | 5 | 35 |
+| weit (9 Bit) | 147 von 200 | 73 | 11 |
 
 *normal* ist die Voreinstellung. *streng* lässt viertelgrosse Fassungen liegen, *weit* wirft
-zu viel zusammen. Der Prüfbestand ist dabei härter als echte Fotos: alle 1.000 Bilder sind
-nach demselben Muster erzeugt und sehen einander von Haus aus ähnlich — zwei der sieben
-beanstandeten Gruppen enthalten Bilder, die auch ein Mensch für Varianten desselben Motivs
-hielte. Bei Urlaubsfotos liegen fremde Aufnahmen deutlich weiter auseinander.
+zu viel zusammen — und zwar seit der Korrektur der Streifenzahl noch etwas mehr als vorher,
+weil es jetzt wirklich alles findet, was neun Bit entfernt liegt. Der Prüfbestand ist dabei
+härter als echte Fotos: alle 1.000 Bilder sind nach demselben Muster erzeugt und sehen
+einander von Haus aus ähnlich — ein Teil der beanstandeten Gruppen enthält Bilder, die auch
+ein Mensch für Varianten desselben Motivs hielte. Bei Urlaubsfotos liegen fremde Aufnahmen
+deutlich weiter auseinander. Die Zahlen stammen aus einem frisch gebauten Prüfbestand; ein
+anderer Satz Zufallsbilder verschiebt sie um ein paar Zähler.
 
-Tempo: 1.000 Bilder à 0,3 Megapixel in 27 Sekunden, beim zweiten Lauf aus dem Gedächtnis in
-1 Sekunde. Ein Zwölf-Megapixel-Foto braucht 0,3 bis 1,7 Sekunden, wenn das ganze Bild
+Tempo: 1.000 Bilder à 0,3 Megapixel in 26 Sekunden, beim zweiten Lauf aus dem Gedächtnis
+unter einer Sekunde. Ein Zwölf-Megapixel-Foto braucht 0,3 bis 1,7 Sekunden, wenn das ganze Bild
 gerechnet werden muss — und 3 Millisekunden, wenn das Vorschaubild der Kamera taugt. Das
 Vergleichen selbst fällt kaum ins Gewicht: 20.000 Fingerabdrücke brauchen 0,3 Sekunden statt
 113 Sekunden für jeden-mit-jedem, und finden dabei nachweislich dieselben Paare — bei allen

@@ -47,7 +47,7 @@ for s in schaerfen:
     bedienung.warte(t, app)
     dauer = time.time() - t0
 
-    sauber = vermischt = 0
+    sauber = vermischt = unvollstaendig = 0
     gefunden = set()
     for g in t.gruppen:
         namen = [e.name for e, *_r in g]
@@ -55,6 +55,11 @@ for s in schaerfen:
         if len(vorlagen) == 1 and None not in vorlagen:
             sauber += 1
             gefunden.add(vorlagen.pop())
+            # Jede Vorlage liegt in drei Fassungen vor. Sind es weniger,
+            # hat die Gruppe eine liegen gelassen -- bei "streng" meist
+            # die viertelgrosse.
+            if len(g) < 3:
+                unvollstaendig += 1
         else:
             vermischt += 1
     bereich = "Schärfe {}".format(bits)
@@ -72,8 +77,8 @@ for s in schaerfen:
         b.prueft(bereich, "höchstens jede zwanzigste Gruppe vermischt", True,
                  vermischt <= 0.05 * max(1, len(t.gruppen)),
                  "({} von {})".format(vermischt, len(t.gruppen)))
-    b.notiz(bereich, "{} von {} Vorlagen, {} vermischt".format(
-        len(gefunden), BW["vorlagen"], vermischt),
+    b.notiz(bereich, "{} von {} Vorlagen, {} vermischt, {} unvollständig".format(
+        len(gefunden), BW["vorlagen"], vermischt, unvollstaendig),
         "{} · {:.0f}s · {}".format(name, dauer, t.summary.cget("text")))
 
 # ================================================================
