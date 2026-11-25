@@ -118,7 +118,8 @@ sagt das Programm es: solche Dateien erscheinen als *HEIC ohne Vorschau* und nic
 Fehler. TIFF, WebP, BMP und GIF werden gezählt, aber nicht verglichen. Einmal berechnete
 Fingerabdrücke merkt sich das Programm
 (`bildabdruecke.csv` neben den Einstellungen); ein zweiter Lauf über denselben Ordner ist
-dadurch um ein Vielfaches schneller.
+dadurch um ein Vielfaches schneller. Nach einem vollständigen Lauf räumt es dort auf: was zu
+einer Datei gehört, die im geprüften Ordner nicht mehr liegt, wird vergessen.
 
 Gruppen bildet Register 5b **um die beste Fassung herum** — die mit den meisten Bildpunkten.
 Jedes Mitglied liegt höchstens die eingestellte Schärfe von ihr entfernt. Der erste Entwurf
@@ -161,7 +162,7 @@ Grösse bei verschiedenem Inhalt.
 Die Prüfung bedient dabei die **echte Oberfläche** — Felder füllen, Knopf drücken,
 Ergebnis aus der Tabelle lesen —, nicht die Funktionen darunter. Nur so fallen Fehler auf,
 die zwischen Fenster und Logik sitzen; genau dort steckten die, die zuletzt gefunden wurden.
-**105 Prüfungen, alle grün.**
+**111 Prüfungen, alle grün.**
 
 Die Prüfung liegt im Repository und lässt sich jederzeit wiederholen:
 
@@ -188,6 +189,7 @@ Was sie im Einzelnen tut, steht in [tool/pruefung/README.md](pruefung/README.md)
 | Abbrechen | mitten im Lauf gestoppt | keine halbe Datei, Quelle unverändert |
 | Quarantäne | 381 Duplikate verschoben | alle wieder auffindbar, nichts verschwunden |
 | Einstellungen | Grenze und Fäden | über einen Neustart hinweg gemerkt |
+| Abdruck-Speicher | Abschneiden, Aufräumen, Abbruch | beim Abschneiden bleiben die neu berechneten; nach einem vollständigen Lauf werden verschwundene Dateien vergessen, nach einem Abbruch nichts |
 
 Tempo an diesem Bestand: Inventur 0,4 s · Sammeln 4,6 s · Wiederholung 0,6 s ·
 Dubletten 2,1 s · Bilder 1,2 s · Index 0,4 s.
@@ -218,9 +220,8 @@ Sechs Fehler, alle behoben. Zwei davon hätten beim ersten echten Lauf zugeschla
 
 ### Was das Durchsehen des Codes gefunden hat
 
-Vier weitere Fehler, alle behoben und alle mit einer eigenen Prüfung versehen. Sie hatten
-eines gemeinsam: keiner meldete sich, alle vier gaben ein falsches Ergebnis als
-vollständiges aus.
+Fünf weitere Fehler, alle behoben und alle mit einer eigenen Prüfung versehen. Sie hatten
+eines gemeinsam: keiner meldete sich.
 
 - **Viele gleiche Bilder fielen still durch.** Die Suche nach Ähnlichen zerlegt die
   Fingerabdrücke in Streifen und vergleicht nur, wer sich einen Streifen teilt. Enthielt
@@ -248,6 +249,17 @@ vollständiges aus.
   Vorschau-Abdruck zurück — der Lauf dauerte gleich lang und meldete weiter *per
   Vorschaubild*. Bei HEIC ging der Schalter überhaupt nicht ein. Jetzt wird ein gemerkter
   Vorschau-Abdruck verworfen, sobald man ihn abwählt, und HEIC hält sich daran.
+- **Der Speicher der Bildabdrücke hätte sich selbst blockiert.** Er merkt sich bis zu
+  400.000 Abdrücke; war die Zahl erreicht, brach das Schreiben in der vorhandenen
+  Reihenfolge ab — und das sind die aus der Datei geladenen alten Einträge. Die im Lauf eben
+  berechneten fielen hinten herunter, und jeder weitere Lauf hätte dieselben Bilder wieder
+  von Null gerechnet. Einträge zu gelöschten oder verschobenen Dateien wurden ausserdem nie
+  entfernt, die Datei wuchs also nur. Jetzt fliegen zuerst die Einträge heraus, die der
+  laufende Durchgang nicht gebraucht hat, und nach einem **vollständigen** Lauf werden
+  unangetastete Einträge aus dem geprüften Ordner vergessen — die Dateien liegen dort nicht
+  mehr. Nach einem Abbruch wird nichts vergessen: dort heisst *unangetastet* nur, dass es
+  nicht weiterging. Bei 20.000 Fotos wäre das nie aufgefallen; über Jahre an vier Rechnern
+  und mehreren Platten schon.
 
 Nebenbei: die Paarsuche zählt die abweichenden Bits jetzt mit `int.bit_count` statt über den
 Umweg `bin(...).count("1")`. Das ist siebenmal schneller und fängt die zusätzlichen Streifen

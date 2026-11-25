@@ -1,7 +1,7 @@
 """
 Prueft, was der erste Teil nicht anfasst: gesicherte Listen, geaenderte
-Regeln, das Kopieren im Explorer und die Einstellungen ueber einen
-Neustart hinweg.
+Regeln, das Kopieren im Explorer, die Einstellungen ueber einen Neustart
+hinweg und den Speicher der Bildabdruecke.
 
 Aufruf:  python3 tool/pruefung/pruefe_ausgaben.py
 Vorher:  mach_bestand.py
@@ -130,6 +130,55 @@ kopiert = [n for _o, _u, dateien in os.walk(os.path.join(ARBEIT, "kopierziel"))
            for n in dateien]
 b.prueft("Explorer", "markierte Dateien kopiert", 5, len(kopiert))
 b.prueft("Explorer", "Quelle unverändert", vorher_quelle, sorted(os.listdir(quelle_a)))
+
+# ================================================================
+#  Der Speicher der Bildabdruecke. Er liegt neben den Einstellungen und
+#  uebersteht einen Neustart -- und darf dabei nicht das Falsche
+#  behalten. Der eigene Speicher wird vorher beiseitegelegt und
+#  hinterher zurueckgeschrieben.
+# ================================================================
+print("Speicher der Bildabdrücke")
+eigener = d.load_fingerprints()
+
+
+def abdruck(n):
+    return (1000 + n, 1600000000 + n, 0xAB00 + n, 600, 450, "ganz")
+
+
+alt = {"/alt/{}.jpg".format(i): abdruck(i) for i in range(10)}
+neu = {"/neu/{}.jpg".format(i): abdruck(100 + i) for i in range(5)}
+zusammen = dict(alt)
+zusammen.update(neu)
+
+# Platz fuer fuenf: die eben berechneten muessen es sein, nicht die
+# zuerst geladenen. Vorher brach das Schreiben nach der Reihenfolge im
+# Speicher ab und warf genau die neuen weg.
+d.save_fingerprints(zusammen, set(neu), grenze=5)
+b.prueft("Abdrücke", "beim Abschneiden bleiben die neu berechneten",
+         sorted(neu), sorted(d.load_fingerprints()))
+
+# Reicht der Platz, bleibt alles -- und es kommt unverändert zurück.
+d.save_fingerprints(zusammen, set(neu))
+wieder = d.load_fingerprints()
+b.prueft("Abdrücke", "sonst bleibt alles erhalten", len(zusammen), len(wieder))
+b.prueft("Abdrücke", "und kommt unverändert zurück", zusammen, wieder)
+
+# Nach einem vollständigen Lauf über /neu sind unangetastete Einträge
+# unter /neu Dateien, die es dort nicht mehr gibt. Einträge ausserhalb
+# bleiben unberührt.
+behalten = "/neu/0.jpg"
+d.save_fingerprints(zusammen, {behalten}, "/neu")
+b.prueft("Abdrücke", "verschwundene Dateien werden vergessen",
+         sorted(list(alt) + [behalten]), sorted(d.load_fingerprints()))
+
+# Nach einem Abbruch wird nichts vergessen.
+d.save_fingerprints(zusammen, {behalten}, None)
+b.prueft("Abdrücke", "nach einem Abbruch wird nichts vergessen",
+         sorted(zusammen), sorted(d.load_fingerprints()))
+
+d.save_fingerprints(eigener, set(eigener))
+b.prueft("Abdrücke", "der eigene Speicher ist wieder da",
+         len(eigener), len(d.load_fingerprints()))
 
 # ================================================================
 print("Einstellungen über einen Neustart")

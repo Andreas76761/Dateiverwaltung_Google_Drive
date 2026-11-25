@@ -2838,15 +2838,54 @@ def load_fingerprints():
     return cache
 
 
-def save_fingerprints(cache, grenze=400000):
+# So viele Abdruecke werden gemerkt. Zwanzigtausend Fotos brauchen ein
+# Zwanzigstel davon; die Zahl ist fuer den Fall, dass das Werkzeug ueber
+# Jahre an mehreren Rechnern und Platten laeuft.
+ABDRUECKE_GRENZE = 400000
+
+
+def save_fingerprints(cache, benutzt=None, wurzel=None, grenze=ABDRUECKE_GRENZE):
+    """
+    Merkt die Abdruecke fuer den naechsten Lauf.
+
+    benutzt sind die Pfade, die dieser Durchgang angefasst hat. Daran
+    haengen zwei Dinge:
+
+    Reicht der Platz nicht, fliegen die unbenutzten zuerst heraus.
+    Vorher brach das Schreiben nach grenze Zeilen in der vorhandenen
+    Reihenfolge ab -- das sind die aus der Datei geladenen alten
+    Eintraege, und die eben berechneten fielen hinten herunter. Ab dann
+    haette jeder weitere Lauf dieselben Bilder neu gerechnet, bei einem
+    Foto ohne brauchbare Vorschau anderthalb Sekunden je Stueck.
+
+    Steht wurzel dabei, war der Lauf vollstaendig. Dann sind Eintraege
+    unter wurzel, die niemand angefasst hat, Dateien, die dort nicht mehr
+    liegen -- verschoben, umbenannt, geloescht. Sie werden vergessen,
+    sonst waechst die Datei nur und wird nie kleiner. Bei einem
+    abgebrochenen Lauf bleibt wurzel leer und nichts wird vergessen: dort
+    ist unangetastet kein Hinweis auf eine fehlende Datei, sondern nur
+    darauf, dass es nicht mehr weiterging.
+    """
+    benutzt = set(benutzt or ())
+    # normcase, nicht lower: unter Windows ist der Pfad gleich, wenn er
+    # sich nur in der Schreibweise unterscheidet, unter Linux nicht.
+    praefix = (os.path.normcase(os.path.join(os.path.abspath(wurzel), ""))
+               if wurzel else None)
+    vorrang, rest = [], []
+    for pfad in cache:
+        if pfad in benutzt:
+            vorrang.append(pfad)
+        elif praefix and os.path.normcase(pfad).startswith(praefix):
+            continue
+        else:
+            rest.append(pfad)
     try:
         path = fingerprint_file()
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f, delimiter=";")
-            for i, (pfad, v) in enumerate(cache.items()):
-                if i >= grenze:
-                    break
+            for pfad in (vorrang + rest)[:grenze]:
+                v = cache[pfad]
                 w.writerow([pfad, v[0], v[1], "{:016x}".format(v[2]), v[3], v[4], v[5]])
     except OSError:
         pass
@@ -2946,6 +2985,7 @@ class AehnlicheTab(Section):
 
             cache = load_fingerprints()
             items, fehler, aus_cache, vorschau, ohne_vorschau = [], 0, 0, 0, 0
+            benutzt = set()
             t0 = time.time()
             for i, e in enumerate(bilder, 1):
                 if job.stopped:
@@ -2989,8 +3029,11 @@ class AehnlicheTab(Section):
                     cache[e.abspath] = (e.size, int(e.mtime), bits, bw, bh, woher)
                 if woher == "vorschau":
                     vorschau += 1
+                benutzt.add(e.abspath)
                 items.append((e, bits, bw, bh, woher))
-            save_fingerprints(cache)
+            # Nur nach einem vollstaendigen Lauf darf aufgeraeumt werden:
+            # wer abbricht, hat den Rest des Ordners nie angesehen.
+            save_fingerprints(cache, benutzt, None if job.stopped else root)
 
             if job.stopped:
                 job.done("sim", (None, 0, 0, 0, 0, 0, 0, 0, root))

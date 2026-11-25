@@ -35,7 +35,7 @@ DATEIUMZUG_PRUEFUNG=/pfad/zum/pruefstand python3 tool/pruefung/alles.py
 | `mach_bilder.py` | baut 120 Vorlagen à drei Fassungen, 240 Einzelbilder, vier HEIC-Proben und dieselbe Aufnahme als PNG | ImageMagick |
 | `pruefe_gruppen.py` | hält die Streifensuche aus Register 5b gegen den vollen Vergleich, bei jeder Schärfe | nichts |
 | `pruefe_register.py` | fährt jedes Register durch die Oberfläche | Tk, Anzeige |
-| `pruefe_ausgaben.py` | gesicherte Listen, Regeländerungen, Kopieren im Explorer, Einstellungen | Tk, Anzeige |
+| `pruefe_ausgaben.py` | gesicherte Listen, Regeländerungen, Kopieren im Explorer, Einstellungen, Abdruck-Speicher | Tk, Anzeige |
 | `pruefe_aehnliche.py` | Register 5b am Bildbestand, alle drei Schärfen, dazu HEIC | Tk, Anzeige, Bildbestand |
 | `alles.py` | ruft alles der Reihe nach auf | — |
 
@@ -119,6 +119,12 @@ verschwunden. Und: steht ein anderer Ordner im Feld als der, in dem gesucht
 wurde, darf der Knopf nichts tun und muss sagen warum.
 
 **Einstellungen** — Grenze und Fäden über einen Neustart hinweg.
+
+**Abdruck-Speicher** — die gemerkten Bildabdrücke überstehen den Neustart unverändert; ist
+die Obergrenze erreicht, bleiben die im Lauf neu berechneten und nicht die ältesten; nach
+einem vollständigen Lauf werden Einträge aus dem geprüften Ordner vergessen, zu denen keine
+Datei mehr gehört, nach einem Abbruch keiner. Der Speicher des Rechners, auf dem geprüft
+wird, wird vorher beiseitegelegt und hinterher zurückgeschrieben.
 
 ## Warum die Oberfläche und nicht die Funktionen darunter
 
