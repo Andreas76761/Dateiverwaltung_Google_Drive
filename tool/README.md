@@ -215,6 +215,43 @@ Sechs Fehler, alle behoben. Zwei davon hätten beim ersten echten Lauf zugeschla
   Quarantäne-Knöpfe und das Kopieren im Explorer). In der Praxis geht das meist gut,
   zugesichert ist es nicht.
 
+### Was das Durchsehen des Codes gefunden hat
+
+Vier weitere Fehler, alle behoben und alle mit einer eigenen Prüfung versehen. Sie hatten
+eines gemeinsam: keiner meldete sich, alle vier gaben ein falsches Ergebnis als
+vollständiges aus.
+
+- **Viele gleiche Bilder fielen still durch.** Die Suche nach Ähnlichen zerlegt die
+  Fingerabdrücke in Streifen und vergleicht nur, wer sich einen Streifen teilt. Enthielt
+  ein Streifen mehr als 4.000 Einträge, wurde er übersprungen — ohne ein Wort. Gerade
+  Fassungen derselben Aufnahme landen aber zwangsläufig im selben Streifen: gemessen
+  ergaben 4.001 gleiche Fingerabdrücke **null Paare** statt acht Millionen, und Register 5b
+  meldete „keine Gruppen". Jetzt werden völlig gleiche Abdrücke zuerst zusammengefasst und
+  nur verschiedene gegeneinander gehalten; das ist nicht bloss richtig, sondern auch
+  schneller. Bleibt ein Streifen trotzdem zu gross — dafür müssten einander über 20.000
+  Bilder ähneln —, sagt das Programm es in einem Fenster und in der Statuszeile.
+- **Die Schärfe *weit* war nicht vollständig.** Die Abkürzung trägt nur, wenn es einen
+  Streifen mehr gibt als erlaubte Abweichungen; eingetragen war eine Obergrenze von acht
+  Streifen, *weit* erlaubt aber neun Bit. Gemessen gingen dadurch 1,6 % der Paare im
+  Abstand 9 und 0,5 % im Abstand 8 verloren — genau die weit entfernten Fassungen, für die
+  man *weit* überhaupt einschaltet. Jetzt sind es zehn Streifen, und die Prüfung rechnet
+  jede der drei Schärfen einzeln nach.
+- **PNG meldete eine falsche Bildgrösse.** Gemeldet wurden die Masse des Rechenrasters mal
+  acht, also die wirkliche Grösse aufgerundet auf das nächste Vielfache von acht: ein Bild
+  mit 1200 × 900 Punkten stand als 1200 × 904 in der Tabelle und in der CSV. Bei JPEG
+  stimmte es. Da die Pixelzahl auch darüber entscheidet, welche Fassung ihre Gruppe
+  anführt, konnte ein PNG sich so an die Spitze schieben.
+- **Der Schalter „Vorschaubilder der Kamera nutzen" blieb oft ohne Wirkung.** Der
+  Zwischenspeicher wurde nur über Grösse und Datum geprüft. Wer den Schalter abwählte, weil
+  er dem Ergebnis nicht traute, bekam für jede bereits berechnete Datei denselben
+  Vorschau-Abdruck zurück — der Lauf dauerte gleich lang und meldete weiter *per
+  Vorschaubild*. Bei HEIC ging der Schalter überhaupt nicht ein. Jetzt wird ein gemerkter
+  Vorschau-Abdruck verworfen, sobald man ihn abwählt, und HEIC hält sich daran.
+
+Nebenbei: die Paarsuche zählt die abweichenden Bits jetzt mit `int.bit_count` statt über den
+Umweg `bin(...).count("1")`. Das ist siebenmal schneller und fängt die zusätzlichen Streifen
+mehr als auf — 20.000 Fingerabdrücke bei *normal* in 0,3 statt 1,4 Sekunden.
+
 ### Welche Schärfe in Register 5b
 
 An 1.000 Bildern — 200 Vorlagen in je drei Fassungen (voll, halb, viertel) und 400
@@ -235,8 +272,9 @@ hielte. Bei Urlaubsfotos liegen fremde Aufnahmen deutlich weiter auseinander.
 Tempo: 1.000 Bilder à 0,3 Megapixel in 27 Sekunden, beim zweiten Lauf aus dem Gedächtnis in
 1 Sekunde. Ein Zwölf-Megapixel-Foto braucht 0,3 bis 1,7 Sekunden, wenn das ganze Bild
 gerechnet werden muss — und 3 Millisekunden, wenn das Vorschaubild der Kamera taugt. Das
-Vergleichen selbst fällt kaum ins Gewicht: 20.000 Fingerabdrücke brauchen 1,2 Sekunden statt
-106 Sekunden für jeden-mit-jedem, und finden dabei nachweislich dieselben Paare.
+Vergleichen selbst fällt kaum ins Gewicht: 20.000 Fingerabdrücke brauchen 0,3 Sekunden statt
+113 Sekunden für jeden-mit-jedem, und finden dabei nachweislich dieselben Paare — bei allen
+drei Schärfen, nicht nur bei *normal*.
 
 Umlaute und 164 Zeichen lange Pfade blieben heil, die Quelle war nach jedem Lauf unverändert.
 

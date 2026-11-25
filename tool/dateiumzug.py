@@ -34,7 +34,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Dateiumzug 2026"
-APP_VERSION = "1.4"
+APP_VERSION = "1.5"
 
 COPY_BUFFER = 1024 * 1024        # 1 MB je Leseschritt
 DEFAULT_WORKERS = 4              # gleichzeitige Kopiervorgaenge
@@ -1309,6 +1309,22 @@ def jpeg_size(data):
     return 0, 0
 
 
+def png_size(data):
+    """
+    Bildgroesse aus dem PNG-Kopf.
+
+    Das Rechenraster von png_gray_plane hat ein Feld je acht Bildpunkte;
+    seine Masse mal acht sind nicht die Bildgroesse, sondern auf das
+    naechste Vielfache von acht aufgerundet. Genau das stand einmal im
+    Bericht: ein Bild mit 1200 x 900 Punkten wurde als 1200 x 904
+    gemeldet. Hier kommt die wirkliche Groesse her -- sie steht im IHDR,
+    und der liegt immer an derselben Stelle.
+    """
+    if data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR" or len(data) < 24:
+        return 0, 0
+    return struct.unpack(">II", data[16:24])
+
+
 def exif_thumbnail(data):
     """
     Das Vorschaubild aus dem EXIF-Block, falls es zum Bild passt.
@@ -1470,13 +1486,14 @@ def fingerprint(path, miniatur=True):
             w, h, px = png_gray_plane(data)
             if w < 2 or h < 2:
                 raise NotSupported("Bild zu klein")
-            return dhash_bits(w, h, px), w * 8, h * 8, "ganz"
+            volle_w, volle_h = png_size(kopf)
+            return dhash_bits(w, h, px), volle_w, volle_h, "ganz"
         if kopf[4:8] == b"ftyp":
-            return _heif_fingerprint(f, kopf)
+            return _heif_fingerprint(f, kopf, miniatur)
     raise NotSupported("Format wird nicht gelesen")
 
 
-def _heif_fingerprint(f, kopf):
+def _heif_fingerprint(f, kopf, miniatur=True):
     """
     Fingerabdruck einer HEIC-Datei -- soweit das ohne Videodekoder geht.
 
@@ -1484,6 +1501,10 @@ def _heif_fingerprint(f, kopf):
     Zwei Wege fuehren trotzdem zum Ziel: ein ganzes JPEG als Teil der
     Datei, oder ein Vorschaubild im EXIF-Block. Gibt es keines von
     beiden, sagt das Programm das -- und schweigt nicht einfach.
+
+    miniatur=False schliesst den zweiten Weg aus. Das ganze JPEG in der
+    Datei bleibt erlaubt: es ist keine Vorschau, sondern dieselbe
+    Aufnahme in voller Groesse.
     """
     meta = heif_meta(kopf)
     if not meta:
@@ -1499,6 +1520,8 @@ def _heif_fingerprint(f, kopf):
                 jw, jh = jpeg_size(daten)
                 return (dhash_bits(w, h, px), volle_w or jw, volle_h or jh, "ganz")
 
+    if not miniatur:
+        raise NotSupported("HEIC ohne brauchbare Vorschau")
     block = heif_exif(f, kopf, meta)
     thumb = vorschau_taugt(_tiff_thumbnail(block), volle_w, volle_h) if block else None
     if thumb:
@@ -1508,8 +1531,19 @@ def _heif_fingerprint(f, kopf):
     raise NotSupported("HEIC ohne brauchbare Vorschau")
 
 
+# int.bit_count zaehlt die gesetzten Bits etwa siebenmal schneller als der
+# Umweg ueber bin(). Die Methode gibt es seit Python 3.10, und die gebaute
+# .exe bringt 3.12 mit; aeltere Fassungen nehmen weiter den alten Weg.
+if hasattr(int, "bit_count"):
+    def bits_gesetzt(x):
+        return x.bit_count()
+else:
+    def bits_gesetzt(x):
+        return bin(x).count("1")
+
+
 def distance(a, b):
-    return bin(a ^ b).count("1")
+    return bits_gesetzt(a ^ b)
 
 
 # ------------------------------------------------------------
@@ -1527,7 +1561,11 @@ def _baender(schwelle):
     das waeren n+1. Verglichen wird also nur, wer sich einen Streifen
     teilt.
     """
-    n = max(2, min(8, schwelle + 1))
+    # schwelle + 1 Streifen, immer -- bei Schaerfe "weit" sind das zehn.
+    # Eine Obergrenze von acht war hier einmal eingetragen: dann stimmte
+    # der Satz oben nicht mehr, und gemessen gingen 1,6 % der Paare im
+    # Abstand 9 verloren, also genau die, fuer die man "weit" einschaltet.
+    n = max(2, min(64, schwelle + 1))
     grenzen = []
     los = 0
     for i in range(n):
@@ -1537,6 +1575,67 @@ def _baender(schwelle):
     return grenzen
 
 
+# Mehr als so viele VERSCHIEDENE Abdruecke in einem Streifen werden nicht
+# mehr gegeneinander gehalten -- das waeren vierhundert Millionen
+# Vergleiche. Erreicht wird die Zahl erst, wenn zwanzigtausend Bilder
+# einander alle aehneln; dass es passiert ist, wird gemeldet und nicht
+# verschwiegen.
+EIMER_GRENZE = 20000
+
+
+def _klassen_und_nachbarn(items, schwelle, fortschritt=None, grenze=EIMER_GRENZE):
+    """
+    Teilt die Abdruecke in Klassen und sucht die nahen Klassenpaare.
+
+    Zuerst werden voellig gleiche Abdruecke zu einer Klasse
+    zusammengefasst, und nur verschiedene Abdruecke kommen in die
+    Streifen. Das ist nicht bloss schneller: tausend Fassungen derselben
+    Aufnahme landen zwangslaeufig im selben Eimer, und ein Eimer, der
+    nach Zahl der Eintraege abgeschnitten wird, verliert genau die
+    Gruppe, die man sucht. Hier gemessen: 4001 gleiche Abdruecke ergaben
+    vorher null Paare statt acht Millionen.
+
+    Zurueck kommen {abdruck: [index, ...]} in der Reihenfolge von items,
+    {abdruck: {abdruck: abstand}} fuer die nahen Klassen, und die Zahl
+    der Eimer, die trotzdem zu gross waren.
+    """
+    klassen = {}
+    for i, (_schluessel, bits) in enumerate(items):
+        klassen.setdefault(bits, []).append(i)
+
+    grenzen = _baender(schwelle)
+    eimer = [{} for _ in grenzen]
+    for bits in klassen:
+        for b, (los, breite) in enumerate(grenzen):
+            teil = (bits >> los) & ((1 << breite) - 1)
+            eimer[b].setdefault(teil, []).append(bits)
+
+    nachbarn = {}
+    uebergangen = 0
+    zaehl = bits_gesetzt
+    for b, tabelle in enumerate(eimer):
+        for liste in tabelle.values():
+            if len(liste) < 2:
+                continue
+            if len(liste) > grenze:
+                uebergangen += 1
+                continue
+            for ii in range(len(liste)):
+                a = liste[ii]
+                for jj in range(ii + 1, len(liste)):
+                    c = liste[jj]
+                    d = zaehl(a ^ c)
+                    if d <= schwelle:
+                        # Ein Klassenpaar kann in mehreren Streifen
+                        # auftauchen; der Eintrag ueberschreibt sich dann
+                        # mit demselben Wert.
+                        nachbarn.setdefault(a, {})[c] = d
+                        nachbarn.setdefault(c, {})[a] = d
+        if fortschritt:
+            fortschritt(b + 1, len(grenzen))
+    return klassen, nachbarn, uebergangen
+
+
 def find_similar_pairs(items, schwelle, fortschritt=None):
     """
     Alle Paare, die hoechstens schwelle Bits auseinanderliegen.
@@ -1544,33 +1643,28 @@ def find_similar_pairs(items, schwelle, fortschritt=None):
     items ist eine Liste (schluessel, abdruck); zurueck kommen die
     Abstaende als {(i, j): abstand} mit i < j. Gegen den Vergleich jedes
     mit jedem geprueft: bei 20 000 Abdruecken findet dieser Weg genau
-    dieselben Paare in 1,2 Sekunden statt in 106.
-    """
-    grenzen = _baender(schwelle)
-    eimer = [{} for _ in grenzen]
-    for i, (_, bits) in enumerate(items):
-        for b, (los, breite) in enumerate(grenzen):
-            teil = (bits >> los) & ((1 << breite) - 1)
-            eimer[b].setdefault(teil, []).append(i)
+    dieselben Paare in 0,3 Sekunden statt in 106.
 
-    # Ein Paar kann in mehreren Streifen auftauchen und wird dann mehrfach
-    # verglichen. Das ist billiger, als sich alle geprueften Paare zu
-    # merken -- bei zwanzigtausend Fotos waeren das Millionen Eintraege.
+    Wer nur Gruppen braucht, nimmt group_similar: bei vielen gleichen
+    Bildern ist die Liste aller Paare quadratisch lang, die Gruppen
+    nicht.
+    """
+    klassen, nachbarn, _uebergangen = _klassen_und_nachbarn(
+        items, schwelle, fortschritt)
     abstaende = {}
-    for b, tabelle in enumerate(eimer):
-        for liste in tabelle.values():
-            if len(liste) < 2 or len(liste) > 4000:
-                continue
-            for ii in range(len(liste)):
-                i = liste[ii]
-                bits_i = items[i][1]
-                for jj in range(ii + 1, len(liste)):
-                    j = liste[jj]
-                    d = bin(bits_i ^ items[j][1]).count("1")
-                    if d <= schwelle:
-                        abstaende[(i, j) if i < j else (j, i)] = d
-        if fortschritt:
-            fortschritt(b + 1, len(grenzen))
+    for liste in klassen.values():
+        for ii in range(len(liste)):
+            i = liste[ii]
+            for jj in range(ii + 1, len(liste)):
+                j = liste[jj]
+                abstaende[(i, j) if i < j else (j, i)] = 0
+    for a, nahe in nachbarn.items():
+        for c, d in nahe.items():
+            if c < a:
+                continue                     # jedes Klassenpaar nur einmal
+            for i in klassen[a]:
+                for j in klassen[c]:
+                    abstaende[(i, j) if i < j else (j, i)] = d
     return abstaende
 
 
@@ -1588,21 +1682,30 @@ def group_similar(items, schwelle, fortschritt=None):
     Aufnahmen zusammen, weil eine kleine Fassung beiden nahe lag. In der
     Anzeige stand dann ein Abstand von 9 bei einer Schaerfe von 6. Mit
     einer Anfuehrerin je Gruppe kann das nicht passieren.
+
+    Zurueck kommen die Gruppen und die Zahl der uebergangenen Eimer --
+    ist sie nicht null, ist das Ergebnis unvollstaendig, und die Anzeige
+    sagt das.
     """
-    abstaende = find_similar_pairs(items, schwelle, fortschritt)
-    nachbarn = {}
-    for (i, j), d in abstaende.items():
-        nachbarn.setdefault(i, []).append((j, d))
-        nachbarn.setdefault(j, []).append((i, d))
+    klassen, nachbarn, uebergangen = _klassen_und_nachbarn(
+        items, schwelle, fortschritt)
 
     vergeben = set()
     gruppen = []
     for i in range(len(items)):
-        if i in vergeben or i not in nachbarn:
+        if i in vergeben:
+            continue
+        bits = items[i][1]
+        # Erst die voellig gleichen, dann die nahen -- in beiden Faellen
+        # nach Abstand, damit die naechste Fassung zuerst anklopft.
+        kandidaten = [(j, 0) for j in klassen[bits] if j != i]
+        for c, d in sorted(nachbarn.get(bits, {}).items(), key=lambda x: x[1]):
+            kandidaten.extend((j, d) for j in klassen[c])
+        if not kandidaten:
             continue
         gruppe = [(i, 0)]
         vergeben.add(i)
-        for j, d in sorted(nachbarn[i], key=lambda x: x[1]):
+        for j, d in kandidaten:
             if j not in vergeben:
                 gruppe.append((j, d))
                 vergeben.add(j)
@@ -1610,7 +1713,7 @@ def group_similar(items, schwelle, fortschritt=None):
             gruppen.append(gruppe)
         else:
             vergeben.discard(i)  # allein ist keine Gruppe; darf spaeter mit
-    return gruppen, abstaende
+    return gruppen, uebergangen
 
 
 # ============================================================
@@ -2858,6 +2961,12 @@ class AehnlicheTab(Section):
                         fmt_count(i), fmt_count(len(bilder)), rest))
                 merkmal = (e.size, int(e.mtime))
                 alt = cache.get(e.abspath)
+                # Ohne Vorschaubilder darf kein gemerkter Vorschau-Abdruck
+                # durchgehen. Sonst bleibt der Schalter ohne Wirkung,
+                # solange die Datei unveraendert ist -- wer dem Ergebnis
+                # misstraut und ihn abschaltet, bekaeme dasselbe zurueck.
+                if alt and not thumb and alt[5] == "vorschau":
+                    alt = None
                 if alt and (alt[0], alt[1]) == merkmal:
                     bits, bw, bh, woher = alt[2], alt[3], alt[4], alt[5]
                     aus_cache += 1
@@ -2884,25 +2993,25 @@ class AehnlicheTab(Section):
             save_fingerprints(cache)
 
             if job.stopped:
-                job.done("sim", (None, 0, 0, 0, 0, 0, 0, root))
+                job.done("sim", (None, 0, 0, 0, 0, 0, 0, 0, root))
                 return
             job.say("Vergleiche {} Abdrücke …".format(fmt_count(len(items))))
             # Beste zuerst: die groesste Fassung fuehrt ihre Gruppe an.
             items.sort(key=lambda it: (-(it[2] * it[3]), -it[0].size, len(it[0].rel)))
-            rohe, _ = group_similar([(i, it[1]) for i, it in enumerate(items)],
-                                    schwelle,
-                                    lambda a, b: job.progress(a, b))
+            rohe, uebergangen = group_similar(
+                [(i, it[1]) for i, it in enumerate(items)], schwelle,
+                lambda a, b: job.progress(a, b))
             gruppen = [[(items[i][0], items[i][2], items[i][3], items[i][4], d)
                         for i, d in g] for g in rohe]
             gruppen.sort(key=lambda g: -len(g))
             job.done("sim", (gruppen, len(items), fehler, andere, aus_cache,
-                             vorschau, ohne_vorschau, root))
+                             vorschau, ohne_vorschau, uebergangen, root))
 
         self.run(work, self.finish)
 
     def finish(self, _kind, payload):
         (gruppen, geprueft, fehler, andere, aus_cache, vorschau,
-         ohne_vorschau, root) = payload
+         ohne_vorschau, uebergangen, root) = payload
         self.groups_root = root
         if gruppen is None:
             self.say("Abgebrochen. Die bereits berechneten Abdrücke sind gemerkt.")
@@ -2942,7 +3051,20 @@ class AehnlicheTab(Section):
             teile.append("{} andere Formate".format(fmt_count(andere)))
         if fehler:
             teile.append("{} nicht lesbar".format(fmt_count(fehler)))
+        if uebergangen:
+            teile.append("unvollständig")
         self.say("Fertig{}{}".format(" — " if teile else ".", " · ".join(teile)))
+        if uebergangen:
+            # Das darf nicht in einer Statuszeile untergehen: sonst liest
+            # sich ein unvollstaendiges Ergebnis wie ein vollstaendiges.
+            messagebox.showwarning(
+                APP_NAME,
+                "In diesem Ordner liegen mehr als {} Bilder, die einander alle "
+                "ähneln. So viele konnten nicht gegeneinander gehalten werden; "
+                "{} Vergleichsgruppe(n) wurden übergangen.\n\n"
+                "Die angezeigten Gruppen stimmen, aber es fehlen welche. Mit "
+                "einer strengeren Schärfe oder in kleineren Ordnern wird die "
+                "Suche vollständig.".format(fmt_count(EIMER_GRENZE), uebergangen))
 
     def export(self):
         if not self.gruppen:

@@ -186,6 +186,11 @@ def baue(vorlagen=VORLAGEN, einzelne=EINZELNE):
     convert(vorlage_png, "-quality", "92", os.path.join(heic, "dasselbe_voll.jpg"))
     convert(vorlage_png, "-resize", "50%", "-quality", "88",
             os.path.join(heic, "dasselbe_halb.jpg"))
+    # und als PNG. Dreierlei auf einmal: PNG gehoert in die Gruppe, der
+    # PNG-Weg muss dieselben Abdruecke liefern wie der JPEG-Weg, und die
+    # gemeldete Bildgroesse muss die wirkliche sein -- 450 ist durch acht
+    # nicht teilbar, ein aufgerundetes Raster fiele hier also auf.
+    shutil.copy2(vorlage_png, os.path.join(heic, "dasselbe_voll.png"))
     shutil.rmtree(quellen, ignore_errors=True)
 
     # In den Dateibestand legen, falls es ihn gibt: dann pruefen die
@@ -203,7 +208,7 @@ def baue(vorlagen=VORLAGEN, einzelne=EINZELNE):
             gelegt.append("PC1/Fotos/" + n)
     wahrheit = {
         "bilder": bilder, "heic": heic, "vorlagen": vorlagen, "einzelne": einzelne,
-        "im_bestand": gelegt,
+        "im_bestand": gelegt, "probe_breite": 600, "probe_hoehe": 450,
     }
     with open(gemeinsam.arbeitsordner("bilder_wahrheit.json"), "w", encoding="utf-8") as f:
         json.dump(wahrheit, f, indent=1, ensure_ascii=False)

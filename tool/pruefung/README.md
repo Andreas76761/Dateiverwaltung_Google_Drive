@@ -31,8 +31,8 @@ DATEIUMZUG_PRUEFUNG=/pfad/zum/pruefstand python3 tool/pruefung/alles.py
 | Skript | Was es tut | Braucht |
 |---|---|---|
 | `mach_bestand.py` | baut 2.910 Dateien mit bekannter Wahrheit und schreibt sie als JSON daneben | nichts |
-| `mach_bilder.py` | baut 120 Vorlagen à drei Fassungen, 240 Einzelbilder und vier HEIC-Proben | ImageMagick |
-| `pruefe_gruppen.py` | hält die Streifensuche aus Register 5b gegen den vollen Vergleich | nichts |
+| `mach_bilder.py` | baut 120 Vorlagen à drei Fassungen, 240 Einzelbilder, vier HEIC-Proben und dieselbe Aufnahme als PNG | ImageMagick |
+| `pruefe_gruppen.py` | hält die Streifensuche aus Register 5b gegen den vollen Vergleich, bei jeder Schärfe | nichts |
 | `pruefe_register.py` | fährt jedes Register durch die Oberfläche | Tk, Anzeige |
 | `pruefe_ausgaben.py` | gesicherte Listen, Regeländerungen, Kopieren im Explorer, Einstellungen | Tk, Anzeige |
 | `pruefe_aehnliche.py` | Register 5b am Bildbestand, alle drei Schärfen, dazu HEIC | Tk, Anzeige, Bildbestand |
@@ -86,7 +86,20 @@ enthält Fremdes, kein Mitglied liegt weiter von der besten Fassung entfernt als
 die Schärfe erlaubt, und die grösste Fassung führt jede Gruppe an. Dazu die
 HEIC-Proben: eine mit eingebettetem JPEG, eine mit Vorschaubild, eine mit
 Aufnahmedatum, eine verschlossene — die muss draussen bleiben und als solche
-genannt werden.
+genannt werden. Dieselbe Aufnahme liegt dort auch als PNG und muss mit in die
+Gruppe; die **gemeldete Bildgrösse** muss die wirkliche sein (450 Punkte Höhe
+sind nicht durch acht teilbar — ein aufgerundetes Rechenraster fiele hier auf).
+Zum Schluss ein zweiter Lauf über denselben Ordner mit **abgewählten
+Vorschaubildern**: der Schalter muss auch dann greifen, wenn die Abdrücke schon
+gemerkt sind, und bei HEIC überhaupt.
+
+**Die Streifensuche** (`pruefe_gruppen.py`, ohne Bilder und ohne Fenster) — bei
+20.000 Fingerabdrücken muss sie genau dieselben Paare finden wie der Vergleich
+jedes mit jedem, und zwar bei **jeder** der drei Schärfen. Geprüft wird
+ausserdem, dass es je Schärfe einen Streifen mehr gibt als erlaubte
+Abweichungen — sonst kann die Abkürzung Paare übersehen —, dass Paare knapp
+jenseits der Schwelle nicht hereinrutschen, und dass tausende **völlig gleiche**
+Bilder eine Gruppe mit allen Mitgliedern bilden statt durchzufallen.
 
 **Register 7 · Kategorien** — Ordner, deren Kategorie feststeht; das Volumen
 muss die Anzahl schlagen.

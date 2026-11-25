@@ -94,6 +94,8 @@ if heic and os.path.isdir(heic):
              "mit_vorschau.heic" in alle_namen)
     b.prueft("HEIC", "die JPEG-Fassungen sind dabei", True,
              "dasselbe_voll.jpg" in alle_namen and "dasselbe_halb.jpg" in alle_namen)
+    b.prueft("HEIC", "die PNG-Fassung ist dabei", True,
+             "dasselbe_voll.png" in alle_namen)
     b.prueft("HEIC", "die verschlossene Datei bleibt draussen", True,
              "ohne_alles.heic" not in alle_namen)
     b.prueft("HEIC", "und wird als solche genannt", True,
@@ -105,6 +107,42 @@ if heic and os.path.isdir(heic):
     b.prueft("HEIC", "Aufnahmejahr aus dem EXIF-Teil", 2014, jahr)
     b.prueft("HEIC", "ohne EXIF kein erfundenes Jahr", None,
              d.year_from_exif(os.path.join(heic, "ohne_alles.heic")))
+
+    # ------------------------------------------------------------
+    #  Die gemeldete Bildgroesse muss die wirkliche sein. Beim PNG
+    #  stand hier einmal das Rechenraster mal acht, also auf das
+    #  naechste Vielfache von acht aufgerundet: 450 Punkte Hoehe
+    #  wurden als 456 gemeldet, in der Tabelle und in der CSV.
+    # ------------------------------------------------------------
+    print("Gemeldete Bildgröße")
+    masse = {e.name: (bw, bh) for g in t.gruppen for e, bw, bh, _q, _d in g}
+    soll = (BW.get("probe_breite"), BW.get("probe_hoehe"))
+    b.prueft("Größe", "PNG wird mit seiner wirklichen Größe gemeldet",
+             soll, masse.get("dasselbe_voll.png"))
+    b.prueft("Größe", "JPEG desselben Bildes meldet dasselbe",
+             soll, masse.get("dasselbe_voll.jpg"))
+
+    # ------------------------------------------------------------
+    #  Der Schalter "Vorschaubilder der Kamera nutzen" muss auch im
+    #  zweiten Lauf greifen -- da liegen die Abdruecke schon im
+    #  Zwischenspeicher. Vorher ging er dort unter, und bei HEIC
+    #  ueberhaupt nicht ein.
+    # ------------------------------------------------------------
+    print("Schalter · ohne Vorschaubilder")
+    t.var_thumb.set(False)
+    t.start()
+    bedienung.warte(t, app)
+    ohne = sorted(e.name for g in t.gruppen for e, *_r in g)
+    quellen = {e.name: q for g in t.gruppen for e, _w, _h, q, _d in g}
+    b.prueft("Schalter", "kein Abdruck mehr aus einem Vorschaubild", [],
+             sorted(n for n, q in quellen.items() if q == "vorschau"))
+    b.prueft("Schalter", "die Datei mit nur Vorschaubild fällt heraus", True,
+             "mit_vorschau.heic" not in ohne, str(ohne))
+    b.prueft("Schalter", "und wird als ohne Vorschau genannt", True,
+             "ohne Vorschau" in t.status.cget("text"), t.status.cget("text"))
+    b.prueft("Schalter", "die Fassung mit ganzem JPEG bleibt dabei", True,
+             "mit_jpeg.heic" in ohne, str(ohne))
+    t.var_thumb.set(True)
 
 app.destroy()
 sys.exit(b.ausgeben())
