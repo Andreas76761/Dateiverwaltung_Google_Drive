@@ -177,7 +177,7 @@ Grösse bei verschiedenem Inhalt.
 Die Prüfung bedient dabei die **echte Oberfläche** — Felder füllen, Knopf drücken,
 Ergebnis aus der Tabelle lesen —, nicht die Funktionen darunter. Nur so fallen Fehler auf,
 die zwischen Fenster und Logik sitzen; genau dort steckten die, die zuletzt gefunden wurden.
-**126 Prüfungen, alle grün.**
+**137 Prüfungen, alle grün.**
 
 Die Prüfung liegt im Repository und lässt sich jederzeit wiederholen:
 
@@ -201,6 +201,7 @@ Was sie im Einzelnen tut, steht in [tool/pruefung/README.md](pruefung/README.md)
 | 7 · Kategorien | Ordner mit bekannter Kategorie | richtig, Volumen schlägt Anzahl |
 | 8 · Index | 344 Zeilen, 18 Spalten | jede Dubletten- und jede Ähnlichkeitsangabe an der richtigen Datei, keine an einer unbeteiligten |
 | 9 · Abgleich | Kopie des Archivs, erst unversehrt, dann mit bekannten Schäden | gleicher Baum: keine Abweichung, jede Probe nachgerechnet; zwei entfernte, eine beschnittene und eine fremde Datei werden genau benannt; gleich gross bei anderem Inhalt findet nur die Stichprobe |
+| Mehrere Kerne | Abdrücke in Hilfsprozessen, dazu die drei Fälle, in denen es schiefgeht | bitgleiche Abdrücke und dieselben Gruppen wie auf einem Kern; keine Helfer, wenn es sich nicht lohnt; Weiterrechnen, wenn keiner startet; Aufgeben bei einem stummen Helfer, ohne Prozessleiche |
 | Explorer | 7 Filter- und Vergleichsproben, Kopieren | jede Zahl mit unabhängiger Nachzählung deckungsgleich; 5 markierte Dateien kopiert, Quelle unverändert |
 | Abbrechen | mitten im Lauf gestoppt | keine halbe Datei, Quelle unverändert |
 | Quarantäne | 381 Duplikate verschoben | alle wieder auffindbar, nichts verschwunden |
