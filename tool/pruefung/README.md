@@ -109,6 +109,15 @@ muss die Anzahl schlagen.
 der richtigen Datei stehen und an keiner unbeteiligten. Geprüft wird über die
 Prüfsumme der Datei im Archiv, nicht über ihren Namen.
 
+**Mehrere Kerne** — die Abdrücke werden in Hilfsprozessen gerechnet. Geprüft
+wird nicht die Zeit, sondern dass **genau dasselbe** herauskommt: dieselben
+Abdrücke, dieselben Gruppen wie auf einem Kern. Dazu die drei Fälle, in denen
+es schiefgehen kann — es lohnt sich nicht (dann darf kein Helfer starten), es
+lässt sich kein Helfer starten (dann muss das Programm allein weiterrechnen),
+und ein Helfer antwortet nicht (dann muss es nach der Probezeit aufgeben, ohne
+einen Prozess zurückzulassen). Der Hilfsprozess wird ausserdem von Hand
+befragt: eine lesbare Datei, eine verschlossene, eine nicht vorhandene.
+
 **Register 9 · Abgleich** — der Drive-Ordner ist hier eine Kopie des Archivs.
 Erst unversehrt: keine Quelle weicht ab, nichts fehlt, jede Probe wird
 nachgerechnet und ist gleich. Dann mit bekannten Schäden — zwei Dateien

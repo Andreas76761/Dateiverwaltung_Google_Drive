@@ -10,6 +10,7 @@ Vorher:  mach_bilder.py
 """
 
 import os
+import subprocess
 import sys
 import time
 
@@ -148,6 +149,110 @@ if heic and os.path.isdir(heic):
     b.prueft("Schalter", "die Fassung mit ganzem JPEG bleibt dabei", True,
              "mit_jpeg.heic" in ohne, str(ohne))
     t.var_thumb.set(True)
+
+# ================================================================
+#  Die Abdruecke auf mehreren Kernen. Entscheidend ist nicht die Zeit,
+#  sondern dass genau dasselbe herauskommt -- und dass es auch dann
+#  herauskommt, wenn sich auf einem Rechner kein Hilfsprozess starten
+#  laesst. Der eigene Abdruck-Speicher wird beiseitegelegt und
+#  hinterher zurueckgeschrieben.
+# ================================================================
+print("Mehrere Kerne")
+SPEICHER = d.fingerprint_file()
+eigener = d.load_fingerprints()
+
+
+def lauf_mit(kerne, ordner):
+    if os.path.isfile(SPEICHER):
+        os.remove(SPEICHER)
+    t.var_root.set(ordner)
+    t.var_schaerfe.current(1)
+    t.var_thumb.set(True)
+    t.var_kerne.set(kerne > 1)
+    app.var_workers.set(str(kerne))
+    app.update()
+    t0 = time.time()
+    t.start()
+    bedienung.warte(t, app)
+    return (time.time() - t0, {p: v[2:] for p, v in d.load_fingerprints().items()},
+            [sorted(e.name for e, *_r in g) for g in t.gruppen])
+
+
+t = app.tab_sim
+dauer1, ab1, gr1 = lauf_mit(1, BW["bilder"])
+dauer4, ab4, gr4 = lauf_mit(4, BW["bilder"])
+b.prueft("Kerne", "auf vier Kernen dieselben Abdrücke", ab1, ab4)
+b.prueft("Kerne", "und dieselben Gruppen", sorted(gr1), sorted(gr4))
+b.notiz("Kerne", "Zeit", "{} Bilder: ein Kern {:.1f}s · vier Kerne {:.1f}s".format(
+    len(ab1), dauer1, dauer4))
+
+# Lohnt es sich nicht, darf gar kein Helfer gestartet werden: ein
+# Jahresordner mit kleinen Bildern ist in Sekunden selbst gerechnet,
+# und im gebauten Programm entpackt sich jeder Helfer erst selbst.
+gezaehlt = {"n": 0}
+echt_starten = d._starte_helfer
+
+
+def zaehlend():
+    gezaehlt["n"] += 1
+    return echt_starten()
+
+
+d._starte_helfer = zaehlend
+try:
+    lauf_mit(4, os.path.join(BW["bilder"], "2019"))
+    wenig = gezaehlt["n"]
+    gezaehlt["n"] = 0
+    lauf_mit(4, BW["bilder"])
+    viel = gezaehlt["n"]
+finally:
+    d._starte_helfer = echt_starten
+b.prueft("Kerne", "für wenig Arbeit keine Hilfsprozesse", 0, wenig)
+b.prueft("Kerne", "für viel Arbeit schon", True, viel > 0, "({})".format(viel))
+
+# Lässt sich kein Hilfsprozess starten, muss trotzdem alles herauskommen.
+echter_befehl = d.worker_befehl
+d.worker_befehl = lambda: [gemeinsam.arbeitsordner("gibt-es-nicht"), "--abdruecke"]
+try:
+    _dauer, ab_zurueck, gr_zurueck = lauf_mit(4, BW["bilder"])
+finally:
+    d.worker_befehl = echter_befehl
+b.prueft("Kerne", "ohne Hilfsprozesse rechnet es selbst weiter", ab1, ab_zurueck)
+b.prueft("Kerne", "und kommt auf dieselben Gruppen", sorted(gr1), sorted(gr_zurueck))
+
+# Antwortet ein Helfer nicht, darf das Register nicht haengen bleiben.
+d.worker_befehl = lambda: [sys.executable, "-c", "import time; time.sleep(120)"]
+alte_grenze = d.PROBE_SEKUNDEN
+d.PROBE_SEKUNDEN = 2.0
+try:
+    t0 = time.time()
+    leer = d.abdruecke_parallel(sorted(ab1)[:40], True, 4,
+                                d.Job(d.queue.Queue()))
+    gewartet = time.time() - t0
+finally:
+    d.worker_befehl = echter_befehl
+    d.PROBE_SEKUNDEN = alte_grenze
+b.prueft("Kerne", "ein stummer Helfer gibt nach der Probezeit auf", {}, leer)
+b.prueft("Kerne", "und zwar nach der Probezeit, nicht später", True,
+         gewartet < 20, "({:.1f}s)".format(gewartet))
+offen = [z for z in subprocess.run(["ps", "-eo", "args"], capture_output=True,
+                                   text=True).stdout.splitlines()
+         if "time.sleep(120)" in z and "ps -eo" not in z]
+b.prueft("Kerne", "und lässt keinen Prozess zurück", 0, len(offen))
+
+# Der Hilfsprozess selbst, von Hand befragt
+proben = [("1\t" + os.path.join(heic, "dasselbe_voll.jpg"), "ok"),
+          ("1\t" + os.path.join(heic, "ohne_alles.heic"), "nicht"),
+          ("1\t" + gemeinsam.arbeitsordner("gibt-es-nicht.jpg"), "fehler")]
+fertig = subprocess.run(d.worker_befehl(), input="\n".join(p for p, _a in proben) + "\n",
+                        capture_output=True, text=True)
+antworten = [z.split("\t")[0] for z in fertig.stdout.splitlines()]
+b.prueft("Hilfsprozess", "antwortet je Zeile mit dem richtigen Urteil",
+         [a for _p, a in proben], antworten, fertig.stdout[:120])
+
+d.save_fingerprints(eigener, set(eigener))
+b.prueft("Kerne", "der eigene Abdruck-Speicher ist wieder da",
+         len(eigener), len(d.load_fingerprints()))
 
 app.destroy()
 sys.exit(b.ausgeben())

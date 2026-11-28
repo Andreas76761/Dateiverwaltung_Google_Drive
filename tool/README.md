@@ -302,9 +302,26 @@ ein Mensch für Varianten desselben Motivs hielte. Bei Urlaubsfotos liegen fremd
 deutlich weiter auseinander. Die Zahlen stammen aus einem frisch gebauten Prüfbestand; ein
 anderer Satz Zufallsbilder verschiebt sie um ein paar Zähler.
 
-Tempo: 1.000 Bilder à 0,3 Megapixel in 26 Sekunden, beim zweiten Lauf aus dem Gedächtnis
-unter einer Sekunde. Ein Zwölf-Megapixel-Foto braucht 0,3 bis 1,7 Sekunden, wenn das ganze Bild
-gerechnet werden muss — und 3 Millisekunden, wenn das Vorschaubild der Kamera taugt. Das
+**Mehrere Kerne.** Das Rechnen der Abdrücke ist reine Rechenarbeit, und Python rechnet in
+einem Prozess nur auf einem Kern — Fäden bringen hier nichts, Prozesse schon. Das Programm
+startet sich deshalb selbst noch einmal als Hilfsprozess, so oft wie unter **Fäden**
+eingestellt, schickt Pfade hinein und bekommt Abdrücke heraus. Gemessen: 600 Bilder in 15,7
+statt 5,2 Sekunden, und 30 Zwölf-Megapixel-Fotos ohne Vorschaubild in **13,9 statt 42,4
+Sekunden** — bei bitgleichen Abdrücken und denselben Gruppen.
+
+Ob es sich lohnt, wird gemessen statt geschätzt: ein paar Bilder rechnet das Programm selbst
+und rechnet die Zeit hoch. Liegt die Restzeit unter acht Sekunden, startet es gar keine
+Hilfsprozesse — die gebaute Datei entpackt sich bei jedem Start selbst, und das kostet mehr
+als es bringt. Aus demselben Grund bekommt jeder Helfer eine ganze Scheibe der Arbeit statt
+einzelne Dateien. Antwortet der erste Helfer nicht innerhalb von 30 Sekunden, werden die
+übrigen nicht mehr gestartet und das Programm rechnet allein weiter; dasselbe, wenn sich
+überhaupt kein Hilfsprozess starten lässt. Wer es nicht will, nimmt das Häkchen *mehrere
+Kerne nutzen* weg.
+
+Tempo: 1.000 Bilder à 0,3 Megapixel in 26 Sekunden auf einem Kern, beim zweiten Lauf aus dem
+Gedächtnis unter einer Sekunde. Ein Zwölf-Megapixel-Foto braucht auf einem Kern 0,3 bis 1,7
+Sekunden, wenn das ganze Bild gerechnet werden muss — und 3 Millisekunden, wenn das
+Vorschaubild der Kamera taugt. Das
 Vergleichen selbst fällt kaum ins Gewicht: 20.000 Fingerabdrücke brauchen 0,3 Sekunden statt
 113 Sekunden für jeden-mit-jedem, und finden dabei nachweislich dieselben Paare — bei allen
 drei Schärfen, nicht nur bei *normal*.

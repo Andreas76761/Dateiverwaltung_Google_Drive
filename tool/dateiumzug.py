@@ -22,6 +22,7 @@ import queue
 import re
 import shutil
 import struct
+import subprocess
 import sys
 import threading
 import time
@@ -34,7 +35,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Dateiumzug 2026"
-APP_VERSION = "1.6"
+APP_VERSION = "1.7"
 
 COPY_BUFFER = 1024 * 1024        # 1 MB je Leseschritt
 DEFAULT_WORKERS = 4              # gleichzeitige Kopiervorgaenge
@@ -1547,6 +1548,212 @@ def distance(a, b):
 
 
 # ------------------------------------------------------------
+#  Abdruecke auf mehreren Kernen
+# ------------------------------------------------------------
+#  Ein Foto ohne brauchbare Vorschau braucht anderthalb Sekunden; das
+#  ist reine Rechenarbeit, und Python rechnet in einem Prozess nur auf
+#  einem Kern. Faeden bringen hier also nichts, Prozesse schon.
+#
+#  Nicht ueber multiprocessing: das gebaute Programm ist eine einzelne
+#  Datei ohne Konsole, und ein Hilfsprozess startet dort das ganze
+#  Programm neu. Mit einem eigenen Schalter ist sicher, wo er landet --
+#  er macht kein Fenster auf, er liest Pfade und rechnet.
+
+WORKER_FLAG = "--abdruecke"
+PARALLEL_AB = 24          # darunter gar nicht erst nachdenken
+PARALLEL_PROBE = 6        # so viele werden zum Messen selbst gerechnet
+PARALLEL_LOHNT = 8.0      # erst ab so viel geschaetzter Restzeit lohnt es
+PROBE_SEKUNDEN = 30.0     # so lange darf die erste Antwort brauchen
+
+
+def abdruck_sicher(pfad, miniatur):
+    """
+    Ein Abdruck mit Urteil statt Ausnahme.
+
+    ("ok", (abdruck, breite, hoehe, quelle)), ("nicht", grund) oder
+    ("fehler", art). An einer Stelle entschieden, damit der eigene Weg
+    und der ueber die Hilfsprozesse nicht auseinanderlaufen koennen.
+    """
+    try:
+        return ("ok", fingerprint(pfad, miniatur=miniatur))
+    except NotSupported as grund:
+        return ("nicht", str(grund))
+    except (OSError, ValueError, struct.error, zlib.error) as grund:
+        return ("fehler", type(grund).__name__)
+
+
+def abdruck_worker():
+    """
+    Der Hilfsprozess. Pro Zeile ein Auftrag, pro Zeile eine Antwort.
+
+    Hinein: "1<TAB>pfad" (1 = Vorschaubilder erlaubt, 0 = nicht).
+    Heraus: "ok<TAB>abdruck<TAB>breite<TAB>hoehe<TAB>quelle<TAB>pfad",
+    "nicht<TAB>grund<TAB>pfad" oder "fehler<TAB>art<TAB>pfad".
+
+    Der Pfad steht hinten, weil in Dateinamen ein Tabulator vorkommen
+    darf -- vorn wuerde er die Felder verschieben.
+
+    Gelesen und geschrieben wird auf den Dateinummern 0 und 1, nicht
+    ueber sys.stdin/stdout: im fensterlosen Programm sind die beiden
+    nicht verlaesslich vorhanden, die Nummern schon, denn der Aufrufer
+    haengt dort seine Leitungen ein.
+    """
+    ein = os.fdopen(0, "rb")
+    aus = os.fdopen(1, "wb")
+    while True:
+        zeile = ein.readline()
+        if not zeile:
+            break
+        roh = zeile.rstrip(b"\r\n")
+        if not roh:
+            break
+        teile = roh.split(b"\t", 1)
+        if len(teile) != 2:
+            continue
+        miniatur = teile[0] == b"1"
+        pfad = teile[1].decode("utf-8", "surrogateescape")
+        try:
+            art, wert = abdruck_sicher(pfad, miniatur)
+        except Exception as grund:                      # darf den Helfer nicht umbringen
+            art, wert = "fehler", type(grund).__name__
+        if art == "ok":
+            bits, bw, bh, woher = wert
+            antwort = "ok\t{:016x}\t{}\t{}\t{}\t{}".format(bits, bw, bh, woher, pfad)
+        else:
+            antwort = "{}\t{}\t{}".format(art, str(wert).replace("\t", " "), pfad)
+        aus.write(antwort.encode("utf-8", "surrogateescape") + b"\n")
+        aus.flush()
+
+
+def worker_befehl():
+    """Wie dasselbe Programm noch einmal zu starten ist."""
+    if getattr(sys, "frozen", False):
+        return [sys.executable, WORKER_FLAG]
+    return [sys.executable, os.path.abspath(__file__), WORKER_FLAG]
+
+
+def _starte_helfer():
+    try:
+        werkzeug = dict(stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                        stderr=subprocess.DEVNULL, bufsize=0)
+        if os.name == "nt":
+            # Kein kurz aufblitzendes schwarzes Fenster je Helfer.
+            werkzeug["creationflags"] = 0x08000000     # CREATE_NO_WINDOW
+        return subprocess.Popen(worker_befehl(), **werkzeug)
+    except (OSError, ValueError):
+        return None
+
+
+def abdruecke_parallel(pfade, miniatur, kerne, job, fortschritt=None):
+    """
+    Rechnet Abdruecke in Hilfsprozessen und liefert {pfad: ergebnis}.
+
+    ergebnis ist ("ok", (abdruck, breite, hoehe, quelle)),
+    ("nicht", grund) oder ("fehler", art).
+
+    Das Ergebnis darf unvollstaendig sein -- es ist sogar der normale
+    Fall beim Abbrechen. Wer hier nichts findet, rechnet die Datei wie
+    bisher selbst; das ist der Rueckweg, wenn sich auf einem Rechner
+    keine Hilfsprozesse starten lassen.
+
+    Der erste Helfer bekommt zuerst allein einen Auftrag. Antwortet er
+    nicht innerhalb von PROBE_SEKUNDEN, werden die uebrigen gar nicht
+    mehr gestartet: dann stimmt etwas mit dieser Umgebung nicht, und ein
+    kaputter Helfer ist besser als acht.
+    """
+    if not pfade:
+        return {}
+    kerne = max(1, min(16, kerne))
+    marke = b"1\t" if miniatur else b"0\t"
+    ergebnisse = queue.Queue()
+    helfer = []
+
+    def fuettern(p, meine):
+        try:
+            for pfad in meine:
+                if job.stopped:
+                    break
+                p.stdin.write(marke + pfad.encode("utf-8", "surrogateescape") + b"\n")
+            p.stdin.close()
+        except OSError:
+            pass
+
+    def lesen(p):
+        try:
+            for zeile in p.stdout:
+                ergebnisse.put(zeile)
+        except (OSError, ValueError):
+            pass
+        finally:
+            ergebnisse.put(None)        # dieser Helfer ist fertig
+
+    def anspannen(p, meine):
+        helfer.append(p)
+        threading.Thread(target=fuettern, args=(p, meine), daemon=True).start()
+        threading.Thread(target=lesen, args=(p,), daemon=True).start()
+
+    scheiben = [pfade[k::kerne] for k in range(kerne)]
+    erster = _starte_helfer()
+    if erster is None:
+        return {}
+    anspannen(erster, scheiben[0])
+
+    fertig = {}
+    offen = len(pfade)
+    beendet = 0
+    nachgestartet = False
+    zeitgrenze = PROBE_SEKUNDEN
+
+    def eintragen(zeile):
+        teile = zeile.rstrip(b"\r\n").split(b"\t", 5)
+        art = teile[0].decode("ascii", "replace")
+        if art == "ok" and len(teile) == 6:
+            pfad = teile[5].decode("utf-8", "surrogateescape")
+            fertig[pfad] = ("ok", (int(teile[1], 16), int(teile[2]),
+                                   int(teile[3]), teile[4].decode("utf-8", "replace")))
+        elif art in ("nicht", "fehler") and len(teile) >= 3:
+            pfad = teile[2].decode("utf-8", "surrogateescape")
+            fertig[pfad] = (art, teile[1].decode("utf-8", "replace"))
+
+    while beendet < len(helfer) and len(fertig) < offen:
+        if job.stopped:
+            break
+        try:
+            zeile = ergebnisse.get(timeout=zeitgrenze)
+        except queue.Empty:
+            break                       # keine Antwort -- der Aufrufer rechnet selbst
+        if zeile is None:
+            beendet += 1
+            continue
+        try:
+            eintragen(zeile)
+        except (ValueError, IndexError):
+            pass
+        if fortschritt:
+            fortschritt(len(fertig), offen)
+        if not nachgestartet:
+            # Der erste hat geantwortet, also taugt der Weg auf diesem
+            # Rechner. Jetzt die uebrigen dazu.
+            nachgestartet = True
+            for k in range(1, kerne):
+                if not scheiben[k]:
+                    continue
+                p = _starte_helfer()
+                if p is None:
+                    break
+                anspannen(p, scheiben[k])
+            zeitgrenze = 60.0           # ab jetzt nur noch als Notbremse
+
+    for p in helfer:
+        try:
+            if p.poll() is None:
+                p.kill()
+        except OSError:
+            pass
+    return fertig
+
+
+# ------------------------------------------------------------
 #  Gruppieren: wer gehoert zu wem
 # ------------------------------------------------------------
 
@@ -2924,6 +3131,9 @@ class AehnlicheTab(Section):
         self.var_thumb = tk.BooleanVar(value=True)
         ttk.Checkbutton(opts, text="Vorschaubilder der Kamera nutzen (viel schneller)",
                         variable=self.var_thumb).pack(side="left")
+        self.var_kerne = tk.BooleanVar(value=True)
+        ttk.Checkbutton(opts, text="mehrere Kerne nutzen",
+                        variable=self.var_kerne).pack(side="left", padx=(16, 0))
 
         ttk.Label(self.body, style="Hint.TLabel", wraplength=980, justify="left",
                   text="Fotos tragen ein kleines Vorschaubild in sich. Daraus ist der "
@@ -2975,6 +3185,7 @@ class AehnlicheTab(Section):
             return
         schwelle = SCHAERFEN[self.var_schaerfe.current()][1]
         thumb = self.var_thumb.get()
+        kerne = self.app.workers() if self.var_kerne.get() else 1
 
         def work(job):
             job.say("Lese Ordner …")
@@ -2984,6 +3195,56 @@ class AehnlicheTab(Section):
             job.say("{} Bilder. Berechne Fingerabdrücke …".format(fmt_count(len(bilder))))
 
             cache = load_fingerprints()
+
+            def gemerkt(e):
+                """Der gemerkte Abdruck, wenn er noch gilt."""
+                alt = cache.get(e.abspath)
+                # Ohne Vorschaubilder darf kein gemerkter Vorschau-Abdruck
+                # durchgehen. Sonst bleibt der Schalter ohne Wirkung,
+                # solange die Datei unveraendert ist -- wer dem Ergebnis
+                # misstraut und ihn abschaltet, bekaeme dasselbe zurueck.
+                if alt and not thumb and alt[5] == "vorschau":
+                    return None
+                if alt and (alt[0], alt[1]) == (e.size, int(e.mtime)):
+                    return alt
+                return None
+
+            # Was neu zu rechnen ist, auf die Kerne verteilen. Ein Foto
+            # ohne brauchbare Vorschau braucht anderthalb Sekunden; bei
+            # Tausenden macht das Stunden aus.
+            #
+            # Ob es sich lohnt, wird gemessen statt geschaetzt: ein paar
+            # Bilder selbst rechnen, dann hochrechnen. Das gebaute
+            # Programm ist eine einzelne Datei, und jeder Helfer entpackt
+            # sich erst einmal selbst -- bei einer Handvoll schneller
+            # Vorschaubilder waere parallel also langsamer. Aus demselben
+            # Grund bekommt jeder Helfer eine ganze Scheibe der Arbeit
+            # und nicht eine Datei.
+            vorab = {}
+            offen = [e for e in bilder if gemerkt(e) is None]
+            if kerne > 1 and len(offen) >= PARALLEL_AB:
+                probe = offen[:PARALLEL_PROBE]
+                t_probe = time.time()
+                for e in probe:
+                    vorab[e.abspath] = abdruck_sicher(e.abspath, thumb)
+                je_bild = (time.time() - t_probe) / len(probe)
+                rest = offen[PARALLEL_PROBE:]
+                if je_bild * len(rest) >= PARALLEL_LOHNT:
+                    job.say("{} Abdrücke auf {} Kernen, geschätzt {} …".format(
+                        fmt_count(len(rest)), kerne,
+                        fmt_time(je_bild * len(rest) / kerne)))
+                    vom_helfer = abdruecke_parallel(
+                        [e.abspath for e in rest], thumb, kerne, job,
+                        lambda a, b: job.progress(a, b))
+                    if vom_helfer:
+                        vorab.update(vom_helfer)
+                    else:
+                        job.say("Mehrere Kerne gehen hier nicht — "
+                                "rechne der Reihe nach.")
+            if job.stopped:
+                job.done("sim", (None, 0, 0, 0, 0, 0, 0, 0, root))
+                return
+
             items, fehler, aus_cache, vorschau, ohne_vorschau = [], 0, 0, 0, 0
             benutzt = set()
             t0 = time.time()
@@ -2999,33 +3260,28 @@ class AehnlicheTab(Section):
                         rest = " · noch etwa " + fmt_time(je * (len(bilder) - i))
                     job.say("Abdruck {} von {}{}".format(
                         fmt_count(i), fmt_count(len(bilder)), rest))
-                merkmal = (e.size, int(e.mtime))
-                alt = cache.get(e.abspath)
-                # Ohne Vorschaubilder darf kein gemerkter Vorschau-Abdruck
-                # durchgehen. Sonst bleibt der Schalter ohne Wirkung,
-                # solange die Datei unveraendert ist -- wer dem Ergebnis
-                # misstraut und ihn abschaltet, bekaeme dasselbe zurueck.
-                if alt and not thumb and alt[5] == "vorschau":
-                    alt = None
-                if alt and (alt[0], alt[1]) == merkmal:
+                alt = gemerkt(e)
+                if alt:
                     bits, bw, bh, woher = alt[2], alt[3], alt[4], alt[5]
                     aus_cache += 1
                 else:
-                    try:
-                        bits, bw, bh, woher = fingerprint(e.abspath, miniatur=thumb)
-                    except NotSupported as grund:
+                    # Entweder liegt das Urteil schon vor -- von einem
+                    # Helfer oder aus der Messprobe --, oder es wird hier
+                    # gefaellt. Das Urteil selbst sieht in jedem Fall
+                    # gleich aus.
+                    art, wert = (vorab.get(e.abspath)
+                                 or abdruck_sicher(e.abspath, thumb))
+                    if art != "ok":
                         # HEIC ohne eingebettetes JPEG ist kein Fehler der
                         # Datei und keiner des Programms -- es ist einfach
                         # verschlossen. Das wird getrennt gezaehlt und
                         # genannt, statt es unter "nicht lesbar" zu verstecken.
-                        if "Vorschau" in str(grund):
+                        if art == "nicht" and "Vorschau" in wert:
                             ohne_vorschau += 1
                         else:
                             fehler += 1
                         continue
-                    except (OSError, ValueError, struct.error, zlib.error):
-                        fehler += 1
-                        continue
+                    bits, bw, bh, woher = wert
                     cache[e.abspath] = (e.size, int(e.mtime), bits, bw, bh, woher)
                 if woher == "vorschau":
                     vorschau += 1
@@ -4317,6 +4573,11 @@ class App(tk.Tk):
 
 
 def main():
+    # Ganz vorn, vor allem anderen: ein Hilfsprozess fuer die Abdruecke
+    # darf hier kein Fenster aufmachen, sondern nur rechnen.
+    if WORKER_FLAG in sys.argv[1:]:
+        abdruck_worker()
+        return
     try:
         app = App()
         app.mainloop()
