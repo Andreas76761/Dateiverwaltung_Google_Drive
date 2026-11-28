@@ -1256,7 +1256,7 @@
               <li><b>Kabel vor dem Start prüfen</b> und das WLAN am Sammelrechner für die Dauer der Phase abschalten — sonst wechselt Windows mitten in der Nacht zurück auf Funk und der Durchsatz bricht ein, ohne dass etwas abbricht.</li>
               <li>Damit der Upload nachts durchläuft: im Energiesparplan <b>Energiesparmodus und Ruhezustand auf „Nie“</b>, und in den Windows-Update-Einstellungen die <b>Nutzungszeit</b> so setzen, dass kein automatischer Neustart in die Nacht fällt. Der Bildschirm darf ausgehen, der Rechner nicht.</li>
               <li>Bei 750 GB an einem Tag pausiert Drive bis zum Folgetag — kein Fehler, einfach abwarten.</li>
-              <li>Nach jedem Block: in Drive den Ordner öffnen, „Details“ prüfen, Anzahl gegen den lokalen Sammelordner halten.</li>
+              <li>Nach jedem Block: in Drive den Ordner öffnen, „Details“ prüfen, Anzahl gegen den lokalen Sammelordner halten. Schneller und genauer geht das im <b>Werkzeug</b> mit Register <em>9 · Abgleich</em> — es zählt je Quelle und nennt, was fehlt. Dafür muss nicht alles hochgeladen sein: die noch nicht übertragenen Quellen stehen dann eben mit ihrer Abweichung da.</li>
             </ul>
             <h3 style="margin-top:var(--s5)">Und dann die Bilder nach Google Fotos</h3>
             <p>
@@ -1342,8 +1342,9 @@
             <h3>Abgleich, Karenz, Dauerbetrieb</h3>
             <p>Ein Umzug ist erst zu Ende, wenn nachgewiesen ist, dass nichts fehlt — und wenn geregelt ist, was mit neuen Dateien passiert.</p>
             <ul>
-              <li><b>Kontrollzählung</b> je Quelle: Dateianzahl und Volumen in Drive gegen die Inventur aus Phase 1 abzüglich Ausschlüssen, Register-Einträgen und Quarantäne. Abweichungen über ein Prozent nachgehen.</li>
-              <li>Stichprobe: aus jeder Quelle fünf Dateien in Drive öffnen. Es geht um Lesbarkeit, nicht um Existenz — hier fallen Platzhalter-Hüllen auf.</li>
+              <li><b>Kontrollzählung</b> je Quelle: im <b>Werkzeug</b>, Register <em>9 · Abgleich</em> — links die Sammelplatte, rechts der Drive-Ordner. Es zählt je Quelle, nennt die Abweichung in Prozent und markiert alles über <b>einem Prozent</b> mit <code>!</code>. Fehlende, zusätzliche und unterschiedlich grosse Dateien stehen einzeln im Bericht. Wer von Hand nachrechnen will: Dateianzahl und Volumen in Drive gegen die Inventur aus Phase 1 abzüglich Ausschlüssen, Register-Einträgen und Quarantäne.</li>
+              <li><b>Stichprobe</b>: dasselbe Register rechnet fünf Dateien je Quelle nach — es liest sie auf beiden Seiten und vergleicht die Prüfsummen. Es geht um Lesbarkeit, nicht um Existenz: hier fallen Platzhalter-Hüllen auf, die richtig heissen und die richtige Grösse haben. Die Proben sind über die Unterordner verteilt; grosse Dateien bleiben aussen vor, solange es kleine gibt, denn jede Probe wird aus Drive heruntergeladen.</li>
+              <li><b>Bericht sichern</b> — die CSV mit jeder Fundstelle ist das Dokument für „fertig“. Erst wenn darin keine Zeile mehr steht, die nicht erklärt ist, beginnt die Karenz.</li>
               <li><b>90 Tage Karenz.</b> Quellen bleiben unverändert liegen, Platten werden nicht formatiert. Erst danach entscheidest du über die Originale.</li>
               <li>Nach der Karenz die Quarantäne sichten — quellenweise, nicht auf einmal.</li>
               <li><b>Das Register durchgehen</b> — die Liste dessen, was nicht mitgefahren ist: Video und alles über 120 MB. Das ist der einzige Bestand ohne Cloud-Sicherung, und er ist bei dir vermutlich der grösste. Entscheide je Eintrag, ob er auf die Sammelplatte als Zweitkopie gehört oder mit dem Quellrechner verschwinden darf.</li>
@@ -1575,7 +1576,7 @@
         <table>
           <thead><tr><th>Werkzeug</th><th>Installieren auf</th><th>Wofür</th><th>Phase</th></tr></thead>
           <tbody>
-            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, ähnliche Bilder, Kategorien und den Index in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer, dupeGuru und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 5b, 7, 8</td></tr>
+            <tr><td><b>Dateiumzug 2026 — Werkzeug</b><br><span style="font-size:.75rem;color:var(--ink-3)">eigens dafür gebaut</span></td><td>Sammelrechner</td><td>Deckt Inventur, Sammeln, Dubletten, Bilder, ähnliche Bilder, Kategorien, den Index und den Abgleich mit Drive in einem Programm ab. Kennt keine Löschfunktion, fragt vor jeder Veränderung, bietet Probeläufe. Ersetzt AllDup, Advanced Renamer, dupeGuru und FreeFileSync für genau diesen Ablauf.</td><td class="mono">1, 3, 4, 5, 5b, 7, 8, 9</td></tr>
             <tr><td><b>WizTree</b></td><td>alle vier</td><td>Inventur in Sekunden, CSV-Export der kompletten Dateiliste — Rohdaten für den Index</td><td class="mono">1</td></tr>
             <tr><td><b>Everything</b></td><td>alle vier</td><td>Sofortsuche über alle Laufwerke — zum Aufspüren vergessener Ordner</td><td class="mono">1</td></tr>
             <tr><td><b>FreeFileSync</b></td><td>alle vier</td><td>Kopieren mit Grössen- und Ausschlussfilter, Vorschau vor dem Schreiben, Filter als Datei speicherbar und mitnehmbar</td><td class="mono">2, 3</td></tr>
@@ -1881,7 +1882,9 @@
           Ordner wie jeder andere — <b>du kannst ihn hier links oder rechts laden</b> und genauso
           filtern und vergleichen wie die Sammelplatte. Für den Abgleich in Phase 9 ist das
           genau der richtige Griff: links <code>D:\S\</code>, rechts <code>G:\Meine Ablage\Andreas_2026_Dateiverwaltung\</code>,
-          Vergleich auf „nur hier“.
+          Vergleich auf „nur hier“. Das <b>Werkzeug</b> macht daraus in Register
+          <em>9 · Abgleich</em> eine Zählung je Quelle samt nachgerechneter Stichprobe —
+          gründlicher, weil es die Dateien auch liest.
         </p>
       </div>
     </div>

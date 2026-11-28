@@ -42,6 +42,7 @@ grossen Vorgänge gibt es einen Probelauf, der nur zählt und rechnet.
 | **Ähnliche** | 5b | Dieselbe Aufnahme in anderer Grösse oder Qualität finden — über den Bildinhalt, nicht über die Prüfsumme |
 | **Kategorien** | 7 | Ordner statt Einzeldateien einsortieren, mit Vorschlag je Ordner |
 | **Index** | 8 | Archiv und die Listen der Register 4, 5 und 5b zu einer Index-Datei verbinden |
+| **Abgleich** | 9 | Sammelplatte gegen den Drive-Ordner halten — je Quelle zählen, Abweichung über ein Prozent anzeigen, Stichprobe nachrechnen |
 | **Explorer** | — | Zwei Ordner nebeneinander, filtern, vergleichen, Auswahl kopieren |
 
 Oben im Fenster stehen drei Einstellungen, die für alle Register gelten: die
@@ -144,6 +145,20 @@ Aufbewahrung, Status und Notiz — füllst du danach in Sheets.
 **Reihenfolge:** Register 5 vor Register 8 ausführen und dort **Liste sichern** nicht vergessen,
 sonst lässt sich die Herkunft der Bilder später nicht mehr rekonstruieren.
 
+**Der Abgleich** in Register 9 ist der Nachweis, dass der Upload aus Phase 6 vollständig war.
+Links die Sammelplatte, rechts der Drive-Ordner, den *Google Drive für Desktop* als Laufwerk
+in den Explorer hängt — meist `G:\`. Verglichen wird Datei für Datei über den Pfad, gezählt
+wird je **Quelle**, also je Ordner der ersten Ebene. Jede Quelle bekommt eine Zeile mit
+Anzahl hier, Anzahl in Drive und der Abweichung in Prozent; was über **einem Prozent** liegt
+oder eine fehlende Datei enthält, wird mit `!` markiert — die Schwelle aus dem Vorgehensplan.
+Dazu kommt die **Stichprobe**: fünf Dateien je Quelle werden auf beiden Seiten gelesen und
+ihre Prüfsummen verglichen. Das ist der Teil, den reines Zählen nicht leisten kann — eine
+Datei kann richtig heissen und die richtige Grösse haben und trotzdem eine leere Hülle sein.
+Die Proben sind über die Unterordner verteilt, nicht die ersten fünf, und grosse Dateien
+bleiben aussen vor, solange es kleine gibt: jede Probe muss aus Drive heruntergeladen werden.
+Der Bericht als CSV nennt jede Fundstelle einzeln — fehlt in Drive, nur in Drive, Grösse
+weicht ab, Stichprobe — und ist damit das Dokument für „fertig". Verändert wird nichts.
+
 **Lange Pfade** über 260 Zeichen werden auf Windows korrekt behandelt, ebenso Netzlaufwerke.
 
 **Namenskollisionen** beim Einsortieren führen nie zum Überschreiben — es wird eine Nummer
@@ -162,7 +177,7 @@ Grösse bei verschiedenem Inhalt.
 Die Prüfung bedient dabei die **echte Oberfläche** — Felder füllen, Knopf drücken,
 Ergebnis aus der Tabelle lesen —, nicht die Funktionen darunter. Nur so fallen Fehler auf,
 die zwischen Fenster und Logik sitzen; genau dort steckten die, die zuletzt gefunden wurden.
-**111 Prüfungen, alle grün.**
+**126 Prüfungen, alle grün.**
 
 Die Prüfung liegt im Repository und lässt sich jederzeit wiederholen:
 
@@ -185,6 +200,7 @@ Was sie im Einzelnen tut, steht in [tool/pruefung/README.md](pruefung/README.md)
 | HEIC | 4 echte Dateien aus dem Netz, 4 selbst gebaute | Bildgrösse wie ImageMagick; Aufnahmedatum eines iPhone-Fotos richtig; HEIC, JPEG und PNG desselben Motivs in einer Gruppe, jedes mit seiner wirklichen Bildgrösse; der Schalter für die Vorschaubilder greift auch im zweiten Lauf |
 | 7 · Kategorien | Ordner mit bekannter Kategorie | richtig, Volumen schlägt Anzahl |
 | 8 · Index | 344 Zeilen, 18 Spalten | jede Dubletten- und jede Ähnlichkeitsangabe an der richtigen Datei, keine an einer unbeteiligten |
+| 9 · Abgleich | Kopie des Archivs, erst unversehrt, dann mit bekannten Schäden | gleicher Baum: keine Abweichung, jede Probe nachgerechnet; zwei entfernte, eine beschnittene und eine fremde Datei werden genau benannt; gleich gross bei anderem Inhalt findet nur die Stichprobe |
 | Explorer | 7 Filter- und Vergleichsproben, Kopieren | jede Zahl mit unabhängiger Nachzählung deckungsgleich; 5 markierte Dateien kopiert, Quelle unverändert |
 | Abbrechen | mitten im Lauf gestoppt | keine halbe Datei, Quelle unverändert |
 | Quarantäne | 381 Duplikate verschoben | alle wieder auffindbar, nichts verschwunden |

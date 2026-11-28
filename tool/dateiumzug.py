@@ -34,7 +34,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 APP_NAME = "Dateiumzug 2026"
-APP_VERSION = "1.5"
+APP_VERSION = "1.6"
 
 COPY_BUFFER = 1024 * 1024        # 1 MB je Leseschritt
 DEFAULT_WORKERS = 4              # gleichzeitige Kopiervorgaenge
@@ -3879,6 +3879,313 @@ class IndexTab(Section):
 
 
 # ============================================================
+#  Register 9 — Abgleich
+# ============================================================
+
+def quelle_von(rel):
+    """Die erste Ebene eines Pfades -- im Zielbaum ist das die Quelle."""
+    teile = rel.replace("\\", "/").split("/")
+    return teile[0] if len(teile) > 1 else "(Wurzel)"
+
+
+def vergleichsschluessel(rel):
+    """
+    Der Pfad als Schluessel fuer den Vergleich zweier Baeume.
+
+    normcase, nicht lower: unter Windows sind zwei Pfade gleich, wenn sie
+    sich nur in der Schreibweise unterscheiden, unter Linux nicht.
+    """
+    return os.path.normcase(rel.replace("\\", "/"))
+
+
+def stichprobe_waehlen(kandidaten, anzahl, schwelle=20 * 1048576):
+    """
+    Waehlt gleichmaessig verteilte Dateien fuer die Stichprobe.
+
+    Nicht die ersten: die liegen alle im selben Unterordner, und dann
+    sagt die Stichprobe nur etwas ueber diesen einen aus. Grosse Dateien
+    bleiben aussen vor, solange es kleine gibt -- jede Probe muss aus
+    Drive heruntergeladen werden, und der Nachweis haengt nicht an der
+    Groesse. Gibt es nur grosse, kommen die kleinsten davon dran.
+    """
+    if anzahl <= 0 or not kandidaten:
+        return []
+    klein = [e for e in kandidaten if 0 < e.size <= schwelle]
+    if len(klein) < anzahl:
+        gross = sorted((e for e in kandidaten if e.size > schwelle),
+                       key=lambda e: e.size)
+        klein = klein + gross[:anzahl - len(klein)]
+    klein.sort(key=lambda e: e.rel)
+    if len(klein) <= anzahl:
+        return klein
+    schritt = len(klein) / float(anzahl)
+    return [klein[min(len(klein) - 1, int(i * schritt))] for i in range(anzahl)]
+
+
+class AbgleichTab(Section):
+    def __init__(self, master, app):
+        super().__init__(
+            master, app, "Phase 9 · Abgleich",
+            "Der Nachweis, dass oben wirklich alles liegt. Links die Sammelplatte, "
+            "rechts der gestreamte Drive-Ordner — verglichen wird Datei für Datei "
+            "über ihren Pfad, gezählt wird je Quelle. Dazu eine Stichprobe, die "
+            "gelesen und nachgerechnet wird: daran fallen leere Hüllen auf, die "
+            "wie Dateien aussehen. Verändert wird nichts.")
+
+        g = ttk.Frame(self.body)
+        g.pack(fill="x")
+        self.var_a = tk.StringVar()
+        self.var_b = tk.StringVar()
+        for i, (lab, var, title) in enumerate([
+                ("Sammelplatte", self.var_a, "Der Ordner, der hochgeladen wurde"),
+                ("Drive", self.var_b, "Der Drive-Ordner im Explorer, meist G:\\")]):
+            ttk.Label(g, text=lab, width=13).grid(row=i, column=0, sticky="w", pady=3)
+            ttk.Entry(g, textvariable=var).grid(row=i, column=1, sticky="ew", padx=8, pady=3)
+            ttk.Button(g, text="…", width=4,
+                       command=lambda v=var, t=title: self._pick(v, t)).grid(row=i, column=2, pady=3)
+        g.columnconfigure(1, weight=1)
+
+        opts = ttk.Frame(self.body)
+        opts.pack(fill="x", pady=(8, 0))
+        ttk.Label(opts, text="Stichprobe je Quelle").pack(side="left")
+        self.var_proben = tk.StringVar(value="5")
+        ttk.Spinbox(opts, from_=0, to=50, width=4,
+                    textvariable=self.var_proben).pack(side="left", padx=(6, 16))
+        self.var_lesen = tk.BooleanVar(value=True)
+        ttk.Checkbutton(opts, text="Stichprobe nachrechnen — lädt die Dateien aus Drive herunter",
+                        variable=self.var_lesen).pack(side="left")
+
+        row = ttk.Frame(self.body)
+        row.pack(fill="x", pady=(10, 0))
+        b_go = ttk.Button(row, text="Abgleichen", style="Go.TButton", command=self.start)
+        b_go.pack(side="left")
+        b_stop = ttk.Button(row, text="Abbrechen", command=self.stop)
+        b_stop.pack(side="left", padx=6)
+        b_exp = ttk.Button(row, text="Bericht sichern", command=self.export)
+        b_exp.pack(side="left")
+        self.wire(go=(b_go, b_exp), stop=(b_stop,))
+
+        frame, self.tree = make_tree(
+            self.body,
+            ("Quelle", "Anzahl", "in Drive", "Abweichung", "fehlen", "nur in Drive",
+             "Grösse ungleich", "Stichprobe"),
+            (210, 90, 90, 100, 80, 100, 120, 170), height=12)
+        frame.pack(fill="both", expand=True, pady=10)
+        self.summary = ttk.Label(self.body, text="", style="Sum.TLabel")
+        self.summary.pack(anchor="w")
+        self.bericht = []
+
+    def _pick(self, var, title):
+        p = pick_folder(title, var.get() or self.app.recall("abgleich"))
+        if p:
+            var.set(p)
+            self.app.remember("abgleich", p)
+
+    def start(self):
+        a_root = self.var_a.get().strip()
+        b_root = self.var_b.get().strip()
+        if not os.path.isdir(a_root) or not os.path.isdir(b_root):
+            messagebox.showwarning(APP_NAME, "Bitte beide Ordner wählen.")
+            return
+        if os.path.normcase(os.path.abspath(a_root)) == os.path.normcase(
+                os.path.abspath(b_root)):
+            messagebox.showwarning(
+                APP_NAME, "Beide Felder zeigen auf denselben Ordner. "
+                "Ein Vergleich mit sich selbst sagt nichts aus.")
+            return
+        try:
+            proben = max(0, int(self.var_proben.get()))
+        except ValueError:
+            proben = 5
+        nachrechnen = self.var_lesen.get()
+
+        def work(job):
+            job.say("Lese die Sammelplatte …")
+            hier = [e for e in scan_folder(a_root, job) if not is_junk(e)]
+            if job.stopped:
+                job.done("abgleich", (None, a_root, b_root))
+                return
+            job.say("Lese den Drive-Ordner — das kann dauern, er wird gestreamt …")
+            dort = [e for e in scan_folder(b_root, job) if not is_junk(e)]
+            if job.stopped:
+                job.done("abgleich", (None, a_root, b_root))
+                return
+
+            karte_a = {vergleichsschluessel(e.rel): e for e in hier}
+            karte_b = {vergleichsschluessel(e.rel): e for e in dort}
+            job.say("Vergleiche {} gegen {} Dateien …".format(
+                fmt_count(len(karte_a)), fmt_count(len(karte_b))))
+
+            quellen = {}
+
+            def eintrag(name):
+                return quellen.setdefault(name, {
+                    "name": name, "a_n": 0, "a_b": 0, "b_n": 0, "b_b": 0,
+                    "fehlt": [], "extra": [], "anders": [], "proben": []})
+
+            for s, e in karte_a.items():
+                q = eintrag(quelle_von(e.rel))
+                q["a_n"] += 1
+                q["a_b"] += e.size
+                andere = karte_b.get(s)
+                if andere is None:
+                    q["fehlt"].append(e)
+                elif andere.size != e.size:
+                    q["anders"].append((e, andere))
+            for s, e in karte_b.items():
+                q = eintrag(quelle_von(e.rel))
+                q["b_n"] += 1
+                q["b_b"] += e.size
+                if s not in karte_a:
+                    q["extra"].append(e)
+
+            # Stichprobe: nur Dateien, die auf beiden Seiten gleich gross
+            # daliegen. Alles andere ist oben schon als Abweichung
+            # vermerkt und braucht keine Pruefsumme mehr.
+            aufgaben = []
+            for q in quellen.values():
+                heikel = {vergleichsschluessel(e.rel) for e in q["fehlt"]}
+                heikel.update(vergleichsschluessel(a.rel) for a, _b in q["anders"])
+                kandidaten = [e for s, e in karte_a.items()
+                              if s not in heikel and quelle_von(e.rel) == q["name"]]
+                for e in stichprobe_waehlen(kandidaten, proben):
+                    aufgaben.append((q, e, karte_b[vergleichsschluessel(e.rel)]))
+
+            if nachrechnen and aufgaben:
+                job.say("Rechne {} Proben nach …".format(fmt_count(len(aufgaben))))
+                for i, (q, e, b) in enumerate(aufgaben, 1):
+                    if job.stopped:
+                        break
+                    job.progress(i, len(aufgaben))
+                    da = sha256_of(e.abspath, job)
+                    db = sha256_of(b.abspath, job)
+                    if da is None or db is None:
+                        urteil = "nicht lesbar"
+                    elif da == db:
+                        urteil = "gleich"
+                    else:
+                        urteil = "Prüfsumme weicht ab"
+                    q["proben"].append((e, b, urteil))
+            elif aufgaben:
+                for q, e, b in aufgaben:
+                    q["proben"].append((e, b, "nur gezählt"))
+
+            # Der Bericht wird gelesen, nicht nur gezaehlt: nach Pfad
+            # sortiert stehen die Fundstellen eines Ordners beieinander.
+            for q in quellen.values():
+                q["fehlt"].sort(key=lambda e: e.rel)
+                q["extra"].sort(key=lambda e: e.rel)
+                q["anders"].sort(key=lambda paar: paar[0].rel)
+            liste = sorted(quellen.values(), key=lambda q: q["name"])
+            job.done("abgleich", (liste, a_root, b_root))
+
+        self.run(work, self.finish)
+
+    # -- Ergebnis ----------------------------------------------------
+
+    @staticmethod
+    def _abweichung(q):
+        if not q["a_n"]:
+            return 100.0 if q["b_n"] else 0.0
+        return (q["b_n"] - q["a_n"]) * 100.0 / q["a_n"]
+
+    @staticmethod
+    def _proben_text(q):
+        if not q["proben"]:
+            return "—"
+        gut = sum(1 for _e, _b, u in q["proben"] if u in ("gleich", "nur gezählt"))
+        wort = ("gezählt" if any(u == "nur gezählt" for _e, _b, u in q["proben"])
+                else "gleich")
+        if gut == len(q["proben"]):
+            return "{} von {} {}".format(gut, len(q["proben"]), wort)
+        return "{} von {} {} — {} nicht".format(
+            gut, len(q["proben"]), wort, len(q["proben"]) - gut)
+
+    def finish(self, _kind, payload):
+        liste, a_root, b_root = payload
+        if liste is None:
+            self.say("Abgebrochen. Es wurde nichts verändert.")
+            return
+        self.bericht = (liste, a_root, b_root)
+        for r in self.tree.get_children():
+            self.tree.delete(r)
+        a_n = b_n = fehlt = extra = anders = proben_schlecht = auffaellig = 0
+        for q in liste:
+            abw = self._abweichung(q)
+            a_n += q["a_n"]
+            b_n += q["b_n"]
+            fehlt += len(q["fehlt"])
+            extra += len(q["extra"])
+            anders += len(q["anders"])
+            schlecht = sum(1 for _e, _b, u in q["proben"]
+                           if u not in ("gleich", "nur gezählt"))
+            proben_schlecht += schlecht
+            # Ueber einem Prozent nachgehen -- so steht es im Vorgehensplan.
+            krumm = abs(abw) > 1.0 or q["fehlt"] or q["anders"] or schlecht
+            if krumm:
+                auffaellig += 1
+            self.tree.insert("", "end", values=(
+                ("! " if krumm else "") + q["name"],
+                fmt_count(q["a_n"]), fmt_count(q["b_n"]),
+                "{:+.1f} %".format(abw).replace(".", ","),
+                fmt_count(len(q["fehlt"])), fmt_count(len(q["extra"])),
+                fmt_count(len(q["anders"])), self._proben_text(q)))
+        self.summary.configure(
+            text="{} Quellen · {} Dateien hier, {} in Drive · {} fehlen · "
+                 "{} nur in Drive · {} mit anderer Grösse".format(
+                     fmt_count(len(liste)), fmt_count(a_n), fmt_count(b_n),
+                     fmt_count(fehlt), fmt_count(extra), fmt_count(anders)))
+        if not auffaellig:
+            self.say("Vollständig. Alle Quellen unter einem Prozent Abweichung, "
+                     "keine fehlende Datei, jede Probe nachgerechnet.")
+        else:
+            self.say("{} von {} Quellen brauchen einen Blick — mit ! gekennzeichnet. "
+                     "Bericht sichern und die Zeilen durchgehen.".format(
+                         auffaellig, len(liste)))
+
+    def export(self):
+        if not self.bericht:
+            messagebox.showinfo(APP_NAME, "Erst abgleichen.")
+            return
+        liste, a_root, b_root = self.bericht
+        path = filedialog.asksaveasfilename(
+            title="Abgleich sichern", defaultextension=".csv",
+            initialfile="abgleich_2026.csv", filetypes=[("CSV", "*.csv")])
+        if not path:
+            return
+
+        def mb(n):
+            return "{:.2f}".format(n / 1048576.0).replace(".", ",")
+
+        with open(path, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.writer(f, delimiter=";")
+            w.writerow(["quelle", "art", "pfad", "dateiname", "anzahl_hier",
+                        "anzahl_drive", "mb_hier", "mb_drive", "hinweis"])
+            w.writerow(["", "ordner hier", a_root, "", "", "", "", "", ""])
+            w.writerow(["", "ordner drive", b_root, "", "", "", "", "", ""])
+            for q in liste:
+                abw = self._abweichung(q)
+                w.writerow([q["name"], "quelle", "", "", q["a_n"], q["b_n"],
+                            mb(q["a_b"]), mb(q["b_b"]),
+                            "Abweichung {:+.1f} %".format(abw).replace(".", ",")])
+                for e in q["fehlt"]:
+                    w.writerow([q["name"], "fehlt in drive", e.reldir, e.name,
+                                "", "", mb(e.size), "", "nicht hochgeladen"])
+                for e in q["extra"]:
+                    w.writerow([q["name"], "nur in drive", e.reldir, e.name,
+                                "", "", "", mb(e.size),
+                                "hier nicht vorhanden"])
+                for e, andere in q["anders"]:
+                    w.writerow([q["name"], "groesse weicht ab", e.reldir, e.name,
+                                "", "", mb(e.size), mb(andere.size),
+                                "unvollständig übertragen oder verändert"])
+                for e, andere, urteil in q["proben"]:
+                    w.writerow([q["name"], "stichprobe", e.reldir, e.name,
+                                "", "", mb(e.size), mb(andere.size), urteil])
+        self.say("Gesichert: " + path)
+
+
+# ============================================================
 #  Hauptfenster
 # ============================================================
 
@@ -3922,6 +4229,7 @@ class App(tk.Tk):
         self.tab_sim = AehnlicheTab(nb, self)
         self.tab_kat = KategorienTab(nb, self)
         self.tab_idx = IndexTab(nb, self)
+        self.tab_abg = AbgleichTab(nb, self)
         self.tab_exp = ExplorerTab(nb, self)
         nb.add(self.tab_inv, text="  1 · Inventur  ")
         nb.add(self.tab_reg, text="  2 · Regeln  ")
@@ -3931,6 +4239,7 @@ class App(tk.Tk):
         nb.add(self.tab_sim, text="  5b · Ähnliche  ")
         nb.add(self.tab_kat, text="  7 · Kategorien  ")
         nb.add(self.tab_idx, text="  8 · Index  ")
+        nb.add(self.tab_abg, text="  9 · Abgleich  ")
         nb.add(self.tab_exp, text="  Explorer  ")
 
         foot = ttk.Frame(self, padding=(14, 0, 14, 10))

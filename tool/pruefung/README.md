@@ -109,6 +109,14 @@ muss die Anzahl schlagen.
 der richtigen Datei stehen und an keiner unbeteiligten. Geprüft wird über die
 Prüfsumme der Datei im Archiv, nicht über ihren Namen.
 
+**Register 9 · Abgleich** — der Drive-Ordner ist hier eine Kopie des Archivs.
+Erst unversehrt: keine Quelle weicht ab, nichts fehlt, jede Probe wird
+nachgerechnet und ist gleich. Dann mit bekannten Schäden — zwei Dateien
+entfernt, eine auf sieben Byte beschnitten, eine fremde dazugelegt —, und
+jede davon muss namentlich im Bericht stehen. Zum Schluss der Fall, den
+reines Zählen nicht findet: eine Datei mit richtiger Grösse und anderem
+Inhalt. Die muss die Stichprobe fangen, und nichts sonst.
+
 **Explorer** — sieben Filter- und Vergleichsproben, jede gegen eine unabhängige
 Nachzählung; Markieren und Kopieren, Quelle unverändert.
 

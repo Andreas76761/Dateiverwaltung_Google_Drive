@@ -318,6 +318,121 @@ b.prueft("8 Index", "achtzehn Spalten", 18, len(index[0]) if index else 0)
 b.notiz("8 Index", "Zusammenfassung", t.summary.cget("text"))
 
 # ================================================================
+#  Register 9 prueft, was Phase 6 hinterlassen hat: liegt oben wirklich
+#  alles. Der gestreamte Drive-Ordner ist hier eine Kopie der
+#  Sammelplatte -- erst unversehrt, dann mit bekannten Schaeden.
+# ================================================================
+print("Register 9 · Abgleich")
+drive = os.path.join(ARBEIT, "drive")
+shutil.rmtree(drive, ignore_errors=True)
+shutil.copytree(ziel, drive)
+
+t = app.tab_abg
+t.var_a.set(ziel)
+t.var_b.set(drive)
+t.var_proben.set("5")
+t.var_lesen.set(True)
+t.start()
+warte(t, app)
+liste, _a_root, _b_root = t.bericht
+
+je_quelle = {}
+for rel in gemeinsam.bestand(ziel):
+    q = rel.split("/")[0] if "/" in rel else "(Wurzel)"
+    je_quelle[q] = je_quelle.get(q, 0) + 1
+b.prueft("9 Abgleich", "jede Quelle mit ihrer Anzahl", je_quelle,
+         {q["name"]: q["a_n"] for q in liste})
+b.prueft("9 Abgleich", "gleicher Baum: nichts fehlt, nichts zuviel", (0, 0, 0),
+         (sum(len(q["fehlt"]) for q in liste),
+          sum(len(q["extra"]) for q in liste),
+          sum(len(q["anders"]) for q in liste)))
+b.prueft("9 Abgleich", "fünf Proben je Quelle",
+         sum(min(5, q["a_n"]) for q in liste),
+         sum(len(q["proben"]) for q in liste))
+b.prueft("9 Abgleich", "jede Probe nachgerechnet und gleich", [],
+         [u for q in liste for _e, _bb, u in q["proben"] if u != "gleich"])
+b.prueft("9 Abgleich", "und sagt, dass es vollständig ist", True,
+         "Vollständig" in t.status.cget("text"), t.status.cget("text"))
+
+# -- und jetzt mit bekannten Schaeden ----------------------------
+rel_alle = sorted(gemeinsam.bestand(drive))
+weg = [rel_alle[0], rel_alle[len(rel_alle) // 2]]
+for rel in weg:
+    os.remove(os.path.join(drive, rel))
+kurz = rel_alle[1]
+with open(os.path.join(drive, kurz), "r+b") as f:
+    f.truncate(7)
+fremd = os.path.join(drive, rel_alle[2].split("/")[0], "nie_hochgeladen.txt")
+with open(fremd, "wb") as f:
+    f.write(b"war nie auf der Sammelplatte")
+
+t.start()
+warte(t, app)
+liste, _a_root, _b_root = t.bericht
+b.prueft("9 Abgleich", "die entfernten Dateien werden genannt", sorted(weg),
+         sorted(os.path.join(e.reldir, e.name).replace("\\", "/")
+                for q in liste for e in q["fehlt"]))
+b.prueft("9 Abgleich", "die beschnittene Datei fällt auf", [kurz],
+         [os.path.join(e.reldir, e.name).replace("\\", "/")
+          for q in liste for e, _andere in q["anders"]])
+b.prueft("9 Abgleich", "die fremde Datei fällt auf", ["nie_hochgeladen.txt"],
+         [e.name for q in liste for e in q["extra"]])
+b.prueft("9 Abgleich", "und es heisst nicht mehr vollständig", False,
+         "Vollständig" in t.status.cget("text"), t.status.cget("text"))
+
+bedienung.speichern = os.path.join(ARBEIT, "abgleich.csv")
+t.export()
+with open(bedienung.speichern, encoding="utf-8-sig") as f:
+    abg = list(csv.DictReader(f, delimiter=";"))
+arten = {}
+for r in abg:
+    arten[r["art"]] = arten.get(r["art"], 0) + 1
+b.prueft("9 Abgleich", "der Bericht nennt jede Fundstelle",
+         {"fehlt in drive": 2, "groesse weicht ab": 1, "nur in drive": 1},
+         {k: v for k, v in arten.items()
+          if k in ("fehlt in drive", "groesse weicht ab", "nur in drive")})
+b.prueft("9 Abgleich", "eine Zeile je Quelle", len(liste), arten.get("quelle"))
+b.notiz("9 Abgleich", "Zusammenfassung", t.summary.cget("text"))
+
+# -- gleiche Groesse, anderer Inhalt: das findet nur die Stichprobe
+klein_a = os.path.join(ARBEIT, "probe_platte")
+klein_b = os.path.join(ARBEIT, "probe_drive")
+shutil.rmtree(klein_a, ignore_errors=True)
+shutil.rmtree(klein_b, ignore_errors=True)
+os.makedirs(os.path.join(klein_a, "10_PC1"))
+for i in range(3):
+    with open(os.path.join(klein_a, "10_PC1", "datei_%d.txt" % i), "wb") as f:
+        f.write(b"Inhalt %d " % i * 50)
+shutil.copytree(klein_a, klein_b)
+getauscht = os.path.join(klein_b, "10_PC1", "datei_1.txt")
+gross = os.path.getsize(getauscht)
+with open(getauscht, "wb") as f:
+    f.write(b"x" * gross)
+
+t.var_a.set(klein_a)
+t.var_b.set(klein_b)
+t.start()
+warte(t, app)
+liste, _a_root, _b_root = t.bericht
+b.prueft("9 Abgleich", "gleich gross, anderer Inhalt: Zählen merkt nichts",
+         (0, 0, 0), (sum(len(q["fehlt"]) for q in liste),
+                     sum(len(q["extra"]) for q in liste),
+                     sum(len(q["anders"]) for q in liste)))
+b.prueft("9 Abgleich", "die Stichprobe merkt es", ["datei_1.txt"],
+         [e.name for q in liste for e, _bb, u in q["proben"] if u != "gleich"])
+b.prueft("9 Abgleich", "eine unlesbare Datei gibt keine Prüfsumme", None,
+         d.sha256_of(os.path.join(klein_b, "gibt_es_nicht.txt"),
+                     d.Job(d.queue.Queue())))
+
+# -- und der Vergleich mit sich selbst wird abgewiesen
+t.var_b.set(klein_a)
+vorher_warnungen = len(bedienung.warnungen)
+t.start()
+app.update()
+b.prueft("9 Abgleich", "Vergleich mit sich selbst wird abgewiesen",
+         vorher_warnungen + 1, len(bedienung.warnungen))
+
+# ================================================================
 print("Explorer")
 t = app.tab_exp
 bedienung.ordner = os.path.join(QUELLE, "PC1")
